@@ -1,0 +1,6 @@
+{
+  "name": "VisionBoard",
+  "description": "The database of future startup ideas. Publish ideas, find collaborators, attract funding, and build your startup.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
