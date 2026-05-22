@@ -346,7 +346,7 @@ export default function AddIdeaModal({
                 </div>
                 
                 <div className="sm:col-span-3">
-                  <label className="block text-2xs font-extrabold font-mono text-slate-400 dark:text-slate-550 uppercase tracking-widest mb-1.5 select-none text-[9px]">
+                  <label className="block text-2xs font-extrabold font-mono text-slate-400 dark:text-slate-500 uppercase tracking-widest mb-1.5 select-none text-[9px]">
                     Startup Project Name <span className="text-red-500">*</span>
                   </label>
                   <input
@@ -355,8 +355,9 @@ export default function AddIdeaModal({
                     required
                     value={name}
                     onChange={(e) => setName(e.target.value)}
+                    dir="auto"
                     placeholder="e.g. Healthflow, ScribeAI, TaskMaster"
-                    className="w-full py-2.5 px-3.5 border border-slate-200 dark:border-slate-800/80 rounded-xl text-xs placeholder-slate-400 focus:outline-none focus:ring-4 focus:ring-blue-500/10 focus:border-blue-500 dark:focus:border-blue-400 transition-all duration-155 bg-white dark:bg-slate-950 dark:text-white"
+                    className="w-full py-2.5 px-3.5 border border-slate-200 dark:border-slate-800/80 rounded-xl text-xs placeholder-slate-400 focus:outline-none focus:ring-4 focus:ring-blue-500/10 focus:border-blue-500 dark:focus:border-blue-400 transition-all duration-155 bg-white dark:bg-slate-950 dark:text-white font-medium"
                   />
                 </div>
               </div>
@@ -435,7 +436,7 @@ export default function AddIdeaModal({
                       <button
                         type="button"
                         onClick={() => document.getElementById('banner-file-input')?.click()}
-                        className="inline-flex items-center space-x-1.5 py-2 px-3.5 bg-white hover:bg-slate-50 dark:bg-slate-800 dark:hover:bg-slate-750 border border-slate-200 dark:border-slate-705 text-slate-800 dark:text-slate-200 rounded-lg text-xs font-semibold cursor-pointer select-none transition-all duration-150 hover:shadow-xs"
+                        className="inline-flex items-center space-x-1.5 py-2 px-3.5 bg-white hover:bg-slate-50 dark:bg-slate-800 dark:hover:bg-slate-700 border border-slate-200 dark:border-slate-700 text-slate-800 dark:text-slate-200 rounded-lg text-xs font-semibold cursor-pointer select-none transition-all duration-150 hover:shadow-xs"
                       >
                         <Upload className="w-3.5 h-3.5" />
                         <span>Upload Custom Banner Landscape</span>
@@ -465,9 +466,9 @@ export default function AddIdeaModal({
             {/* SECTION 3: Idea Category Selection */}
             <div className="bg-slate-50/50 dark:bg-slate-900/40 p-4 sm:p-5 rounded-2xl border border-slate-200/40 dark:border-slate-800/50 space-y-3.5 hover:shadow-[0_4px_16px_rgba(0,0,0,0.01)] transition-all">
               <div className="flex items-center space-x-2 border-b border-slate-200/45 dark:border-slate-800/50 pb-2">
-                <div className="w-1.5 h-3 bg-indigo-505 bg-indigo-500 rounded-full" />
+                <div className="w-1.5 h-3 bg-indigo-500 rounded-full" />
                 <div>
-                  <span className="block text-[9px] font-bold font-mono text-slate-400 dark:text-slate-550 uppercase tracking-widest leading-none select-none">SECTION 3</span>
+                  <span className="block text-[9px] font-bold font-mono text-slate-400 dark:text-slate-500 uppercase tracking-widest leading-none select-none">SECTION 3</span>
                   <span className="block text-xs font-extrabold text-slate-800 dark:text-slate-200 mt-1 select-none">Industry Category <span className="text-red-500 text-2xs font-semibold">* Required</span></span>
                 </div>
               </div>
@@ -482,7 +483,7 @@ export default function AddIdeaModal({
                       className={`px-3.5 py-1.5 border rounded-xl text-[11px] font-semibold transition-all duration-[180ms] cursor-pointer hover:scale-[1.02] active:scale-[0.98] ${
                         isActive 
                           ? 'bg-slate-950 dark:bg-slate-100 border-slate-950 dark:border-slate-100 text-white dark:text-slate-950 shadow-sm' 
-                          : 'bg-white dark:bg-slate-900/40 border-slate-200/80 dark:border-slate-800/70 text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:border-slate-350 dark:hover:border-slate-700'
+                          : 'bg-white dark:bg-slate-900/40 border-slate-200/80 dark:border-slate-800/70 text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:border-slate-300 dark:hover:border-slate-700'
                       }`}
                     >
                       {cat}
@@ -517,8 +518,9 @@ export default function AddIdeaModal({
                     required
                     value={description}
                     onChange={(e) => setDescription(e.target.value)}
+                    dir="auto"
                     placeholder="Summarize the product concept, core values, and features visually."
-                    className="w-full py-2.5 px-3.5 border-2 border-slate-200 dark:border-slate-800 rounded-xl text-xs placeholder-slate-400 bg-white dark:bg-slate-950 dark:text-white focus:outline-none focus:ring-4 focus:ring-blue-500/10 focus:border-blue-500 transition-all resize-none leading-relaxed font-bold"
+                    className="w-full py-3 px-4 border-2 border-slate-200 dark:border-slate-800 rounded-xl text-xs placeholder-slate-400 bg-white dark:bg-slate-950 dark:text-white focus:outline-none focus:ring-4 focus:ring-blue-500/10 focus:border-blue-500 transition-all resize-none leading-relaxed font-medium"
                   />
                 </div>
 
@@ -533,8 +535,9 @@ export default function AddIdeaModal({
                       required
                       value={whyThisWorks}
                       onChange={(e) => setWhyThisWorks(e.target.value)}
+                      dir="auto"
                       placeholder="Describe unique market advantages, viability, and demand."
-                      className="w-full py-2.5 px-3.5 border-2 border-slate-200 dark:border-slate-800 rounded-xl text-xs placeholder-slate-400 bg-white dark:bg-slate-950 dark:text-white focus:outline-none focus:ring-4 focus:ring-blue-500/10 focus:border-blue-500 transition-all resize-none leading-relaxed font-bold"
+                      className="w-full py-3 px-4 border-2 border-slate-200 dark:border-slate-800 rounded-xl text-xs placeholder-slate-400 bg-white dark:bg-slate-950 dark:text-white focus:outline-none focus:ring-4 focus:ring-blue-500/10 focus:border-blue-500 transition-all resize-none leading-relaxed font-medium"
                     />
                   </div>
 
@@ -548,8 +551,9 @@ export default function AddIdeaModal({
                       required
                       value={problemSolved}
                       onChange={(e) => setProblemSolved(e.target.value)}
+                      dir="auto"
                       placeholder="Describe user pain points this idea targets directly."
-                      className="w-full py-2.5 px-3.5 border-2 border-slate-200 dark:border-slate-800 rounded-xl text-xs placeholder-slate-400 bg-white dark:bg-slate-950 dark:text-white focus:outline-none focus:ring-4 focus:ring-blue-500/10 focus:border-blue-500 transition-all resize-none leading-relaxed font-bold"
+                      className="w-full py-3 px-4 border-2 border-slate-200 dark:border-slate-800 rounded-xl text-xs placeholder-slate-400 bg-white dark:bg-slate-950 dark:text-white focus:outline-none focus:ring-4 focus:ring-blue-500/10 focus:border-blue-500 transition-all resize-none leading-relaxed font-medium"
                     />
                   </div>
                 </div>
@@ -564,8 +568,9 @@ export default function AddIdeaModal({
                     required
                     value={targetAudience}
                     onChange={(e) => setTargetAudience(e.target.value)}
+                    dir="auto"
                     placeholder="e.g. Physicians, Node Engineers, College Students barter network"
-                    className="w-full py-2.5 px-3.5 border border-slate-200 dark:border-slate-800/80 rounded-xl text-xs placeholder-slate-400 focus:outline-none focus:ring-4 focus:ring-blue-500/10 focus:border-blue-500 dark:focus:border-blue-400 transition-all bg-white dark:bg-slate-950 dark:text-white"
+                    className="w-full py-3 px-4 border border-slate-200 dark:border-slate-800/80 rounded-xl text-xs placeholder-slate-400 focus:outline-none focus:ring-4 focus:ring-blue-500/10 focus:border-blue-500 dark:focus:border-blue-400 transition-all bg-white dark:bg-slate-950 dark:text-white font-medium"
                   />
                 </div>
               </div>
@@ -583,140 +588,60 @@ export default function AddIdeaModal({
 
               <div className="grid grid-cols-1 md:grid-cols-3 gap-3.5">
                 <div>
-                  <label className="block text-[10px] text-slate-500 dark:text-slate-450 mb-1 select-none font-bold uppercase tracking-wider font-mono">Instagram</label>
+                  <label className="block text-[10px] text-slate-500 dark:text-slate-400 mb-1 select-none font-bold uppercase tracking-wider font-mono">Instagram</label>
                   <input
                     id="idea-instagram-url"
                     type="url"
                     value={instagramUrl}
                     onChange={(e) => setInstagramUrl(e.target.value)}
                     placeholder="https://instagram.com/co"
-                    className="w-full py-2 px-3 border border-slate-200 dark:border-slate-800/85 bg-white dark:bg-slate-950 dark:text-white rounded-xl text-xs placeholder-slate-400 focus:ring-4 focus:ring-blue-500/10 focus:border-blue-500 outline-none transition-all"
+                    className="w-full py-2 px-3 border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-950 dark:text-white rounded-xl text-xs placeholder-slate-400 focus:ring-4 focus:ring-blue-500/10 focus:border-blue-500 outline-none transition-all"
                   />
                 </div>
                 <div>
-                  <label className="block text-[10px] text-slate-500 dark:text-slate-450 mb-1 select-none font-bold uppercase tracking-wider font-mono">Facebook</label>
+                  <label className="block text-[10px] text-slate-500 dark:text-slate-400 mb-1 select-none font-bold uppercase tracking-wider font-mono">Facebook</label>
                   <input
                     id="idea-facebook-url"
                     type="url"
                     value={facebookUrl}
                     onChange={(e) => setFacebookUrl(e.target.value)}
                     placeholder="https://facebook.com/co"
-                    className="w-full py-2 px-3 border border-slate-200 dark:border-slate-800/85 bg-white dark:bg-slate-950 dark:text-white rounded-xl text-xs placeholder-slate-400 focus:ring-4 focus:ring-blue-500/10 focus:border-blue-500 outline-none transition-all"
+                    className="w-full py-2 px-3 border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-950 dark:text-white rounded-xl text-xs placeholder-slate-400 focus:ring-4 focus:ring-blue-500/10 focus:border-blue-500 outline-none transition-all"
                   />
                 </div>
                 <div>
-                  <label className="block text-[10px] text-slate-500 dark:text-slate-450 mb-1 select-none font-bold uppercase tracking-wider font-mono">Website Pitch</label>
+                  <label className="block text-[10px] text-slate-500 dark:text-slate-400 mb-1 select-none font-bold uppercase tracking-wider font-mono">Website Pitch</label>
                   <input
                     id="idea-website-url"
                     type="url"
                     value={websiteUrl}
                     onChange={(e) => setWebsiteUrl(e.target.value)}
                     placeholder="https://mycompany.com"
-                    className="w-full py-2 px-3 border border-slate-200 dark:border-slate-800/85 bg-white dark:bg-slate-950 dark:text-white rounded-xl text-xs placeholder-slate-400 focus:ring-4 focus:ring-blue-500/10 focus:border-blue-500 outline-none transition-all"
+                    className="w-full py-2 px-3 border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-950 dark:text-white rounded-xl text-xs placeholder-slate-400 focus:ring-4 focus:ring-blue-500/10 focus:border-blue-500 outline-none transition-all"
                   />
                 </div>
               </div>
             </div>
 
-            {/* SECTION 6: Option Settings Config */}
+            {/* SECTION 6: Project Growth Strategy */}
             <div className="bg-slate-50/50 dark:bg-slate-900/40 p-4 sm:p-5 rounded-2xl border border-slate-200/40 dark:border-slate-800/50 space-y-4 hover:shadow-[0_4px_16px_rgba(0,0,0,0.01)] transition-all">
-              <div className="flex items-center space-x-2 border-b border-slate-200/45 dark:border-slate-800/50 pb-2">
-                <div className="w-1.5 h-3 bg-pink-500 rounded-full" />
-                <div>
-                  <span className="block text-[9px] font-bold font-mono text-slate-400 dark:text-slate-500 uppercase tracking-widest leading-none select-none">SECTION 6</span>
-                  <span className="block text-xs font-extrabold text-slate-800 dark:text-slate-200 mt-1 select-none">Partnership & Support Config</span>
-                </div>
-              </div>
-              
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4" id="add-idea-options-layout">
-                
-                {/* 1. Collaboration toggler */}
-                <div className={`p-4 border rounded-2xl transition-all duration-200 ${
-                  needCollaboration 
-                    ? 'bg-blue-50/40 border-blue-200 dark:bg-blue-950/25 dark:border-blue-900/60 shadow-xs' 
-                    : 'bg-white dark:bg-slate-900 border-slate-200/60 dark:border-slate-800/70'
-                }`}>
-                  <div className="flex items-center justify-between mb-3 select-none">
-                    <span className="text-xs font-extrabold text-slate-800 dark:text-slate-250">Need Co-founders / Team</span>
-                    <label className="relative inline-flex items-center cursor-pointer">
-                      <input
-                        id="collaboration-toggle"
-                        type="checkbox"
-                        checked={needCollaboration}
-                        onChange={(e) => setNeedCollaboration(e.target.checked)}
-                        className="sr-only peer"
-                      />
-                      <div className="w-9 h-5 bg-slate-200 peer-focus:outline-none rounded-full peer dark:bg-slate-800 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all dark:border-slate-600 peer-checked:bg-blue-600"></div>
-                    </label>
+              <div className="flex items-center justify-between border-b border-slate-200/45 dark:border-slate-800/50 pb-2.5">
+                <div className="flex items-center space-x-2">
+                  <div className="w-1.5 h-3 bg-blue-600 rounded-full" />
+                  <div>
+                    <span className="block text-[9px] font-bold font-mono text-slate-400 dark:text-slate-500 uppercase tracking-widest leading-none select-none">SECTION 6</span>
+                    <span className="block text-xs font-extrabold text-slate-800 dark:text-slate-200 mt-1 select-none">Project Roadmap & Visibility</span>
                   </div>
-                  {needCollaboration && (
-                    <div className="space-y-1.5 animate-slide-down">
-                      <label className="block text-[9px] font-mono text-slate-400 dark:text-slate-500 uppercase font-bold">Max Partners Needed</label>
-                      <input
-                        id="collab-limit-input"
-                        type="number"
-                        min={1}
-                        max={100}
-                        value={collaborationLimit}
-                        onChange={(e) => setCollaborationLimit(parseInt(e.target.value) || 5)}
-                        className="w-full py-1.5 px-3.5 bg-white dark:bg-slate-950 border border-slate-250 dark:border-slate-800 dark:text-white rounded-xl text-xs focus:ring-4 focus:ring-blue-500/10 outline-none"
-                      />
-                    </div>
-                  )}
-                </div>
-
-                {/* 2. Funding toggler */}
-                <div className={`p-4 border rounded-2xl transition-all duration-200 ${
-                  needFunding 
-                    ? 'bg-amber-50/45 border-amber-250 dark:bg-amber-950/20 dark:border-amber-900/60 shadow-xs' 
-                    : 'bg-white dark:bg-slate-900 border-slate-200/60 dark:border-slate-800/70'
-                }`}>
-                  <div className="flex items-center justify-between mb-3 select-none">
-                    <span className="text-xs font-extrabold text-slate-800 dark:text-slate-205">Need Funding / Investors</span>
-                    <label className="relative inline-flex items-center cursor-pointer">
-                      <input
-                        id="funding-toggle"
-                        type="checkbox"
-                        checked={needFunding}
-                        onChange={(e) => setNeedFunding(e.target.checked)}
-                        className="sr-only peer"
-                      />
-                      <div className="w-9 h-5 bg-slate-200 peer-focus:outline-none rounded-full peer dark:bg-slate-800 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all dark:border-slate-600 peer-checked:bg-amber-500"></div>
-                    </label>
-                  </div>
-                  {needFunding && (
-                    <div className="space-y-1.5 animate-slide-down">
-                      <label className="block text-[9px] font-mono text-slate-400 dark:text-slate-500 uppercase font-bold">Funding Target Goal</label>
-                      <input
-                        id="funding-goal-input"
-                        type="text"
-                        value={fundingAmount}
-                        onChange={(e) => setFundingAmount(e.target.value)}
-                        placeholder="e.g. $50,000 / MVP cost"
-                        className="w-full py-1.5 px-3.5 bg-white dark:bg-slate-950 border border-slate-255 dark:border-slate-800 dark:text-white rounded-xl text-xs focus:ring-4 focus:ring-amber-500/10 outline-none"
-                      />
-                    </div>
-                  )}
-                </div>
-
-              </div>
-            </div>
-
-            {/* SECTION 7: Visibility & Stepper Stages */}
-            <div className="bg-slate-50/50 dark:bg-slate-900/40 p-4 sm:p-5 rounded-2xl border border-slate-200/40 dark:border-slate-800/50 space-y-4 hover:shadow-[0_4px_16px_rgba(0,0,0,0.01)] transition-all">
-              <div className="flex items-center space-x-2 border-b border-slate-200/45 dark:border-slate-800/50 pb-2">
-                <div className="w-1.5 h-3 bg-cyan-500 rounded-full" />
-                <div>
-                  <span className="block text-[9px] font-bold font-mono text-slate-400 dark:text-slate-550 uppercase tracking-widest leading-none select-none">SECTION 7</span>
-                  <span className="block text-xs font-extrabold text-slate-800 dark:text-slate-200 mt-1 select-none">Deployment & Launch Status</span>
                 </div>
               </div>
 
-              <div className="space-y-4">
-                <div>
-                  <label className="block text-2xs font-extrabold font-mono text-slate-400 dark:text-slate-550 uppercase tracking-widest mb-1.5 select-none text-[9px]">Roadmap Maturity Stage</label>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+                <div className="space-y-2">
+                  <label className="block text-2xs font-extrabold font-mono text-slate-400 dark:text-slate-500 uppercase tracking-widest select-none text-[9px]">
+                    Current Progress Stage <span className="text-red-500">*</span>
+                  </label>
                   <select
-                    id="stage-select"
+                    id="progress-stage-select"
                     value={progressStage}
                     onChange={(e) => setProgressStage(e.target.value as any)}
                     className="w-full py-2.5 px-3.5 border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-950 dark:text-white rounded-xl text-xs focus:ring-4 focus:ring-blue-500/10 outline-none"
@@ -732,7 +657,7 @@ export default function AddIdeaModal({
                 {/* Highly Polished & Highlighted Public / Private Choices */}
                 <div className="space-y-2.5">
                   <div className="flex items-center justify-between">
-                    <label className="block text-2xs font-extrabold font-mono text-slate-400 dark:text-slate-550 uppercase tracking-widest select-none text-[9px]">
+                    <label className="block text-2xs font-extrabold font-mono text-slate-400 dark:text-slate-500 uppercase tracking-widest select-none text-[9px]">
                       Concept Visibility Strategy <span className="text-red-500">*</span>
                     </label>
                   </div>
@@ -770,7 +695,7 @@ export default function AddIdeaModal({
                       onClick={() => setIsPublic(false)}
                       className={`text-left p-4.5 rounded-2xl border transition-all duration-200 cursor-pointer flex items-start space-x-3.5 relative hover:scale-[1.015] ${
                         !isPublic 
-                          ? 'bg-amber-500/5 dark:bg-amber-400/5 border-amber-505/80 border-amber-500 ring-4 ring-amber-500/5 shadow-2xs' 
+                          ? 'bg-amber-500/5 dark:bg-amber-400/5 border-amber-500 ring-4 ring-amber-500/5 shadow-2xs' 
                           : 'bg-white dark:bg-slate-900 border-slate-200/80 dark:border-slate-800 opacity-75 hover:opacity-100 hover:border-slate-300'
                       }`}
                     >
@@ -784,7 +709,7 @@ export default function AddIdeaModal({
                         <span className={`block text-xs font-bold leading-tight ${!isPublic ? 'text-amber-950 dark:text-amber-200' : 'text-slate-800 dark:text-slate-300'}`}>
                           🔒 Private Draft Mode
                         </span>
-                        <span className="block text-[10.5px] text-slate-505 dark:text-slate-400 mt-1.5 leading-relaxed">
+                        <span className="block text-[10.5px] text-slate-500 dark:text-slate-400 mt-1.5 leading-relaxed">
                           Hidden completely from the homepage feed. Can only be accessed and managed in your secure Founder Hub dashboard.
                         </span>
                       </div>
@@ -795,19 +720,19 @@ export default function AddIdeaModal({
             </div>
 
             {/* Bottom Form Actions */}
-            <div className="border-t border-slate-150/50 dark:border-slate-800/60 pt-6 flex items-center justify-end space-x-3 select-none">
+            <div className="border-t border-slate-100 dark:border-slate-800/60 pt-6 flex items-center justify-end space-x-3 select-none">
               <button
                 id="cancel-add-idea-btn"
                 type="button"
                 onClick={onClose}
-                className="py-2.5 px-5 border border-slate-205 dark:border-slate-750 hover:border-slate-300 dark:hover:border-slate-705 text-slate-600 dark:text-slate-300 rounded-xl text-xs font-semibold hover:bg-slate-50 dark:hover:bg-slate-850 transition-all cursor-pointer"
+                className="py-2.5 px-5 border border-slate-200 dark:border-slate-700 hover:border-slate-300 dark:hover:border-slate-600 text-slate-600 dark:text-slate-300 rounded-xl text-xs font-semibold hover:bg-slate-50 dark:hover:bg-slate-800 transition-all cursor-pointer"
               >
                 Cancel
               </button>
               <button
                 id="submit-add-idea-btn"
                 type="submit"
-                className="py-2.5 px-6 bg-gradient-to-r from-blue-600 to-indigo-650 hover:from-blue-750 hover:to-indigo-700 text-white rounded-xl text-xs font-bold transition-all shadow-[0_4px_16px_rgba(59,130,246,0.18)] hover:-translate-y-0.5 cursor-pointer flex items-center space-x-1.5"
+                className="py-2.5 px-6 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white rounded-xl text-xs font-bold transition-all shadow-[0_4px_16px_rgba(59,130,246,0.18)] hover:-translate-y-0.5 cursor-pointer flex items-center space-x-1.5"
               >
                 <Send className="h-3.5 w-3.5" />
                 <span>{ideaToEdit ? "Save Changes" : "Publish Concept"}</span>

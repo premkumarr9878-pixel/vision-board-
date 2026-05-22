@@ -273,6 +273,7 @@ export default function OnboardingView({ source, onComplete, onCancel }: Onboard
                         required={isSignUp}
                         value={name}
                         onChange={(e) => setName(e.target.value)}
+                        dir="auto"
                         placeholder="e.g. Rachel Adams, Johnathan Doe"
                         className="w-full pl-10 pr-4 py-2.5 border border-slate-200 rounded-xl text-sm placeholder-slate-450 focus:outline-none focus:ring-2 focus:ring-blue-500/10 focus:border-blue-500 bg-white"
                       />
@@ -361,6 +362,7 @@ export default function OnboardingView({ source, onComplete, onCancel }: Onboard
                     rows={3}
                     value={bio}
                     onChange={(e) => setBio(e.target.value)}
+                    dir="auto"
                     placeholder="e.g. AI-focused systems software engineer with 4 years experience building backend APIs. Looking to match with creative product managers to launch standard B2B SaaS utilities."
                     className="w-full px-4 py-3 border border-slate-200 rounded-xl text-xs placeholder-slate-450 focus:outline-none focus:ring-2 focus:ring-blue-500/10 focus:border-blue-500 bg-white resize-none leading-relaxed"
                   />
@@ -374,6 +376,7 @@ export default function OnboardingView({ source, onComplete, onCancel }: Onboard
                     rows={4}
                     value={buildingDesc}
                     onChange={(e) => setBuildingDesc(e.target.value)}
+                    dir="auto"
                     placeholder="Tell people what you are building and why it matters..."
                     className="w-full px-4 py-3 border border-slate-200 rounded-xl text-xs placeholder-slate-450 focus:outline-none focus:ring-2 focus:ring-blue-500/10 focus:border-blue-500 bg-white resize-none leading-relaxed"
                   />

@@ -119,8 +119,8 @@ export default function LeaderboardTable() {
                       <img src={founder.avatar} alt={founder.name} className="w-full h-full object-cover" />
                     </div>
                     <div>
-                      <h4 className="font-black text-slate-950 dark:text-white text-sm tracking-tight">{founder.name}</h4>
-                      <p className="text-[11px] font-bold text-slate-500 dark:text-slate-400 line-clamp-1 max-w-[200px] mt-0.5">{founder.bio}</p>
+                      <h4 className="font-black text-slate-950 dark:text-white text-sm tracking-tight" dir="auto">{founder.name}</h4>
+                      <p className="text-[11px] font-bold text-slate-500 dark:text-slate-400 line-clamp-1 max-w-[200px] mt-0.5" dir="auto">{founder.bio}</p>
                     </div>
                   </div>
                 </td>

@@ -9,6 +9,7 @@ import AuthModal from './components/AuthModal';
 import DashboardView from './components/DashboardView';
 import LeaderboardTable from './components/LeaderboardTable';
 import OnboardingView from './components/OnboardingView';
+import { CardSkeleton, TableRowSkeleton } from './components/Skeleton';
 import { getLocalStorageState, saveLocalStorageState, DEFAULT_PROFILE } from './data';
 import { StartupIdea, FounderProfile, CollaborationRequest, FundingRequest, Suggestion } from './types';
 import { Star, Sparkles, Send, Flame, Lightbulb, Users, Globe, ExternalLink } from 'lucide-react';
@@ -71,6 +72,9 @@ export default function App() {
   const [interestTargetType, setInterestTargetType] = useState<'collaboration' | 'funding' | null>(null);
   const [interestTargetIdea, setInterestTargetIdea] = useState<StartupIdea | null>(null);
 
+  // Loading state for simulation
+  const [isLoading, setIsLoading] = useState(true);
+
   // Simple feedback alerts
   const [toastMessage, setToastMessage] = useState<string | null>(null);
 
@@ -80,6 +84,14 @@ export default function App() {
     const saved = localStorage.getItem('vb_user_liked_ids');
     return saved ? JSON.parse(saved) : ['idea-1', 'idea-3']; // Seed with some pre-liked items
   });
+
+  // Simulation of initial data fetch
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setIsLoading(false);
+    }, 1200);
+    return () => clearTimeout(timer);
+  }, []);
 
   // Sync state changes to global LocalStorage
   useEffect(() => {
@@ -379,7 +391,7 @@ export default function App() {
   };
 
   // Expressions of interest submit handlers
-  const handleInterestSubmit = (formData: { name: string; email: string; phone: string; message: string; role?: string; fundingCapacity?: string }) => {
+  const handleInterestSubmit = (formData: { name: string; email: string; phone: string; message: string; role?: string; investmentAmount?: string }) => {
     if (!interestTargetIdea || !interestTargetType) return;
 
     if (interestTargetType === 'collaboration') {
@@ -417,7 +429,7 @@ export default function App() {
         name: formData.name,
         email: formData.email,
         phone: formData.phone,
-        fundingCapacity: formData.fundingCapacity || 'Not specified',
+        investmentAmount: formData.investmentAmount || 'Not specified',
         message: formData.message,
         status: 'pending',
         createdAt: new Date().toISOString()
@@ -559,10 +571,10 @@ export default function App() {
         {currentView === 'explore' ? (
           
           /* EXPLORE HOMEPAGE DECK (TrustMRR spacing style) */
-          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10 space-y-12" id="explore-view">
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 space-y-6" id="explore-view">
             
             {/* Geometric Centered Headline Callout */}
-            <div className="text-center max-w-4xl mx-auto space-y-6 select-none mb-16 pt-4" id="hero-centered-headline">
+            <div className="text-center max-w-4xl mx-auto space-y-3 select-none mb-8 pt-0" id="hero-centered-headline">
               {/* Optional verification alert */}
               <div className="inline-flex items-center space-x-2 px-4 py-2 bg-blue-500/5 dark:bg-blue-400/10 text-blue-700 dark:text-blue-400 text-[10px] font-black font-mono uppercase tracking-wider rounded-full border-2 border-blue-500/15 shadow-sm">
                 <Sparkles className="h-4 w-4 text-blue-500 shrink-0 fill-current animate-pulse" />
@@ -578,7 +590,7 @@ export default function App() {
               </p>
 
               {/* Home Add Idea trigger and Search Bar alignment */}
-              <div className="flex flex-col sm:flex-row items-center justify-center gap-4 max-w-md mx-auto pt-4">
+              <div className="flex flex-col sm:flex-row items-center justify-center gap-4 max-w-md mx-auto pt-1">
                 <button
                   id="add-idea-hero-btn"
                   onClick={() => {
@@ -636,7 +648,7 @@ export default function App() {
             </div>
 
             {/* Category selection tab caps */}
-            <div className="mb-10" id="category-filter-section">
+            <div className="mb-6" id="category-filter-section">
               <div className="flex items-center justify-between mb-4 px-1">
                 <span className="text-[10px] font-bold font-mono uppercase tracking-widest text-slate-400 dark:text-slate-500">Designated Categories</span>
                 <div className="h-px flex-1 mx-4 bg-gradient-to-r from-slate-200/40 via-transparent to-transparent dark:from-slate-800/40" />
@@ -647,7 +659,7 @@ export default function App() {
               />
             </div>
 
-          <div className="flex flex-col space-y-16" id="ideas-main-feed">
+          <div className="flex flex-col space-y-10" id="ideas-main-feed">
             {/* 1. Trending Ideas (Sorted by high engagement) */}
             <section id="trending-ideas-section">
               <div className="flex items-center justify-between mb-8 px-1">
@@ -663,16 +675,20 @@ export default function App() {
                 </div>
               </div>
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-                {trendingIdeas.map(idea => (
-                  <IdeaCard 
-                    key={idea.id} 
-                    idea={idea} 
-                    onCardClick={() => setSelectedIdea(idea)}
-                    onLikeClick={() => handleLikeToggle(idea.id)}
-                    isLikedByUser={likedIdeaIds.includes(idea.id)}
-                    rowStyle="trending"
-                  />
-                ))}
+                {isLoading ? (
+                  Array.from({ length: 3 }).map((_, i) => <CardSkeleton key={i} />)
+                ) : (
+                  trendingIdeas.map(idea => (
+                    <IdeaCard 
+                      key={idea.id} 
+                      idea={idea} 
+                      onCardClick={() => setSelectedIdea(idea)}
+                      onLikeClick={() => handleLikeToggle(idea.id)}
+                      isLikedByUser={likedIdeaIds.includes(idea.id)}
+                      rowStyle="trending"
+                    />
+                  ))
+                )}
               </div>
             </section>
 
@@ -691,16 +707,20 @@ export default function App() {
                 </div>
               </div>
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-                {recentlyListedIdeas.map(idea => (
-                  <IdeaCard 
-                    key={idea.id} 
-                    idea={idea} 
-                    onCardClick={() => setSelectedIdea(idea)}
-                    onLikeClick={() => handleLikeToggle(idea.id)}
-                    isLikedByUser={likedIdeaIds.includes(idea.id)}
-                    rowStyle="recent"
-                  />
-                ))}
+                {isLoading ? (
+                  Array.from({ length: 3 }).map((_, i) => <CardSkeleton key={i} />)
+                ) : (
+                  recentlyListedIdeas.map(idea => (
+                    <IdeaCard 
+                      key={idea.id} 
+                      idea={idea} 
+                      onCardClick={() => setSelectedIdea(idea)}
+                      onLikeClick={() => handleLikeToggle(idea.id)}
+                      isLikedByUser={likedIdeaIds.includes(idea.id)}
+                      rowStyle="recent"
+                    />
+                  ))
+                )}
               </div>
             </section>
 
@@ -719,16 +739,20 @@ export default function App() {
                 </div>
               </div>
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-                {weeklyBestIdeas.map(idea => (
-                  <IdeaCard 
-                    key={idea.id} 
-                    idea={idea} 
-                    onCardClick={() => setSelectedIdea(idea)}
-                    onLikeClick={() => handleLikeToggle(idea.id)}
-                    isLikedByUser={likedIdeaIds.includes(idea.id)}
-                    rowStyle="weekly"
-                  />
-                ))}
+                {isLoading ? (
+                  Array.from({ length: 3 }).map((_, i) => <CardSkeleton key={i} />)
+                ) : (
+                  weeklyBestIdeas.map(idea => (
+                    <IdeaCard 
+                      key={idea.id} 
+                      idea={idea} 
+                      onCardClick={() => setSelectedIdea(idea)}
+                      onLikeClick={() => handleLikeToggle(idea.id)}
+                      isLikedByUser={likedIdeaIds.includes(idea.id)}
+                      rowStyle="weekly"
+                    />
+                  ))
+                )}
               </div>
             </section>
 
@@ -745,7 +769,13 @@ export default function App() {
                   Updates Realtime
                 </div>
               </div>
-              <LeaderboardTable />
+              {isLoading ? (
+                <div className="bg-white dark:bg-slate-950 rounded-3xl border-2 border-slate-100 dark:border-slate-800 overflow-hidden">
+                  {Array.from({ length: 5 }).map((_, i) => <TableRowSkeleton key={i} />)}
+                </div>
+              ) : (
+                <LeaderboardTable />
+              )}
             </section>
           </div>
 

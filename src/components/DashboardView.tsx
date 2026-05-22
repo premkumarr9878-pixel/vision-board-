@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { LayoutDashboard, Users, CircleDollarSign, Plus, Lightbulb, Heart, MessageSquare, Clipboard, ExternalLink, RefreshCw, Check, Trash2, Edit3, Save, Eye, EyeOff, Lock, Globe, Mail, Phone, Calendar, UserCheck, UserX, MessageCircle, Clock, MoreVertical, ShieldCheck, XCircle } from 'lucide-react';
 import { FounderProfile, StartupIdea, CollaborationRequest, FundingRequest, Suggestion, RequestStatus } from '../types';
+import { motion, AnimatePresence } from 'motion/react';
 
 const StatusBadge = ({ status }: { status: RequestStatus }) => {
   const styles = {
@@ -129,10 +130,10 @@ export default function DashboardView({
             )}
           </div>
           <div>
-            <h1 className="font-display font-black text-3xl text-slate-950 dark:text-white tracking-tighter flex items-center space-x-3">
+            <h1 className="font-display font-black text-3xl text-slate-950 dark:text-white tracking-tighter flex items-center space-x-3" dir="auto">
               <span>{profile.name}&apos;s Founder Hub</span>
             </h1>
-            <p className="text-sm font-bold text-slate-600 dark:text-slate-400 mt-1 max-w-lg leading-relaxed">
+            <p className="text-sm font-bold text-slate-600 dark:text-slate-400 mt-1 max-w-lg leading-relaxed" dir="auto">
               {profile.bio || 'Manage ideas, screen co-founders pitches, and check fundraising letters.'}
             </p>
           </div>
@@ -149,41 +150,50 @@ export default function DashboardView({
       </div>
 
       {/* Dashboard Sub-navigation Tabs */}
-      <div className="flex border-b-2 border-slate-100 dark:border-slate-900 overflow-x-auto pb-0 mb-12 select-none no-scrollbar" id="dashboard-tabs">
-        {[
-          { id: 'overview', label: 'Overview Statistics' },
-          { id: 'ideas', label: `My Ideas (${userIdeas.length})` },
-          { id: 'collabs', label: `Collab Inbox (${userCollabs.length})` },
-          { id: 'funding', label: `Investor Inbox (${userFundings.length})` },
-          { id: 'suggestions', label: `Suggestions (${totalSuggestions})` },
-          { id: 'profile', label: 'My Profile' }
-        ].map((tab) => (
-          <button
-            key={tab.id}
-            id={`tab-db-${tab.id}`}
-            onClick={() => setActiveTab(tab.id as any)}
-            className={`pb-4 px-2 text-xs font-black uppercase tracking-widest border-b-4 transition-all cursor-pointer whitespace-nowrap mr-8 ${
-              activeTab === tab.id 
-                ? 'border-blue-600 text-blue-600 dark:text-blue-400' 
-                : 'border-transparent text-slate-400 hover:text-slate-950 dark:hover:text-white'
-            }`}
-          >
-            {tab.label}
-          </button>
-        ))}
+      <div className="sticky top-[64px] z-30 bg-white/80 dark:bg-slate-950/80 backdrop-blur-md border-b-2 border-slate-100 dark:border-slate-900 overflow-x-auto pb-0 mb-10 select-none no-scrollbar -mx-4 px-4 sm:-mx-6 sm:px-6 lg:-mx-8 lg:px-8" id="dashboard-tabs">
+        <div className="flex max-w-7xl mx-auto">
+          {[
+            { id: 'overview', label: 'Overview Statistics' },
+            { id: 'ideas', label: `My Ideas (${userIdeas.length})` },
+            { id: 'collabs', label: `Collab Inbox (${userCollabs.length})` },
+            { id: 'funding', label: `Investor Inbox (${userFundings.length})` },
+            { id: 'suggestions', label: `Suggestions (${totalSuggestions})` },
+            { id: 'profile', label: 'My Profile' }
+          ].map((tab) => (
+            <button
+              key={tab.id}
+              id={`tab-db-${tab.id}`}
+              onClick={() => setActiveTab(tab.id as any)}
+              className={`relative pb-4 pt-4 px-2 text-[10px] font-black uppercase tracking-[0.15em] transition-all cursor-pointer whitespace-nowrap mr-8 group ${
+                activeTab === tab.id 
+                  ? 'text-slate-950 dark:text-white' 
+                  : 'text-slate-400 hover:text-slate-600 dark:hover:text-slate-200'
+              }`}
+            >
+              <span className="relative z-10">{tab.label}</span>
+              {activeTab === tab.id && (
+                <motion.div
+                  layoutId="active-tab-indicator"
+                  className="absolute bottom-0 left-0 right-0 h-1 bg-slate-950 dark:bg-white rounded-full z-0"
+                  transition={{ type: 'spring', bounce: 0.2, duration: 0.6 }}
+                />
+              )}
+            </button>
+          ))}
+        </div>
       </div>
 
       {/* RENDER ACTIVE TAB BODY */}
-      
-      {/* 1. OVERVIEW STATISTICS PANEL */}
-      {activeTab === 'overview' && (
-        <div className="space-y-12" id="overview-tab-content">
-          {/* Main Idea Management Stats Header Banner */}
-          <div className="bg-slate-50 dark:bg-slate-900/50 border-2 border-slate-200 dark:border-slate-800 p-8 rounded-3xl select-none shadow-sm" id="founderhub-ideas-update">
-            <span className="block text-[11px] font-black font-mono uppercase tracking-widest text-slate-500 dark:text-slate-400 mb-2">FOUNDER HUB — IDEA MANAGEMENT SYSTEM</span>
-            <h3 className="font-display font-black text-2xl text-slate-950 dark:text-white tracking-tight">Secure Idea Inventory Summary</h3>
-            <p className="text-sm font-bold text-slate-600 dark:text-slate-400 mt-2">Check your visibility coverage, private drafts, and public campaign matrices instantly without page refresh.</p>
-          </div>
+      <div className="min-h-[400px]">
+        {/* 1. OVERVIEW STATISTICS PANEL */}
+        <div className={activeTab === 'overview' ? 'block animate-in fade-in slide-in-from-bottom-2 duration-300' : 'hidden'} id="overview-tab-content">
+          <div className="space-y-12">
+            {/* Main Idea Management Stats Header Banner */}
+            <div className="bg-slate-50 dark:bg-slate-900/50 border-2 border-slate-200 dark:border-slate-800 p-8 rounded-3xl select-none shadow-sm" id="founderhub-ideas-update">
+              <span className="block text-[11px] font-black font-mono uppercase tracking-widest text-slate-500 dark:text-slate-400 mb-2">FOUNDER HUB — IDEA MANAGEMENT SYSTEM</span>
+              <h3 className="font-display font-black text-2xl text-slate-950 dark:text-white tracking-tight">Secure Idea Inventory Summary</h3>
+              <p className="text-sm font-bold text-slate-600 dark:text-slate-400 mt-2">Check your visibility coverage, private drafts, and public campaign matrices instantly without page refresh.</p>
+            </div>
 
           {/* Row 1: Idea visibility dashboard */}
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6" id="idea-visibility-deck">
@@ -394,19 +404,10 @@ export default function DashboardView({
 
           </div>
         </div>
-      )}
 
-      {/* 2. MY IDEAS GRID */}
-      {activeTab === 'ideas' && (() => {
-        const filteredUserIdeas = userIdeas.filter(idea => {
-          if (ideasSubFilter === 'public') return idea.isPublic;
-          if (ideasSubFilter === 'private') return !idea.isPublic;
-          if (ideasSubFilter === 'draft') return idea.progressStage === 'JUST IDEA NOW' || idea.progressStage === 'IDEATION';
-          return true;
-        });
-
-        return (
-          <div id="ideas-tab-content" className="space-y-6">
+        {/* 2. MY IDEAS GRID */}
+        <div className={activeTab === 'ideas' ? 'block animate-in fade-in slide-in-from-bottom-2 duration-300' : 'hidden'} id="ideas-tab-content">
+          <div className="space-y-6">
             {userIdeas.length > 0 && (
               <div className="flex flex-wrap items-center gap-2 select-none bg-slate-50/50 dark:bg-slate-900/40 border border-slate-150/50 dark:border-slate-800/40 p-1.5 rounded-2xl max-w-2xl mb-6" id="ideas-sub-filter-row">
                 <span className="text-[10px] font-bold font-mono text-slate-400 dark:text-slate-500 uppercase tracking-wider px-3">Filter Ideas:</span>
@@ -431,7 +432,12 @@ export default function DashboardView({
               </div>
             )}
 
-            {filteredUserIdeas.length === 0 ? (
+            {userIdeas.filter(idea => {
+              if (ideasSubFilter === 'public') return idea.isPublic;
+              if (ideasSubFilter === 'private') return !idea.isPublic;
+              if (ideasSubFilter === 'draft') return idea.progressStage === 'JUST IDEA NOW' || idea.progressStage === 'IDEATION';
+              return true;
+            }).length === 0 ? (
               <div className="bg-white dark:bg-slate-900/40 border border-slate-200/50 dark:border-slate-800/40 rounded-2xl p-12 text-center select-none" id="my-ideas-empty">
                 <Lightbulb className="mx-auto h-10 w-10 text-slate-300 dark:text-slate-700 mb-3" />
                 <h3 className="font-display font-bold text-base text-slate-950 dark:text-white">
@@ -457,7 +463,12 @@ export default function DashboardView({
               </div>
             ) : (
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6 animate-slide-up" id="ideas-tab-grid">
-                {filteredUserIdeas.map(idea => (
+                {userIdeas.filter(idea => {
+                  if (ideasSubFilter === 'public') return idea.isPublic;
+                  if (ideasSubFilter === 'private') return !idea.isPublic;
+                  if (ideasSubFilter === 'draft') return idea.progressStage === 'JUST IDEA NOW' || idea.progressStage === 'IDEATION';
+                  return true;
+                }).map(idea => (
                   <div
                     key={idea.id}
                     className="bg-white dark:bg-slate-900/40 border border-slate-200/40 dark:border-slate-800/40 hover:border-blue-400/40 rounded-2xl p-6 transition-all shadow-[0_2px_12px_rgba(0,0,0,0.01)] hover:shadow-xl relative flex flex-col justify-between group overflow-hidden"
@@ -489,7 +500,7 @@ export default function DashboardView({
                           {idea.logo}
                         </div>
                         <div className="min-w-0 flex-1">
-                          <h4 className="font-display font-black text-slate-900 dark:text-white group-hover:text-blue-600 dark:group-hover:text-blue-400 text-sm truncate uppercase tracking-tight">{idea.name}</h4>
+                          <h4 className="font-display font-black text-slate-900 dark:text-white group-hover:text-blue-600 dark:group-hover:text-blue-400 text-sm truncate uppercase tracking-tight" dir="auto">{idea.name}</h4>
                           <div className="flex flex-wrap gap-1.5 mt-1 select-none">
                             <span className="inline-block px-2 py-0.5 rounded-md text-[9px] bg-slate-100/50 dark:bg-slate-800/50 border border-slate-150/50 dark:border-slate-700/50 text-slate-700 dark:text-slate-300 font-bold uppercase tracking-wider">{idea.category}</span>
                             <span className="inline-block px-2 py-0.5 rounded-md text-[9px] bg-zinc-50/50 dark:bg-zinc-900/50 border border-zinc-150/50 dark:border-zinc-800/50 text-zinc-650 dark:text-zinc-400 font-semibold">{idea.progressStage}</span>
@@ -497,7 +508,7 @@ export default function DashboardView({
                         </div>
                       </div>
 
-                      <p className="text-slate-650 dark:text-slate-400 text-xs leading-relaxed line-clamp-3 mb-5 pr-2">
+                      <p className="text-slate-650 dark:text-slate-400 text-xs leading-relaxed line-clamp-3 mb-5 pr-2" dir="auto">
                         {idea.description}
                       </p>
 
@@ -571,17 +582,16 @@ export default function DashboardView({
               </div>
             )}
           </div>
-        );
-      })()}
+        </div>
 
-      {/* 3. CO-FOUNDER PITCHES INBOX */}
-      {activeTab === 'collabs' && (
-        <div className="space-y-6" id="collabs-tab-content">
-          <div className="bg-white dark:bg-slate-950 border-2 border-slate-200 dark:border-slate-800 p-8 rounded-3xl mb-8 select-none shadow-sm">
-            <span className="block text-[10px] font-black font-mono uppercase tracking-widest text-slate-500 dark:text-slate-400 mb-2">Interested People Inbox</span>
-            <h3 className="font-display font-black text-2xl text-slate-950 dark:text-white tracking-tight">Collaboration Requests</h3>
-            <p className="text-sm font-bold text-slate-600 dark:text-slate-400 mt-2">Manage potential co-founders and partners who want to build with you.</p>
-          </div>
+        {/* 3. CO-FOUNDER PITCHES INBOX */}
+        <div className={activeTab === 'collabs' ? 'block animate-in fade-in slide-in-from-bottom-2 duration-300' : 'hidden'} id="collabs-tab-content">
+          <div className="space-y-6">
+            <div className="bg-white dark:bg-slate-950 border-2 border-slate-200 dark:border-slate-800 p-8 rounded-3xl mb-8 select-none shadow-sm">
+              <span className="block text-[10px] font-black font-mono uppercase tracking-widest text-slate-500 dark:text-slate-400 mb-2">Interested People Inbox</span>
+              <h3 className="font-display font-black text-2xl text-slate-950 dark:text-white tracking-tight">Collaboration Requests</h3>
+              <p className="text-sm font-bold text-slate-600 dark:text-slate-400 mt-2">Manage potential co-founders and partners who want to build with you.</p>
+            </div>
 
           {userCollabs.length === 0 ? (
             <div className="bg-white dark:bg-slate-900/40 border-2 border-dashed border-slate-200 dark:border-slate-800 rounded-3xl p-16 text-center select-none">
@@ -603,36 +613,36 @@ export default function DashboardView({
                             {c.name.charAt(0)}
                           </div>
                           <div>
-                            <h4 className="font-display font-black text-lg text-slate-950 dark:text-white flex items-center gap-2">
-                              {c.name}
-                              <StatusBadge status={c.status} />
-                            </h4>
-                            <p className="text-xs font-bold text-slate-500 dark:text-slate-400">
-                              Applied as <span className="text-blue-600 dark:text-blue-400">{c.role}</span> for <span className="italic">“{c.ideaName}”</span>
-                            </p>
-                          </div>
-                        </div>
-                        <span className="text-[10px] font-black font-mono text-slate-400 uppercase tracking-widest">{new Date(c.createdAt).toLocaleDateString()}</span>
-                      </div>
-
-                      <div className="bg-slate-50 dark:bg-slate-900/50 rounded-2xl p-5 border border-slate-100 dark:border-slate-800/60 mb-6">
-                        <div className="flex items-center space-x-6 mb-4 pb-4 border-b border-slate-200 dark:border-slate-800/60">
-                          <div className="flex items-center space-x-2 text-xs font-bold text-slate-600 dark:text-slate-300">
-                            <Mail className="h-4 w-4 text-slate-400" />
-                            <span className="select-all">{c.email}</span>
-                          </div>
-                          <div className="flex items-center space-x-2 text-xs font-bold text-slate-600 dark:text-slate-300">
-                            <Phone className="h-4 w-4 text-slate-400" />
-                            <span className="select-all">{c.phone}</span>
-                          </div>
-                        </div>
-                        <div className="space-y-2">
-                          <span className="block text-[10px] font-black font-mono text-slate-400 uppercase tracking-widest">Pitch Message</span>
-                          <p className="text-sm font-medium text-slate-700 dark:text-slate-300 leading-relaxed italic">
-                            “{c.message}”
+                          <h4 className="font-display font-black text-lg text-slate-950 dark:text-white flex items-center gap-2" dir="auto">
+                            {c.name}
+                            <StatusBadge status={c.status} />
+                          </h4>
+                          <p className="text-xs font-bold text-slate-500 dark:text-slate-400" dir="auto">
+                            Applied as <span className="text-blue-600 dark:text-blue-400">{c.role}</span> for <span className="italic">“{c.ideaName}”</span>
                           </p>
                         </div>
                       </div>
+                      <span className="text-[10px] font-black font-mono text-slate-400 uppercase tracking-widest">{new Date(c.createdAt).toLocaleDateString()}</span>
+                    </div>
+
+                    <div className="bg-slate-50 dark:bg-slate-900/50 rounded-2xl p-5 border border-slate-100 dark:border-slate-800/60 mb-6">
+                      <div className="flex items-center space-x-6 mb-4 pb-4 border-b border-slate-200 dark:border-slate-800/60">
+                        <div className="flex items-center space-x-2 text-xs font-bold text-slate-600 dark:text-slate-300">
+                          <Mail className="h-4 w-4 text-slate-400" />
+                          <span className="select-all" dir="auto">{c.email}</span>
+                        </div>
+                        <div className="flex items-center space-x-2 text-xs font-bold text-slate-600 dark:text-slate-300">
+                          <Phone className="h-4 w-4 text-slate-400" />
+                          <span className="select-all" dir="auto">{c.phone}</span>
+                        </div>
+                      </div>
+                      <div className="space-y-2">
+                        <span className="block text-[10px] font-black font-mono text-slate-400 uppercase tracking-widest">Pitch Message</span>
+                        <p className="text-sm font-medium text-slate-700 dark:text-slate-300 leading-relaxed italic" dir="auto">
+                          “{c.message}”
+                        </p>
+                      </div>
+                    </div>
 
                       <div className="flex flex-wrap gap-3">
                         {c.status === 'pending' && (
@@ -661,371 +671,359 @@ export default function DashboardView({
                             <MessageCircle className="h-4 w-4" />
                             Mark as Contacted
                           </button>
-                        )}
-                        <a 
-                          href={`mailto:${c.email}?subject=Collaboration for ${c.ideaName}`}
-                          className="px-4 py-2 bg-slate-900 dark:bg-white text-white dark:text-slate-950 rounded-xl text-xs font-black hover:opacity-90 transition-all flex items-center gap-2 cursor-pointer"
-                        >
-                          <Mail className="h-4 w-4" />
-                          Send Direct Email
-                        </a>
+                        </div>
                       </div>
                     </div>
                   </div>
-                </div>
-              ))}
-            </div>
-          )}
-        </div>
-      )}
-
-      {/* 4. INVESTOR FUNDING INBOX */}
-      {activeTab === 'funding' && (
-        <div className="space-y-6" id="funding-tab-content">
-          <div className="bg-white dark:bg-slate-950 border-2 border-slate-200 dark:border-slate-800 p-8 rounded-3xl mb-8 select-none shadow-sm">
-            <span className="block text-[10px] font-black font-mono uppercase tracking-widest text-slate-500 dark:text-slate-400 mb-2">Investment Management</span>
-            <h3 className="font-display font-black text-2xl text-slate-950 dark:text-white tracking-tight">Investor Inbox</h3>
-            <p className="text-sm font-bold text-slate-600 dark:text-slate-400 mt-2">Track interest from angel investors and venture firms for your projects.</p>
+                ))}
+              </div>
+            )}
           </div>
+        </div>
 
-          {userFundings.length === 0 ? (
-            <div className="bg-white dark:bg-slate-900/40 border-2 border-dashed border-slate-200 dark:border-slate-800 rounded-3xl p-16 text-center select-none">
-              <CircleDollarSign className="mx-auto h-12 w-12 text-slate-300 dark:text-slate-700 mb-4" />
-              <h3 className="font-display font-black text-lg text-slate-950 dark:text-white">No Funding Inquiries</h3>
-              <p className="text-xs font-bold text-slate-500 dark:text-slate-400 mt-2 max-w-sm mx-auto leading-relaxed">
-                As your ideas gain traction and upvotes, interested investors will reach out here with their capacity details.
-              </p>
+        {/* 4. INVESTOR FUNDING INBOX */}
+        <div className={activeTab === 'funding' ? 'block animate-in fade-in slide-in-from-bottom-2 duration-300' : 'hidden'} id="funding-tab-content">
+          <div className="space-y-6">
+            <div className="bg-white dark:bg-slate-950 border-2 border-slate-200 dark:border-slate-800 p-8 rounded-3xl mb-8 select-none shadow-sm">
+              <span className="block text-[10px] font-black font-mono uppercase tracking-widest text-slate-500 dark:text-slate-400 mb-2">Investment Management</span>
+              <h3 className="font-display font-black text-2xl text-slate-950 dark:text-white tracking-tight">Investor Inbox</h3>
+              <p className="text-sm font-bold text-slate-600 dark:text-slate-400 mt-2">Track interest from angel investors and venture firms for your projects.</p>
             </div>
-          ) : (
-            <div className="grid grid-cols-1 gap-6" id="funding-tab-list">
-              {userFundings.map(f => (
-                <div key={f.id} className="group relative bg-white dark:bg-slate-950 border-2 border-slate-200 dark:border-slate-800 rounded-3xl p-6 shadow-lg hover:shadow-xl transition-all" id={`funding-request-${f.id}`}>
-                  <div className="flex flex-col lg:flex-row lg:items-start justify-between gap-6">
-                    <div className="flex-1">
-                      <div className="flex items-center justify-between mb-4">
-                        <div className="flex items-center space-x-3">
-                          <div className="w-12 h-12 rounded-2xl bg-amber-100 dark:bg-amber-900/30 flex items-center justify-center text-amber-600 dark:text-amber-400 font-black text-xl">
-                            {f.name.charAt(0)}
+
+            {userFundings.length === 0 ? (
+              <div className="bg-white dark:bg-slate-900/40 border-2 border-dashed border-slate-200 dark:border-slate-800 rounded-3xl p-16 text-center select-none">
+                <CircleDollarSign className="mx-auto h-12 w-12 text-slate-300 dark:text-slate-700 mb-4" />
+                <h3 className="font-display font-black text-lg text-slate-950 dark:text-white">No Funding Inquiries</h3>
+                <p className="text-xs font-bold text-slate-500 dark:text-slate-400 mt-2 max-w-sm mx-auto leading-relaxed">
+                  As your ideas gain traction and upvotes, interested investors will reach out here with their capacity details.
+                </p>
+              </div>
+            ) : (
+              <div className="grid grid-cols-1 gap-6" id="funding-tab-list">
+                {userFundings.map(f => (
+                  <div key={f.id} className="group relative bg-white dark:bg-slate-950 border-2 border-slate-200 dark:border-slate-800 rounded-3xl p-6 shadow-lg hover:shadow-xl transition-all" id={`funding-request-${f.id}`}>
+                    <div className="flex flex-col lg:flex-row lg:items-start justify-between gap-6">
+                      <div className="flex-1">
+                        <div className="flex items-center justify-between mb-4">
+                          <div className="flex items-center space-x-3">
+                            <div className="w-12 h-12 rounded-2xl bg-amber-100 dark:bg-amber-900/30 flex items-center justify-center text-amber-600 dark:text-amber-400 font-black text-xl">
+                              {f.name.charAt(0)}
+                            </div>
+                            <div>
+                              <h4 className="font-display font-black text-lg text-slate-950 dark:text-white flex items-center gap-2" dir="auto">
+                                {f.name}
+                                <StatusBadge status={f.status} />
+                              </h4>
+                              <p className="text-xs font-bold text-slate-500 dark:text-slate-400" dir="auto">
+                                Investor interested in <span className="italic">“{f.ideaName}”</span>
+                              </p>
+                            </div>
                           </div>
-                          <div>
-                            <h4 className="font-display font-black text-lg text-slate-950 dark:text-white flex items-center gap-2">
-                              {f.name}
-                              <StatusBadge status={f.status} />
-                            </h4>
-                            <p className="text-xs font-bold text-slate-500 dark:text-slate-400">
-                              Investor interested in <span className="italic">“{f.ideaName}”</span>
+                          <span className="text-[10px] font-black font-mono text-slate-400 uppercase tracking-widest">{new Date(f.createdAt).toLocaleDateString()}</span>
+                        </div>
+
+                        <div className="bg-amber-50/30 dark:bg-amber-900/10 rounded-2xl p-5 border border-amber-100/50 dark:border-amber-900/30 mb-6">
+                          <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 mb-4 pb-4 border-b border-amber-200/30 dark:border-amber-800/30">
+                            <div className="space-y-1">
+                              <span className="block text-[10px] font-black font-mono text-amber-600 dark:text-amber-500 uppercase tracking-widest">Contact Info</span>
+                              <div className="flex flex-col gap-1">
+                                <div className="flex items-center space-x-2 text-xs font-bold text-slate-600 dark:text-slate-300">
+                                  <Mail className="h-3.5 w-3.5 text-amber-500" />
+                                  <span className="select-all" dir="auto">{f.email}</span>
+                                </div>
+                                <div className="flex items-center space-x-2 text-xs font-bold text-slate-600 dark:text-slate-300">
+                                  <Phone className="h-3.5 w-3.5 text-amber-500" />
+                                  <span className="select-all" dir="auto">{f.phone}</span>
+                                </div>
+                              </div>
+                            </div>
+                            <div className="space-y-1">
+                              <span className="block text-[10px] font-black font-mono text-amber-600 dark:text-amber-500 uppercase tracking-widest">Investment Amount</span>
+                              <div className="flex items-center space-x-2 text-xs font-black text-amber-700 dark:text-amber-400">
+                                <CircleDollarSign className="h-4 w-4" />
+                                <span dir="auto">{f.investmentAmount}</span>
+                              </div>
+                            </div>
+                          </div>
+                          <div className="space-y-2">
+                            <span className="block text-[10px] font-black font-mono text-amber-600 dark:text-amber-500 uppercase tracking-widest">Investment Message</span>
+                            <p className="text-sm font-medium text-slate-700 dark:text-slate-300 leading-relaxed italic" dir="auto">
+                              “{f.message}”
                             </p>
                           </div>
                         </div>
-                        <span className="text-[10px] font-black font-mono text-slate-400 uppercase tracking-widest">{new Date(f.createdAt).toLocaleDateString()}</span>
-                      </div>
 
-                      <div className="bg-amber-50/30 dark:bg-amber-900/10 rounded-2xl p-5 border border-amber-100/50 dark:border-amber-900/30 mb-6">
-                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 mb-4 pb-4 border-b border-amber-200/30 dark:border-amber-800/30">
-                          <div className="space-y-1">
-                            <span className="block text-[10px] font-black font-mono text-amber-600 dark:text-amber-500 uppercase tracking-widest">Contact Info</span>
-                            <div className="flex flex-col gap-1">
-                              <div className="flex items-center space-x-2 text-xs font-bold text-slate-600 dark:text-slate-300">
-                                <Mail className="h-3.5 w-3.5 text-amber-500" />
-                                <span className="select-all">{f.email}</span>
-                              </div>
-                              <div className="flex items-center space-x-2 text-xs font-bold text-slate-600 dark:text-slate-300">
-                                <Phone className="h-3.5 w-3.5 text-amber-500" />
-                                <span className="select-all">{f.phone}</span>
-                              </div>
-                            </div>
-                          </div>
-                          <div className="space-y-1">
-                            <span className="block text-[10px] font-black font-mono text-amber-600 dark:text-amber-500 uppercase tracking-widest">Funding Capacity</span>
-                            <div className="flex items-center space-x-2 text-xs font-black text-amber-700 dark:text-amber-400">
-                              <CircleDollarSign className="h-4 w-4" />
-                              <span>{f.fundingCapacity}</span>
-                            </div>
-                          </div>
-                        </div>
-                        <div className="space-y-2">
-                          <span className="block text-[10px] font-black font-mono text-amber-600 dark:text-amber-500 uppercase tracking-widest">Investment Message</span>
-                          <p className="text-sm font-medium text-slate-700 dark:text-slate-300 leading-relaxed italic">
-                            “{f.message}”
-                          </p>
-                        </div>
-                      </div>
-
-                      <div className="flex flex-wrap gap-3">
-                        {f.status === 'pending' && (
-                          <>
+                        <div className="flex flex-wrap gap-3">
+                          {f.status === 'pending' && (
+                            <>
+                              <button
+                                onClick={() => onUpdateRequestStatus('funding', f.id, 'accepted')}
+                                className="px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-xs font-black shadow-lg shadow-emerald-500/20 transition-all flex items-center gap-2 cursor-pointer"
+                              >
+                                <ShieldCheck className="h-4 w-4" />
+                                Accept Inquiry
+                              </button>
+                              <button
+                                onClick={() => onUpdateRequestStatus('funding', f.id, 'rejected')}
+                                className="px-4 py-2 bg-white dark:bg-slate-900 border-2 border-red-100 dark:border-red-900/30 text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-xl text-xs font-black transition-all flex items-center gap-2 cursor-pointer"
+                              >
+                                <XCircle className="h-4 w-4" />
+                                Decline
+                              </button>
+                            </>
+                          )}
+                          {f.status !== 'contacted' && (
                             <button
-                              onClick={() => onUpdateRequestStatus('funding', f.id, 'accepted')}
-                              className="px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-xs font-black shadow-lg shadow-emerald-500/20 transition-all flex items-center gap-2 cursor-pointer"
+                              onClick={() => onUpdateRequestStatus('funding', f.id, 'contacted')}
+                              className="px-4 py-2 bg-blue-50 dark:bg-blue-900/20 border-2 border-blue-100 dark:border-blue-800 text-blue-600 dark:text-blue-400 hover:bg-blue-100 dark:hover:bg-blue-800/40 rounded-xl text-xs font-black transition-all flex items-center gap-2 cursor-pointer"
                             >
-                              <ShieldCheck className="h-4 w-4" />
-                              Accept Inquiry
+                              <MessageCircle className="h-4 w-4" />
+                              Mark as Contacted
                             </button>
-                            <button
-                              onClick={() => onUpdateRequestStatus('funding', f.id, 'rejected')}
-                              className="px-4 py-2 bg-white dark:bg-slate-900 border-2 border-red-100 dark:border-red-900/30 text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-xl text-xs font-black transition-all flex items-center gap-2 cursor-pointer"
-                            >
-                              <XCircle className="h-4 w-4" />
-                              Decline
-                            </button>
-                          </>
-                        )}
-                        {f.status !== 'contacted' && (
-                          <button
-                            onClick={() => onUpdateRequestStatus('funding', f.id, 'contacted')}
-                            className="px-4 py-2 bg-blue-50 dark:bg-blue-900/20 border-2 border-blue-100 dark:border-blue-800 text-blue-600 dark:text-blue-400 hover:bg-blue-100 dark:hover:bg-blue-800/40 rounded-xl text-xs font-black transition-all flex items-center gap-2 cursor-pointer"
-                          >
-                            <MessageCircle className="h-4 w-4" />
-                            Mark as Contacted
-                          </button>
-                        )}
-                        <a 
-                          href={`mailto:${f.email}?subject=Funding Inquiry for ${f.ideaName}`}
-                          className="px-4 py-2 bg-slate-900 dark:bg-white text-white dark:text-slate-950 rounded-xl text-xs font-black hover:opacity-90 transition-all flex items-center gap-2 cursor-pointer"
-                        >
-                          <Mail className="h-4 w-4" />
-                          Send Direct Email
-                        </a>
+                          )}
+                        </div>
                       </div>
                     </div>
                   </div>
-                </div>
-              ))}
-            </div>
-          )}
-        </div>
-      )}
-
-      {/* 5. EDIT PROFILE CARD */}
-      {activeTab === 'profile' && (
-        <div className="bg-white dark:bg-slate-900/40 border border-slate-200/50 dark:border-slate-800/40 rounded-2xl p-6 sm:p-8" id="profile-tab-content">
-          <div className="mb-6 select-none border-b border-slate-50 dark:border-slate-800/40 pb-4">
-            <h2 className="font-display font-semibold text-lg text-slate-905 dark:text-white">My Public Founder Credentials</h2>
-            <p className="text-xs text-slate-450 dark:text-slate-400 mt-1">
-              Configure your credentials and networking biographies so founders are confident when interacting.
-            </p>
-          </div>
-
-          <form onSubmit={handleProfileSave} className="space-y-6">
-            
-            {/* Save success banner */}
-            {profileSaveSuccess && (
-              <div className="p-3 bg-emerald-50/50 dark:bg-emerald-900/20 border border-emerald-100/50 dark:border-emerald-800/50 rounded-2xl flex items-center space-x-2 text-emerald-600 dark:text-emerald-400 text-xs" id="profile-save-success">
-                <Check className="h-4 w-4" />
-                <span>Founder Profile synchronized successfully!</span>
+                ))}
               </div>
             )}
-
-            {/* Logo and Portrait upload previews */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 select-none">
-              <div className="flex items-center space-x-3.5 border border-slate-150/60 dark:border-slate-800/60 rounded-xl p-3 bg-slate-50/50 dark:bg-slate-950/20 relative">
-                <input
-                  type="file"
-                  accept="image/*"
-                  className="absolute inset-0 opacity-0 cursor-pointer z-10 w-full h-full"
-                  onChange={(e) => handleImageUpload(e, setEditAvatar)}
-                />
-                <div className="w-12 h-12 rounded-full overflow-hidden border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 shadow-xs shrink-0 flex items-center justify-center">
-                  {editAvatar ? (
-                    <img src={editAvatar} alt="Avatar Preview" className="w-full h-full object-cover" />
-                  ) : (
-                    <span className="text-[10px] text-slate-400 font-bold">No Pic</span>
-                  )}
-                </div>
-                <div>
-                  <span className="block text-[10px] font-bold font-mono text-slate-500 dark:text-slate-400 uppercase tracking-wider">Founder Picture</span>
-                  <span className="text-[9px] text-slate-450 dark:text-slate-500 font-medium">Click to upload avatar.</span>
-                </div>
-              </div>
-
-              <div className="flex items-center space-x-3.5 border border-slate-150/60 dark:border-slate-800/60 rounded-xl p-3 bg-slate-50/50 dark:bg-slate-950/20 relative">
-                <input
-                  type="file"
-                  accept="image/*"
-                  className="absolute inset-0 opacity-0 cursor-pointer z-10 w-full h-full"
-                  onChange={(e) => handleImageUpload(e, setEditStartupLogo)}
-                />
-                <div className="w-12 h-12 rounded-lg overflow-hidden border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 shadow-xs shrink-0 flex items-center justify-center">
-                  {editStartupLogo ? (
-                    <img src={editStartupLogo} alt="Startup Logo Preview" className="w-full h-full object-cover" />
-                  ) : (
-                    <span className="text-[10px] text-slate-450 dark:text-slate-500 font-bold">No Logo</span>
-                  )}
-                </div>
-                <div>
-                  <span className="block text-[10px] font-bold font-mono text-slate-500 dark:text-slate-400 uppercase tracking-wider">Startup Logo</span>
-                  <span className="text-[9px] text-slate-450 dark:text-slate-500 font-medium">Click to upload brand logo.</span>
-                </div>
-              </div>
-            </div>
-
-            <div className="grid grid-cols-1 gap-4">
-              <div>
-                <label className="block text-[10px] font-bold font-mono text-slate-400 dark:text-slate-500 uppercase tracking-wider mb-1.5 select-none">Founder Display Name</label>
-                <input
-                  id="profile-name-input"
-                  type="text"
-                  required
-                  value={editName}
-                  onChange={(e) => setEditName(e.target.value)}
-                  className="w-full py-2 px-3 border border-slate-200/60 dark:border-slate-800/60 bg-white dark:bg-slate-950/50 dark:text-white rounded-xl text-xs focus:outline-none focus:ring-2 focus:ring-blue-500/10"
-                />
-              </div>
-            </div>
-
-            <div>
-              <label className="block text-[10px] font-bold font-mono text-slate-400 dark:text-slate-500 uppercase tracking-wider mb-1.5 select-none">What Are You Building?</label>
-              <textarea
-                id="profile-building-desc-textarea"
-                rows={3}
-                required
-                value={editBuildingDesc}
-                onChange={(e) => setEditBuildingDesc(e.target.value)}
-                placeholder="Describe your current project..."
-                className="w-full py-2 px-3 border border-slate-200/60 dark:border-slate-800/60 bg-white dark:bg-slate-950/50 dark:text-white rounded-xl text-xs focus:outline-none focus:ring-2 focus:ring-blue-500/10 resize-none"
-              />
-            </div>
-
-            <div>
-              <label className="block text-[10px] font-bold font-mono text-slate-400 dark:text-slate-500 uppercase tracking-wider mb-1.5 select-none">Short Founder Biography</label>
-              <textarea
-                id="profile-bio-textarea"
-                rows={3}
-                required
-                value={editBio}
-                onChange={(e) => setEditBio(e.target.value)}
-                className="w-full py-2 px-3 border border-slate-200/60 dark:border-slate-800/60 bg-white dark:bg-slate-950/50 dark:text-white rounded-xl text-xs focus:outline-none focus:ring-2 focus:ring-blue-500/10 resize-none"
-              />
-            </div>
-
-            {/* Social credentials handles */}
-            <div className="border-t border-slate-50 dark:border-slate-800/40 pt-6 space-y-4">
-              <h3 className="block text-[10px] font-bold font-mono text-slate-400 dark:text-slate-500 uppercase tracking-wider select-none">Networking Channels Profiles</h3>
-              
-              <div className="grid grid-cols-1 sm:grid-cols-3 gap-4" id="profile-social-deck">
-                <div>
-                  <label className="block text-[10px] text-slate-500 dark:text-slate-400 mb-1 select-none">Github URL</label>
-                  <input
-                    id="profile-github-input"
-                    type="url"
-                    value={editGithub}
-                    onChange={(e) => setEditGithub(e.target.value)}
-                    placeholder="https://github.com/..."
-                    className="w-full py-2 px-3 border border-slate-200/60 dark:border-slate-800/60 bg-white dark:bg-slate-950/50 dark:text-white rounded-xl text-xs focus:outline-none focus:ring-2 focus:ring-blue-500/10"
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-[10px] text-slate-500 dark:text-slate-400 mb-1 select-none">Twitter (X) URL</label>
-                  <input
-                    id="profile-twitter-input"
-                    type="url"
-                    value={editTwitter}
-                    onChange={(e) => setEditTwitter(e.target.value)}
-                    placeholder="https://twitter.com/..."
-                    className="w-full py-2 px-3 border border-slate-200/60 dark:border-slate-800/60 bg-white dark:bg-slate-950/50 dark:text-white rounded-xl text-xs focus:outline-none focus:ring-2 focus:ring-blue-500/10"
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-[10px] text-slate-500 dark:text-slate-400 mb-1 select-none">LinkedIn URL</label>
-                  <input
-                    id="profile-linkedin-input"
-                    type="url"
-                    value={editLinkedin}
-                    onChange={(e) => setEditLinkedin(e.target.value)}
-                    placeholder="https://linkedin.com/in/..."
-                    className="w-full py-2 px-3 border border-slate-200/60 dark:border-slate-800/60 bg-white dark:bg-slate-950/50 dark:text-white rounded-xl text-xs focus:outline-none focus:ring-2 focus:ring-blue-500/10"
-                  />
-                </div>
-              </div>
-            </div>
-
-            {/* Actions */}
-            <div className="border-t border-slate-100 dark:border-slate-800/40 pt-6 flex items-center justify-end select-none">
-              <button
-                id="profile-save-btn"
-                type="submit"
-                disabled={isSavingProfile}
-                className="py-2.5 px-5 bg-blue-600 hover:bg-blue-700 text-white rounded-xl text-xs font-semibold cursor-pointer shadow-sm flex items-center space-x-1.5"
-              >
-                {isSavingProfile ? <span>Saving...</span> : <><Save className="h-4 w-4" /><span>Synchronize Profile Details</span></>}
-              </button>
-            </div>
-
-          </form>
-        </div>
-      )}
-
-      {/* 6. SUGGESTIONS RECEIVED TAB */}
-      {activeTab === 'suggestions' && (
-        <div className="space-y-4" id="suggestions-tab-content">
-          <div className="bg-slate-50/50 dark:bg-slate-900/40 border border-slate-200/60 dark:border-slate-800/40 p-5 rounded-2xl select-none" id="suggestions-tab-header">
-            <span className="block text-[11px] font-bold font-mono uppercase tracking-wider text-slate-400 dark:text-slate-500 mb-1.5">COLLABORATION FEEDS — SUGGESTIONS RECEIVED</span>
-            <h3 className="font-display font-extrabold text-base text-slate-950 dark:text-white">Peer Improvement Board</h3>
-            <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">Review constructive feedback and optimizations posted by modern builders on your public board pitches.</p>
           </div>
+        </div>
 
-          {userSuggestions.length === 0 ? (
-            <div className="bg-white dark:bg-slate-900/40 border border-slate-200/50 dark:border-slate-800/40 rounded-2xl p-12 text-center select-none shadow-[inset_0_2px_4px_rgba(0,0,0,0.01)]">
-              <MessageSquare className="mx-auto h-10 w-10 text-slate-300 dark:text-slate-700 mb-3" />
-              <h3 className="font-display font-bold text-sm text-slate-950 dark:text-white">No Suggestions Received Yet</h3>
-              <p className="text-xs text-slate-500 dark:text-slate-400 mt-1 max-w-sm mx-auto leading-relaxed">
-                When other founders or investors post constructive comments on your public ideas, they will instantly show up in this centralized board!
+        {/* 5. EDIT PROFILE CARD */}
+        <div className={activeTab === 'profile' ? 'block animate-in fade-in slide-in-from-bottom-2 duration-300' : 'hidden'} id="profile-tab-content">
+          <div className="bg-white dark:bg-slate-900/40 border border-slate-200/50 dark:border-slate-800/40 rounded-2xl p-6 sm:p-8">
+            <div className="mb-6 select-none border-b border-slate-50 dark:border-slate-800/40 pb-4">
+              <h2 className="font-display font-semibold text-lg text-slate-905 dark:text-white">My Public Founder Credentials</h2>
+              <p className="text-xs text-slate-450 dark:text-slate-400 mt-1">
+                Configure your credentials and networking biographies so founders are confident when interacting.
               </p>
             </div>
-          ) : (
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-5" id="suggestions-tab-grid">
-              {userSuggestions.map(s => {
-                const associatedIdea = ideas.find(i => i.id === s.ideaId);
-                return (
-                  <div key={s.id} className="p-5 border border-slate-200/40 dark:border-slate-800/40 bg-white dark:bg-slate-900/40 rounded-2xl shadow-sm flex flex-col justify-between" id={`user-suggestion-${s.id}`}>
-                    <div>
-                      {/* Suggestion title and date */}
-                      <div className="flex items-center justify-between gap-2 mb-3 select-none">
-                        <div className="flex items-center space-x-2">
-                          <img src={s.authorAvatar} alt={s.authorName} className="w-8 h-8 rounded-full border border-slate-200 dark:border-slate-700 object-cover" referrerPolicy="no-referrer" />
-                          <div>
-                            <span className="block text-xs font-bold text-slate-800 dark:text-white">{s.authorName}</span>
-                            <span className="block text-[9px] text-slate-400 dark:text-slate-500">{new Date(s.createdAt).toLocaleString()}</span>
-                          </div>
-                        </div>
-                        {associatedIdea && (
-                          <div className="text-right">
-                            <span className="inline-block px-2.5 py-1 text-[10px] font-semibold bg-indigo-50/50 dark:bg-indigo-900/20 text-indigo-700 dark:text-indigo-400 rounded-lg border border-indigo-100/50 dark:border-indigo-800/50 uppercase tracking-tight font-mono">
-                              {associatedIdea.name}
-                            </span>
-                          </div>
-                        )}
-                      </div>
-                      
-                      {/* Suggestion text */}
-                      <p className="text-slate-700 dark:text-slate-300 text-xs leading-relaxed whitespace-pre-wrap bg-slate-50/50 dark:bg-slate-950/20 p-3.5 rounded-xl border border-slate-100/50 dark:border-slate-800/40 mb-4 font-sans">
-                        {s.content}
-                      </p>
-                    </div>
 
-                    {/* View/Navigate to card */}
-                    {associatedIdea && (
-                      <div className="flex items-center justify-between border-t border-slate-100/40 dark:border-slate-800/40 pt-3 select-none text-[10px] font-mono">
-                        <span className="text-slate-400 dark:text-slate-500 font-medium">Under {associatedIdea.category}</span>
-                        <button
-                          onClick={() => onSelectIdea(associatedIdea)}
-                          className="inline-flex items-center space-x-1 font-bold text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300 hover:underline cursor-pointer"
-                        >
-                          <span>View Board</span>
-                          <ExternalLink className="h-3 w-3" />
-                        </button>
-                      </div>
+            <form onSubmit={handleProfileSave} className="space-y-6">
+              
+              {/* Save success banner */}
+              {profileSaveSuccess && (
+                <div className="p-3 bg-emerald-50/50 dark:bg-emerald-900/20 border border-emerald-100/50 dark:border-emerald-800/50 rounded-2xl flex items-center space-x-2 text-emerald-600 dark:text-emerald-400 text-xs" id="profile-save-success">
+                  <Check className="h-4 w-4" />
+                  <span>Founder Profile synchronized successfully!</span>
+                </div>
+              )}
+
+              {/* Logo and Portrait upload previews */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 select-none">
+                <div className="flex items-center space-x-3.5 border border-slate-150/60 dark:border-slate-800/60 rounded-xl p-3 bg-slate-50/50 dark:bg-slate-950/20 relative">
+                  <input
+                    type="file"
+                    accept="image/*"
+                    className="absolute inset-0 opacity-0 cursor-pointer z-10 w-full h-full"
+                    onChange={(e) => handleImageUpload(e, setEditAvatar)}
+                  />
+                  <div className="w-12 h-12 rounded-full overflow-hidden border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 shadow-xs shrink-0 flex items-center justify-center">
+                    {editAvatar ? (
+                      <img src={editAvatar} alt="Avatar Preview" className="w-full h-full object-cover" />
+                    ) : (
+                      <span className="text-[10px] text-slate-400 font-bold">No Pic</span>
                     )}
                   </div>
-                );
-              })}
-            </div>
-          )}
-        </div>
-      )}
+                  <div>
+                    <span className="block text-[10px] font-bold font-mono text-slate-500 dark:text-slate-400 uppercase tracking-wider">Founder Picture</span>
+                    <span className="text-[9px] text-slate-450 dark:text-slate-500 font-medium">Click to upload avatar.</span>
+                  </div>
+                </div>
 
+                <div className="flex items-center space-x-3.5 border border-slate-150/60 dark:border-slate-800/60 rounded-xl p-3 bg-slate-50/50 dark:bg-slate-950/20 relative">
+                  <input
+                    type="file"
+                    accept="image/*"
+                    className="absolute inset-0 opacity-0 cursor-pointer z-10 w-full h-full"
+                    onChange={(e) => handleImageUpload(e, setEditStartupLogo)}
+                  />
+                  <div className="w-12 h-12 rounded-lg overflow-hidden border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 shadow-xs shrink-0 flex items-center justify-center">
+                    {editStartupLogo ? (
+                      <img src={editStartupLogo} alt="Startup Logo Preview" className="w-full h-full object-cover" />
+                    ) : (
+                      <span className="text-[10px] text-slate-450 dark:text-slate-500 font-bold">No Logo</span>
+                    )}
+                  </div>
+                  <div>
+                    <span className="block text-[10px] font-bold font-mono text-slate-500 dark:text-slate-400 uppercase tracking-wider">Startup Logo</span>
+                    <span className="text-[9px] text-slate-450 dark:text-slate-500 font-medium">Click to upload brand logo.</span>
+                  </div>
+                </div>
+              </div>
+
+              <div className="grid grid-cols-1 gap-4">
+                <div>
+                  <label className="block text-[10px] font-bold font-mono text-slate-400 dark:text-slate-500 uppercase tracking-wider mb-1.5 select-none">Founder Display Name</label>
+                  <input
+                    id="profile-name-input"
+                    type="text"
+                    required
+                    value={editName}
+                    onChange={(e) => setEditName(e.target.value)}
+                    dir="auto"
+                    className="w-full py-2 px-3 border border-slate-200/60 dark:border-slate-800/60 bg-white dark:bg-slate-950/50 dark:text-white rounded-xl text-xs focus:outline-none focus:ring-2 focus:ring-blue-500/10"
+                  />
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-[10px] font-bold font-mono text-slate-400 dark:text-slate-500 uppercase tracking-wider mb-1.5 select-none">What Are You Building?</label>
+                <textarea
+                  id="profile-building-desc-textarea"
+                  rows={3}
+                  required
+                  value={editBuildingDesc}
+                  onChange={(e) => setEditBuildingDesc(e.target.value)}
+                  dir="auto"
+                  placeholder="Describe your current project..."
+                  className="w-full py-2 px-3 border border-slate-200/60 dark:border-slate-800/60 bg-white dark:bg-slate-950/50 dark:text-white rounded-xl text-xs focus:outline-none focus:ring-2 focus:ring-blue-500/10 resize-none"
+                />
+              </div>
+
+              <div>
+                <label className="block text-[10px] font-bold font-mono text-slate-400 dark:text-slate-500 uppercase tracking-wider mb-1.5 select-none">Short Founder Biography</label>
+                <textarea
+                  id="profile-bio-textarea"
+                  rows={3}
+                  required
+                  value={editBio}
+                  onChange={(e) => setEditBio(e.target.value)}
+                  dir="auto"
+                  className="w-full py-2 px-3 border border-slate-200/60 dark:border-slate-800/60 bg-white dark:bg-slate-950/50 dark:text-white rounded-xl text-xs focus:outline-none focus:ring-2 focus:ring-blue-500/10 resize-none"
+                />
+              </div>
+
+              {/* Social credentials handles */}
+              <div className="border-t border-slate-50 dark:border-slate-800/40 pt-6 space-y-4">
+                <h3 className="block text-[10px] font-bold font-mono text-slate-400 dark:text-slate-500 uppercase tracking-wider select-none">Networking Channels Profiles</h3>
+                
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-4" id="profile-social-deck">
+                  <div>
+                    <label className="block text-[10px] text-slate-500 dark:text-slate-400 mb-1 select-none">Github URL</label>
+                    <input
+                      id="profile-github-input"
+                      type="url"
+                      value={editGithub}
+                      onChange={(e) => setEditGithub(e.target.value)}
+                      placeholder="https://github.com/..."
+                      className="w-full py-2 px-3 border border-slate-200/60 dark:border-slate-800/60 bg-white dark:bg-slate-950/50 dark:text-white rounded-xl text-xs focus:outline-none focus:ring-2 focus:ring-blue-500/10"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-[10px] text-slate-500 dark:text-slate-400 mb-1 select-none">Twitter (X) URL</label>
+                    <input
+                      id="profile-twitter-input"
+                      type="url"
+                      value={editTwitter}
+                      onChange={(e) => setEditTwitter(e.target.value)}
+                      placeholder="https://twitter.com/..."
+                      className="w-full py-2 px-3 border border-slate-200/60 dark:border-slate-800/60 bg-white dark:bg-slate-950/50 dark:text-white rounded-xl text-xs focus:outline-none focus:ring-2 focus:ring-blue-500/10"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-[10px] text-slate-500 dark:text-slate-400 mb-1 select-none">LinkedIn URL</label>
+                    <input
+                      id="profile-linkedin-input"
+                      type="url"
+                      value={editLinkedin}
+                      onChange={(e) => setEditLinkedin(e.target.value)}
+                      placeholder="https://linkedin.com/in/..."
+                      className="w-full py-2 px-3 border border-slate-200/60 dark:border-slate-800/60 bg-white dark:bg-slate-950/50 dark:text-white rounded-xl text-xs focus:outline-none focus:ring-2 focus:ring-blue-500/10"
+                    />
+                  </div>
+                </div>
+              </div>
+
+              {/* Actions */}
+              <div className="border-t border-slate-100 dark:border-slate-800/40 pt-6 flex items-center justify-end select-none">
+                <button
+                  id="profile-save-btn"
+                  type="submit"
+                  disabled={isSavingProfile}
+                  className="py-2.5 px-5 bg-blue-600 hover:bg-blue-700 text-white rounded-xl text-xs font-semibold cursor-pointer shadow-sm flex items-center space-x-1.5"
+                >
+                  {isSavingProfile ? <span>Saving...</span> : <><Save className="h-4 w-4" /><span>Synchronize Profile Details</span></>}
+                </button>
+              </div>
+
+            </form>
+          </div>
+        </div>
+
+        {/* 6. SUGGESTIONS RECEIVED TAB */}
+        <div className={activeTab === 'suggestions' ? 'block animate-in fade-in slide-in-from-bottom-2 duration-300' : 'hidden'} id="suggestions-tab-content">
+          <div className="space-y-4">
+            <div className="bg-slate-50/50 dark:bg-slate-900/40 border border-slate-200/60 dark:border-slate-800/40 p-5 rounded-2xl select-none" id="suggestions-tab-header">
+              <span className="block text-[11px] font-bold font-mono uppercase tracking-wider text-slate-400 dark:text-slate-500 mb-1.5">COLLABORATION FEEDS — SUGGESTIONS RECEIVED</span>
+              <h3 className="font-display font-extrabold text-base text-slate-950 dark:text-white">Peer Improvement Board</h3>
+              <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">Review constructive feedback and optimizations posted by modern builders on your public board pitches.</p>
+            </div>
+
+            {userSuggestions.length === 0 ? (
+              <div className="bg-white dark:bg-slate-900/40 border border-slate-200/50 dark:border-slate-800/40 rounded-2xl p-12 text-center select-none shadow-[inset_0_2px_4px_rgba(0,0,0,0.01)]">
+                <MessageSquare className="mx-auto h-10 w-10 text-slate-300 dark:text-slate-700 mb-3" />
+                <h3 className="font-display font-bold text-sm text-slate-950 dark:text-white">No Suggestions Received Yet</h3>
+                <p className="text-xs text-slate-500 dark:text-slate-400 mt-1 max-w-sm mx-auto leading-relaxed">
+                  When other founders or investors post constructive comments on your public ideas, they will instantly show up in this centralized board!
+                </p>
+              </div>
+            ) : (
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-5" id="suggestions-tab-grid">
+                {userSuggestions.map(s => {
+                  const associatedIdea = ideas.find(i => i.id === s.ideaId);
+                  return (
+                    <div key={s.id} className="p-5 border border-slate-200/40 dark:border-slate-800/40 bg-white dark:bg-slate-900/40 rounded-2xl shadow-sm flex flex-col justify-between" id={`user-suggestion-${s.id}`}>
+                      <div>
+                        {/* Suggestion title and date */}
+                        <div className="flex items-center justify-between gap-2 mb-3 select-none">
+                          <div className="flex items-center space-x-2">
+                            <img src={s.authorAvatar} alt={s.authorName} className="w-8 h-8 rounded-full border border-slate-200 dark:border-slate-700 object-cover" referrerPolicy="no-referrer" />
+                            <div>
+                              <span className="block text-xs font-bold text-slate-800 dark:text-white">{s.authorName}</span>
+                              <span className="block text-[9px] text-slate-400 dark:text-slate-500">{new Date(s.createdAt).toLocaleString()}</span>
+                            </div>
+                          </div>
+                          {associatedIdea && (
+                            <div className="text-right">
+                              <span className="inline-block px-2.5 py-1 text-[10px] font-semibold bg-indigo-50/50 dark:bg-indigo-900/20 text-indigo-700 dark:text-indigo-400 rounded-lg border border-indigo-100/50 dark:border-indigo-800/50 uppercase tracking-tight font-mono">
+                                {associatedIdea.name}
+                              </span>
+                            </div>
+                          )}
+                        </div>
+                        
+                        {/* Suggestion text */}
+                        <p className="text-slate-700 dark:text-slate-300 text-xs leading-relaxed whitespace-pre-wrap bg-slate-50/50 dark:bg-slate-950/20 p-3.5 rounded-xl border border-slate-100/50 dark:border-slate-800/40 mb-4 font-sans">
+                          {s.content}
+                        </p>
+                      </div>
+
+                      {/* View/Navigate to card */}
+                      {associatedIdea && (
+                        <div className="flex items-center justify-between border-t border-slate-100/40 dark:border-slate-800/40 pt-3 select-none text-[10px] font-mono">
+                          <span className="text-slate-400 dark:text-slate-500 font-medium">Under {associatedIdea.category}</span>
+                          <button
+                            onClick={() => onSelectIdea(associatedIdea)}
+                            className="inline-flex items-center space-x-1 font-bold text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300 hover:underline cursor-pointer"
+                          >
+                            <span>View Board</span>
+                            <ExternalLink className="h-3 w-3" />
+                          </button>
+                        </div>
+                      )}
+                    </div>
+                  );
+                })}
+              </div>
+            )}
+          </div>
+        </div>
+      </div>
     </div>
   );
 }
