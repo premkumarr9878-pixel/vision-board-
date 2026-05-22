@@ -31,9 +31,18 @@ p, h1, h2, h3, h4, h5, h6, span, div, textarea, input {
 }
 
 /* Fix for languages with taller characters (like Hindi, Arabic, Thai) and RTL scripts */
-textarea, input {
+textarea, input, .multilingual-text {
   line-height: 1.6; /* Increased for taller scripts */
   unicode-bidi: plaintext; /* Better handling for mixed RTL/LTR in inputs */
+}
+
+/* Ensure user-written text is black even in dark theme for better contrast on light backgrounds */
+.dark textarea, .dark input {
+  color: #000000 !important;
+}
+
+.dark textarea::placeholder, .dark input::placeholder {
+  color: #64748b !important; /* slate-500 for readability */
 }
 
 /* Placeholder styling for multilingual clarity */

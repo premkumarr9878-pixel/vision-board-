@@ -32,6 +32,7 @@ export default function Header({
 }: HeaderProps) {
   const [isScrolled, setIsScrolled] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const [isProfileOpen, setIsProfileOpen] = useState(false);
 
   useEffect(() => {
     const handleScroll = () => {
@@ -40,6 +41,14 @@ export default function Header({
     window.addEventListener('scroll', handleScroll);
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
+
+  // Close profile dropdown when clicking outside
+  useEffect(() => {
+    if (!isProfileOpen) return;
+    const handleClick = () => setIsProfileOpen(false);
+    window.addEventListener('click', handleClick);
+    return () => window.removeEventListener('click', handleClick);
+  }, [isProfileOpen]);
 
   const NavButton = ({ 
     onClick, 
@@ -105,7 +114,7 @@ export default function Header({
                 placeholder="Search ideas, founders, categories..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                className="w-full pl-11 pr-4 py-2.5 bg-slate-100 dark:bg-slate-900 border-2 border-transparent focus:border-blue-600/20 dark:focus:border-blue-400/20 focus:bg-white dark:focus:bg-slate-950 rounded-2xl text-xs font-bold transition-all outline-none dark:text-white placeholder-slate-400"
+                className="w-full pl-11 pr-4 py-2.5 bg-slate-100 dark:bg-slate-50 border-2 border-transparent focus:border-blue-600/20 dark:focus:border-blue-400/20 focus:bg-white dark:focus:bg-white rounded-2xl text-xs font-bold transition-all outline-none dark:text-black placeholder-slate-400"
               />
             </div>
           )}
@@ -152,20 +161,46 @@ export default function Header({
                     <p className="text-[10px] font-black text-slate-900 dark:text-white uppercase tracking-tight" dir="auto">{currentUser.name}</p>
                     <p className="text-[9px] font-bold text-slate-400 uppercase tracking-widest">Active Founder</p>
                   </div>
-                  <div className="relative group">
-                    <button className="h-10 w-10 rounded-2xl border-2 border-slate-100 dark:border-slate-800 overflow-hidden cursor-pointer hover:border-blue-600 transition-all">
+                  <div className="relative">
+                    <button 
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        setIsProfileOpen(!isProfileOpen);
+                      }}
+                      className={`h-10 w-10 rounded-2xl border-2 overflow-hidden cursor-pointer transition-all ${
+                        isProfileOpen ? 'border-blue-600 ring-4 ring-blue-500/10' : 'border-slate-100 dark:border-slate-800 hover:border-blue-600'
+                      }`}
+                    >
                       <img src={currentUser.avatar} alt="Profile" className="h-full w-full object-cover" />
                     </button>
-                    {/* Simple dropdown mock */}
-                    <div className="absolute right-0 top-full mt-2 w-48 bg-white dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-2xl shadow-2xl opacity-0 translate-y-2 pointer-events-none group-hover:opacity-100 group-hover:translate-y-0 transition-all p-2 z-[60]">
-                      <button 
-                        onClick={onLogout}
-                        className="w-full flex items-center space-x-2 px-3 py-2 text-xs font-bold text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-xl transition-all"
-                      >
-                        <LogOut className="h-4 w-4" />
-                        <span>Sign Out Session</span>
-                      </button>
-                    </div>
+                    
+                    {/* Dropdown menu */}
+                    <AnimatePresence>
+                      {isProfileOpen && (
+                        <motion.div 
+                          initial={{ opacity: 0, y: 10, scale: 0.95 }}
+                          animate={{ opacity: 1, y: 0, scale: 1 }}
+                          exit={{ opacity: 0, y: 10, scale: 0.95 }}
+                          className="absolute right-0 top-full mt-2 w-48 bg-white dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-2xl shadow-2xl p-2 z-[60]"
+                        >
+                          <div className="px-3 py-2 border-b border-slate-100 dark:border-slate-900 mb-1 xl:hidden">
+                            <p className="text-[10px] font-black text-slate-900 dark:text-white uppercase tracking-tight truncate">{currentUser.name}</p>
+                            <p className="text-[8px] font-bold text-slate-400 uppercase tracking-widest">Active Founder</p>
+                          </div>
+                          
+                          <button 
+                            onClick={() => {
+                              onLogout();
+                              setIsProfileOpen(false);
+                            }}
+                            className="w-full flex items-center space-x-2 px-3 py-2.5 text-xs font-bold text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-xl transition-all cursor-pointer group"
+                          >
+                            <LogOut className="h-4 w-4 group-hover:-translate-x-1 transition-transform" />
+                            <span>Sign Out Session</span>
+                          </button>
+                        </motion.div>
+                      )}
+                    </AnimatePresence>
                   </div>
                 </div>
               ) : (

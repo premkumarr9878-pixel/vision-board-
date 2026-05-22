@@ -273,49 +273,49 @@ export default function OnboardingView({ source, onComplete, onCancel }: Onboard
                         required={isSignUp}
                         value={name}
                         onChange={(e) => setName(e.target.value)}
-                        dir="auto"
-                        placeholder="e.g. Rachel Adams, Johnathan Doe"
-                        className="w-full pl-10 pr-4 py-2.5 border border-slate-200 rounded-xl text-sm placeholder-slate-450 focus:outline-none focus:ring-2 focus:ring-blue-500/10 focus:border-blue-500 bg-white"
-                      />
-                    </div>
-                  </div>
-                )}
-
-                <div>
-                  <label className="block text-2xs font-bold font-mono text-slate-400 uppercase tracking-wider mb-2 select-none">Email Address</label>
-                  <div className="relative">
-                    <span className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-400">
-                      <Mail className="h-4 w-4" />
-                    </span>
-                    <input
-                      id="onboarding-email-input"
-                      type="email"
-                      required
-                      value={email}
-                      onChange={(e) => setEmail(e.target.value)}
-                      placeholder="e.g. rachel@startupflow.com"
-                      className="w-full pl-10 pr-4 py-2.5 border border-slate-200 rounded-xl text-sm placeholder-slate-450 focus:outline-none focus:ring-2 focus:ring-blue-500/10 focus:border-blue-500 bg-white"
+                      dir="auto"
+                      placeholder="e.g. Rachel Adams, Johnathan Doe"
+                      className="w-full pl-10 pr-4 py-2.5 border border-slate-200 dark:border-slate-700 rounded-xl text-sm placeholder-slate-450 focus:outline-none focus:ring-2 focus:ring-blue-500/10 focus:border-blue-500 bg-white dark:bg-slate-50 dark:text-black"
                     />
                   </div>
                 </div>
+              )}
 
-                <div>
-                  <label className="block text-2xs font-bold font-mono text-slate-400 uppercase tracking-wider mb-2 select-none">Security Password</label>
-                  <div className="relative">
-                    <span className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-400">
-                      <Lock className="h-4 w-4" />
-                    </span>
-                    <input
-                      id="onboarding-password-input"
-                      type="password"
-                      required
-                      value={password}
-                      onChange={(e) => setPassword(e.target.value)}
-                      placeholder="Choose a startup passcode"
-                      className="w-full pl-10 pr-4 py-2.5 border border-slate-200 rounded-xl text-sm placeholder-slate-450 focus:outline-none focus:ring-2 focus:ring-blue-500/10 focus:border-blue-500 bg-white"
-                    />
-                  </div>
+              <div>
+                <label className="block text-2xs font-bold font-mono text-slate-400 uppercase tracking-wider mb-2 select-none">Email Address</label>
+                <div className="relative">
+                  <span className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-400">
+                    <Mail className="h-4 w-4" />
+                  </span>
+                  <input
+                    id="onboarding-email-input"
+                    type="email"
+                    required
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                    placeholder="e.g. rachel@startupflow.com"
+                    className="w-full pl-10 pr-4 py-2.5 border border-slate-200 dark:border-slate-700 rounded-xl text-sm placeholder-slate-450 focus:outline-none focus:ring-2 focus:ring-blue-500/10 focus:border-blue-500 bg-white dark:bg-slate-50 dark:text-black"
+                  />
                 </div>
+              </div>
+
+              <div>
+                <label className="block text-2xs font-bold font-mono text-slate-400 uppercase tracking-wider mb-2 select-none">Security Password</label>
+                <div className="relative">
+                  <span className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-400">
+                    <Lock className="h-4 w-4" />
+                  </span>
+                  <input
+                    id="onboarding-password-input"
+                    type="password"
+                    required
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                    placeholder="Choose a startup passcode"
+                    className="w-full pl-10 pr-4 py-2.5 border border-slate-200 dark:border-slate-700 rounded-xl text-sm placeholder-slate-450 focus:outline-none focus:ring-2 focus:ring-blue-500/10 focus:border-blue-500 bg-white dark:bg-slate-50 dark:text-black"
+                  />
+                </div>
+              </div>
               </div>
 
               <div className="pt-4 flex items-center justify-between border-t border-slate-100 mt-6">
@@ -364,7 +364,7 @@ export default function OnboardingView({ source, onComplete, onCancel }: Onboard
                     onChange={(e) => setBio(e.target.value)}
                     dir="auto"
                     placeholder="e.g. AI-focused systems software engineer with 4 years experience building backend APIs. Looking to match with creative product managers to launch standard B2B SaaS utilities."
-                    className="w-full px-4 py-3 border border-slate-200 rounded-xl text-xs placeholder-slate-450 focus:outline-none focus:ring-2 focus:ring-blue-500/10 focus:border-blue-500 bg-white resize-none leading-relaxed"
+                    className="w-full px-4 py-3 border border-slate-200 dark:border-slate-700 rounded-xl text-xs placeholder-slate-450 focus:outline-none focus:ring-2 focus:ring-blue-500/10 focus:border-blue-500 bg-white dark:bg-slate-50 dark:text-black resize-none leading-relaxed"
                   />
                 </div>
 
@@ -378,7 +378,7 @@ export default function OnboardingView({ source, onComplete, onCancel }: Onboard
                     onChange={(e) => setBuildingDesc(e.target.value)}
                     dir="auto"
                     placeholder="Tell people what you are building and why it matters..."
-                    className="w-full px-4 py-3 border border-slate-200 rounded-xl text-xs placeholder-slate-450 focus:outline-none focus:ring-2 focus:ring-blue-500/10 focus:border-blue-500 bg-white resize-none leading-relaxed"
+                    className="w-full px-4 py-3 border border-slate-200 dark:border-slate-700 rounded-xl text-xs placeholder-slate-450 focus:outline-none focus:ring-2 focus:ring-blue-500/10 focus:border-blue-500 bg-white dark:bg-slate-50 dark:text-black resize-none leading-relaxed"
                   />
                 </div>
 

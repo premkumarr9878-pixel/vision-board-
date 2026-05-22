@@ -150,36 +150,42 @@ export default function DashboardView({
       </div>
 
       {/* Dashboard Sub-navigation Tabs */}
-      <div className="sticky top-[64px] z-30 bg-white/80 dark:bg-slate-950/80 backdrop-blur-md border-b-2 border-slate-100 dark:border-slate-900 overflow-x-auto pb-0 mb-10 select-none no-scrollbar -mx-4 px-4 sm:-mx-6 sm:px-6 lg:-mx-8 lg:px-8" id="dashboard-tabs">
-        <div className="flex max-w-7xl mx-auto">
+      <div className="sticky top-[64px] z-30 bg-white/80 dark:bg-slate-950/80 backdrop-blur-md border-b border-slate-200 dark:border-slate-900 overflow-x-auto select-none no-scrollbar -mx-4 px-4 sm:-mx-6 sm:px-6 lg:-mx-8 lg:px-8 mb-10" id="dashboard-tabs">
+        <div className="flex max-w-7xl mx-auto py-5 items-center gap-2.5">
           {[
-            { id: 'overview', label: 'Overview Statistics' },
-            { id: 'ideas', label: `My Ideas (${userIdeas.length})` },
-            { id: 'collabs', label: `Collab Inbox (${userCollabs.length})` },
-            { id: 'funding', label: `Investor Inbox (${userFundings.length})` },
-            { id: 'suggestions', label: `Suggestions (${totalSuggestions})` },
-            { id: 'profile', label: 'My Profile' }
-          ].map((tab) => (
-            <button
-              key={tab.id}
-              id={`tab-db-${tab.id}`}
-              onClick={() => setActiveTab(tab.id as any)}
-              className={`relative pb-4 pt-4 px-2 text-[10px] font-black uppercase tracking-[0.15em] transition-all cursor-pointer whitespace-nowrap mr-8 group ${
-                activeTab === tab.id 
-                  ? 'text-slate-950 dark:text-white' 
-                  : 'text-slate-400 hover:text-slate-600 dark:hover:text-slate-200'
-              }`}
-            >
-              <span className="relative z-10">{tab.label}</span>
-              {activeTab === tab.id && (
-                <motion.div
-                  layoutId="active-tab-indicator"
-                  className="absolute bottom-0 left-0 right-0 h-1 bg-slate-950 dark:bg-white rounded-full z-0"
-                  transition={{ type: 'spring', bounce: 0.2, duration: 0.6 }}
-                />
-              )}
-            </button>
-          ))}
+            { id: 'overview', label: 'Overview Statistics', icon: <LayoutDashboard className="w-3.5 h-3.5" /> },
+            { id: 'ideas', label: `My Ideas (${userIdeas.length})`, icon: <Lightbulb className="w-3.5 h-3.5" /> },
+            { id: 'collabs', label: `Collab Inbox (${userCollabs.length})`, icon: <Users className="w-3.5 h-3.5" /> },
+            { id: 'funding', label: `Investor Inbox (${userFundings.length})`, icon: <CircleDollarSign className="w-3.5 h-3.5" /> },
+            { id: 'suggestions', label: `Suggestions (${totalSuggestions})`, icon: <MessageSquare className="w-3.5 h-3.5" /> },
+            { id: 'profile', label: 'My Profile', icon: <UserCheck className="w-3.5 h-3.5" /> }
+          ].map((tab) => {
+            const isActive = activeTab === tab.id;
+            return (
+              <button
+                key={tab.id}
+                id={`tab-db-${tab.id}`}
+                onClick={() => setActiveTab(tab.id as any)}
+                className={`relative flex items-center gap-2 px-4 py-2 rounded-xl text-[10px] font-black uppercase tracking-wider transition-all duration-300 cursor-pointer whitespace-nowrap border-2 ${
+                  isActive 
+                    ? 'bg-slate-950 border-slate-950 text-white shadow-lg shadow-slate-950/20 dark:bg-white dark:border-white dark:text-slate-950 dark:shadow-white/10' 
+                    : 'bg-white border-slate-150 text-slate-500 hover:border-slate-300 hover:text-slate-900 dark:bg-slate-900/40 dark:border-slate-800/60 dark:text-slate-400 dark:hover:border-slate-700 dark:hover:text-white'
+                }`}
+              >
+                <span className={`transition-transform duration-300 ${isActive ? 'scale-110' : 'group-hover:scale-110 opacity-70'}`}>
+                  {tab.icon}
+                </span>
+                <span>{tab.label}</span>
+                {isActive && (
+                  <motion.div
+                    layoutId="tab-pill"
+                    className="absolute inset-0 bg-slate-950 dark:bg-white rounded-xl -z-10"
+                    transition={{ type: 'spring', bounce: 0.2, duration: 0.6 }}
+                  />
+                )}
+              </button>
+            );
+          })}
         </div>
       </div>
 
@@ -404,6 +410,7 @@ export default function DashboardView({
 
           </div>
         </div>
+      </div>
 
         {/* 2. MY IDEAS GRID */}
         <div className={activeTab === 'ideas' ? 'block animate-in fade-in slide-in-from-bottom-2 duration-300' : 'hidden'} id="ideas-tab-content">
@@ -613,36 +620,36 @@ export default function DashboardView({
                             {c.name.charAt(0)}
                           </div>
                           <div>
-                          <h4 className="font-display font-black text-lg text-slate-950 dark:text-white flex items-center gap-2" dir="auto">
-                            {c.name}
-                            <StatusBadge status={c.status} />
-                          </h4>
-                          <p className="text-xs font-bold text-slate-500 dark:text-slate-400" dir="auto">
-                            Applied as <span className="text-blue-600 dark:text-blue-400">{c.role}</span> for <span className="italic">“{c.ideaName}”</span>
+                            <h4 className="font-display font-black text-lg text-slate-950 dark:text-white flex items-center gap-2" dir="auto">
+                              {c.name}
+                              <StatusBadge status={c.status} />
+                            </h4>
+                            <p className="text-xs font-bold text-slate-500 dark:text-slate-400" dir="auto">
+                              Applied as <span className="text-blue-600 dark:text-blue-400">{c.role}</span> for <span className="italic">“{c.ideaName}”</span>
+                            </p>
+                          </div>
+                        </div>
+                        <span className="text-[10px] font-black font-mono text-slate-400 uppercase tracking-widest">{new Date(c.createdAt).toLocaleDateString()}</span>
+                      </div>
+
+                      <div className="bg-slate-50 dark:bg-slate-900/50 rounded-2xl p-5 border border-slate-100 dark:border-slate-800/60 mb-6">
+                        <div className="flex items-center space-x-6 mb-4 pb-4 border-b border-slate-200 dark:border-slate-800/60">
+                          <div className="flex items-center space-x-2 text-xs font-bold text-slate-600 dark:text-slate-300">
+                            <Mail className="h-4 w-4 text-slate-400" />
+                            <span className="select-all" dir="auto">{c.email}</span>
+                          </div>
+                          <div className="flex items-center space-x-2 text-xs font-bold text-slate-600 dark:text-slate-300">
+                            <Phone className="h-4 w-4 text-slate-400" />
+                            <span className="select-all" dir="auto">{c.phone}</span>
+                          </div>
+                        </div>
+                        <div className="space-y-2">
+                          <span className="block text-[10px] font-black font-mono text-slate-400 uppercase tracking-widest">Pitch Message</span>
+                          <p className="text-sm font-medium text-slate-700 dark:text-slate-300 leading-relaxed italic" dir="auto">
+                            “{c.message}”
                           </p>
                         </div>
                       </div>
-                      <span className="text-[10px] font-black font-mono text-slate-400 uppercase tracking-widest">{new Date(c.createdAt).toLocaleDateString()}</span>
-                    </div>
-
-                    <div className="bg-slate-50 dark:bg-slate-900/50 rounded-2xl p-5 border border-slate-100 dark:border-slate-800/60 mb-6">
-                      <div className="flex items-center space-x-6 mb-4 pb-4 border-b border-slate-200 dark:border-slate-800/60">
-                        <div className="flex items-center space-x-2 text-xs font-bold text-slate-600 dark:text-slate-300">
-                          <Mail className="h-4 w-4 text-slate-400" />
-                          <span className="select-all" dir="auto">{c.email}</span>
-                        </div>
-                        <div className="flex items-center space-x-2 text-xs font-bold text-slate-600 dark:text-slate-300">
-                          <Phone className="h-4 w-4 text-slate-400" />
-                          <span className="select-all" dir="auto">{c.phone}</span>
-                        </div>
-                      </div>
-                      <div className="space-y-2">
-                        <span className="block text-[10px] font-black font-mono text-slate-400 uppercase tracking-widest">Pitch Message</span>
-                        <p className="text-sm font-medium text-slate-700 dark:text-slate-300 leading-relaxed italic" dir="auto">
-                          “{c.message}”
-                        </p>
-                      </div>
-                    </div>
 
                       <div className="flex flex-wrap gap-3">
                         {c.status === 'pending' && (
@@ -671,11 +678,12 @@ export default function DashboardView({
                             <MessageCircle className="h-4 w-4" />
                             Mark as Contacted
                           </button>
-                        </div>
+                        )}
                       </div>
                     </div>
                   </div>
-                ))}
+                </div>
+              ))}
               </div>
             )}
           </div>
@@ -864,7 +872,7 @@ export default function DashboardView({
                     value={editName}
                     onChange={(e) => setEditName(e.target.value)}
                     dir="auto"
-                    className="w-full py-2 px-3 border border-slate-200/60 dark:border-slate-800/60 bg-white dark:bg-slate-950/50 dark:text-white rounded-xl text-xs focus:outline-none focus:ring-2 focus:ring-blue-500/10"
+                    className="w-full py-2 px-3 border border-slate-200/60 dark:border-slate-700 bg-white dark:bg-slate-50 dark:text-black rounded-xl text-xs focus:outline-none focus:ring-2 focus:ring-blue-500/10"
                   />
                 </div>
               </div>
@@ -879,7 +887,7 @@ export default function DashboardView({
                   onChange={(e) => setEditBuildingDesc(e.target.value)}
                   dir="auto"
                   placeholder="Describe your current project..."
-                  className="w-full py-2 px-3 border border-slate-200/60 dark:border-slate-800/60 bg-white dark:bg-slate-950/50 dark:text-white rounded-xl text-xs focus:outline-none focus:ring-2 focus:ring-blue-500/10 resize-none"
+                  className="w-full py-2 px-3 border border-slate-200/60 dark:border-slate-700 bg-white dark:bg-slate-50 dark:text-black rounded-xl text-xs focus:outline-none focus:ring-2 focus:ring-blue-500/10 resize-none"
                 />
               </div>
 
@@ -892,7 +900,7 @@ export default function DashboardView({
                   value={editBio}
                   onChange={(e) => setEditBio(e.target.value)}
                   dir="auto"
-                  className="w-full py-2 px-3 border border-slate-200/60 dark:border-slate-800/60 bg-white dark:bg-slate-950/50 dark:text-white rounded-xl text-xs focus:outline-none focus:ring-2 focus:ring-blue-500/10 resize-none"
+                  className="w-full py-2 px-3 border border-slate-200/60 dark:border-slate-700 bg-white dark:bg-slate-50 dark:text-black rounded-xl text-xs focus:outline-none focus:ring-2 focus:ring-blue-500/10 resize-none"
                 />
               </div>
 
@@ -909,7 +917,7 @@ export default function DashboardView({
                       value={editGithub}
                       onChange={(e) => setEditGithub(e.target.value)}
                       placeholder="https://github.com/..."
-                      className="w-full py-2 px-3 border border-slate-200/60 dark:border-slate-800/60 bg-white dark:bg-slate-950/50 dark:text-white rounded-xl text-xs focus:outline-none focus:ring-2 focus:ring-blue-500/10"
+                      className="w-full py-2 px-3 border border-slate-200/60 dark:border-slate-700 bg-white dark:bg-slate-50 dark:text-black rounded-xl text-xs focus:outline-none focus:ring-2 focus:ring-blue-500/10"
                     />
                   </div>
 
@@ -921,7 +929,7 @@ export default function DashboardView({
                       value={editTwitter}
                       onChange={(e) => setEditTwitter(e.target.value)}
                       placeholder="https://twitter.com/..."
-                      className="w-full py-2 px-3 border border-slate-200/60 dark:border-slate-800/60 bg-white dark:bg-slate-950/50 dark:text-white rounded-xl text-xs focus:outline-none focus:ring-2 focus:ring-blue-500/10"
+                      className="w-full py-2 px-3 border border-slate-200/60 dark:border-slate-700 bg-white dark:bg-slate-50 dark:text-black rounded-xl text-xs focus:outline-none focus:ring-2 focus:ring-blue-500/10"
                     />
                   </div>
 
@@ -933,7 +941,7 @@ export default function DashboardView({
                       value={editLinkedin}
                       onChange={(e) => setEditLinkedin(e.target.value)}
                       placeholder="https://linkedin.com/in/..."
-                      className="w-full py-2 px-3 border border-slate-200/60 dark:border-slate-800/60 bg-white dark:bg-slate-950/50 dark:text-white rounded-xl text-xs focus:outline-none focus:ring-2 focus:ring-blue-500/10"
+                      className="w-full py-2 px-3 border border-slate-200/60 dark:border-slate-700 bg-white dark:bg-slate-50 dark:text-black rounded-xl text-xs focus:outline-none focus:ring-2 focus:ring-blue-500/10"
                     />
                   </div>
                 </div>

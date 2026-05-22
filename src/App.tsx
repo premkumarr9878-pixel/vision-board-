@@ -10,18 +10,39 @@ import DashboardView from './components/DashboardView';
 import LeaderboardTable from './components/LeaderboardTable';
 import OnboardingView from './components/OnboardingView';
 import { CardSkeleton, TableRowSkeleton } from './components/Skeleton';
-import { getLocalStorageState, saveLocalStorageState, DEFAULT_PROFILE } from './data';
-import { StartupIdea, FounderProfile, CollaborationRequest, FundingRequest, Suggestion } from './types';
+import { getLocalStorageState, saveLocalStorageState, DEFAULT_PROFILE, safeParse } from './data';
+import { StartupIdea, FounderProfile, CollaborationRequest, FundingRequest, Suggestion, RequestStatus } from './types';
 import { Star, Sparkles, Send, Flame, Lightbulb, Users, Globe, ExternalLink } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 
 export default function App() {
   // Load state from localStorage on init
-  const [state, setState] = useState(() => getLocalStorageState());
+  const [state, setState] = useState(() => {
+    try {
+      return getLocalStorageState();
+    } catch (err) {
+      console.error('Initial state load failed:', err);
+      return {
+        ideas: [],
+        profile: DEFAULT_PROFILE,
+        collaborations: [],
+        funding: [],
+        suggestions: [],
+        hasModified: false
+      };
+    }
+  });
+
   const [currentUser, setCurrentUser] = useState<FounderProfile | null>(() => {
     if (typeof window === 'undefined') return null;
-    const sessionUser = localStorage.getItem('vb_auth_user');
-    return sessionUser ? JSON.parse(sessionUser) : null;
+    try {
+      const sessionUser = localStorage.getItem('vb_auth_user');
+      return sessionUser ? JSON.parse(sessionUser) : null;
+    } catch (err) {
+      console.error('Session user load failed:', err);
+      localStorage.removeItem('vb_auth_user');
+      return null;
+    }
   });
   const [currentView, setCurrentView] = useState<'explore' | 'dashboard' | 'onboarding'>('explore');
   const [onboardingSource, setOnboardingSource] = useState<'add-idea' | 'founder-hub' | null>(null);
@@ -81,8 +102,12 @@ export default function App() {
   // Liked tracking (local list of user loved ideaIds to simulate session validation)
   const [likedIdeaIds, setLikedIdeaIds] = useState<string[]>(() => {
     if (typeof window === 'undefined') return [];
-    const saved = localStorage.getItem('vb_user_liked_ids');
-    return saved ? JSON.parse(saved) : ['idea-1', 'idea-3']; // Seed with some pre-liked items
+    try {
+      const saved = localStorage.getItem('vb_user_liked_ids');
+      return safeParse(saved, ['idea-1', 'idea-3']);
+    } catch (err) {
+      return ['idea-1', 'idea-3'];
+    }
   });
 
   // Simulation of initial data fetch
@@ -134,7 +159,17 @@ export default function App() {
     avatar?: string,
     startupLogo?: string
   ) => {
-    const defaultAvatar = `https://images.unsplash.com/photo-${1500000000000 + Math.floor(Math.random() * 500000)}?auto=format&fit=crop&q=80&w=150`;
+    // Generate a valid Unsplash photo ID based on a small set of curated founder-style images
+    const founderPhotoIds = [
+      '1494790108377-be9c29b29330',
+      '1507003211169-0a1dd7228f2d',
+      '1438761681033-6461ffad8d80',
+      '1500648767791-00dcc994a43e',
+      '1544005313-94ddf0286df2'
+    ];
+    const randomId = founderPhotoIds[Math.floor(Math.random() * founderPhotoIds.length)];
+    const defaultAvatar = `https://images.unsplash.com/photo-${randomId}?auto=format&fit=crop&q=80&w=150`;
+    
     const freshProfile: FounderProfile = {
       id: `usr_${Date.now()}`,
       name,
@@ -169,7 +204,17 @@ export default function App() {
     avatar?: string,
     startupLogo?: string
   ) => {
-    const defaultAvatar = `https://images.unsplash.com/photo-${1500000000000 + Math.floor(Math.random() * 500000)}?auto=format&fit=crop&q=80&w=150`;
+    // Generate a valid Unsplash photo ID based on a small set of curated founder-style images
+    const founderPhotoIds = [
+      '1494790108377-be9c29b29330',
+      '1507003211169-0a1dd7228f2d',
+      '1438761681033-6461ffad8d80',
+      '1500648767791-00dcc994a43e',
+      '1544005313-94ddf0286df2'
+    ];
+    const randomId = founderPhotoIds[Math.floor(Math.random() * founderPhotoIds.length)];
+    const defaultAvatar = `https://images.unsplash.com/photo-${randomId}?auto=format&fit=crop&q=80&w=150`;
+    
     const freshProfile: FounderProfile = {
       id: `usr_${Date.now()}`,
       name,

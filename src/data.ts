@@ -21,6 +21,7 @@ export const CATEGORIES = [
 export const DEFAULT_PROFILE: FounderProfile = {
   id: 'current_user',
   name: 'Alex Rivera',
+  email: 'alex@example.com',
   bio: 'Fullstack builder, passionate about developer tools & automation. Seeking a non-technical co-founder to scale a B2B SaaS startup.',
   skills: ['React', 'TypeScript', 'Node.js', 'Solidity', 'TailwindCSS', 'Product Design'],
   github: 'https://github.com/alexrivera_dev',
@@ -275,6 +276,17 @@ export const INITIAL_SUGGESTIONS: Suggestion[] = [
 ];
 
 // Helper to load application state from Storage safely
+export const safeParse = (str: string | null, fallback: any) => {
+  if (!str) return fallback;
+  try {
+    const parsed = JSON.parse(str);
+    return parsed || fallback;
+  } catch (e) {
+    console.error('Error parsing storage item:', e);
+    return fallback;
+  }
+};
+
 export function getLocalStorageState() {
   if (typeof window === 'undefined') {
     return {
@@ -287,20 +299,32 @@ export function getLocalStorageState() {
     };
   }
 
-  const ideasStr = localStorage.getItem('vb_ideas');
-  const profileStr = localStorage.getItem('vb_profile');
-  const collabsStr = localStorage.getItem('vb_collabs');
-  const fundingStr = localStorage.getItem('vb_funding');
-  const suggestionsStr = localStorage.getItem('vb_suggestions');
+  try {
+    const ideasStr = localStorage.getItem('vb_ideas');
+    const profileStr = localStorage.getItem('vb_profile');
+    const collabsStr = localStorage.getItem('vb_collabs');
+    const fundingStr = localStorage.getItem('vb_funding');
+    const suggestionsStr = localStorage.getItem('vb_suggestions');
 
-  return {
-    ideas: ideasStr ? JSON.parse(ideasStr) : INITIAL_IDEAS,
-    profile: profileStr ? JSON.parse(profileStr) : DEFAULT_PROFILE,
-    collaborations: collabsStr ? JSON.parse(collabsStr) : [],
-    funding: fundingStr ? JSON.parse(fundingStr) : [],
-    suggestions: suggestionsStr ? JSON.parse(suggestionsStr) : INITIAL_SUGGESTIONS,
-    hasModified: !!(ideasStr || profileStr)
-  };
+    return {
+      ideas: safeParse(ideasStr, INITIAL_IDEAS),
+      profile: safeParse(profileStr, DEFAULT_PROFILE),
+      collaborations: safeParse(collabsStr, []),
+      funding: safeParse(fundingStr, []),
+      suggestions: safeParse(suggestionsStr, INITIAL_SUGGESTIONS),
+      hasModified: !!(ideasStr || profileStr)
+    };
+  } catch (err) {
+    console.error('Error reading from localStorage:', err);
+    return {
+      ideas: INITIAL_IDEAS,
+      profile: DEFAULT_PROFILE,
+      collaborations: [],
+      funding: [],
+      suggestions: INITIAL_SUGGESTIONS,
+      hasModified: false
+    };
+  }
 }
 
 export function saveLocalStorageState(state: {
@@ -311,9 +335,13 @@ export function saveLocalStorageState(state: {
   suggestions: Suggestion[];
 }) {
   if (typeof window === 'undefined') return;
-  localStorage.setItem('vb_ideas', JSON.stringify(state.ideas));
-  localStorage.setItem('vb_profile', JSON.stringify(state.profile));
-  localStorage.setItem('vb_collabs', JSON.stringify(state.collaborations));
-  localStorage.setItem('vb_funding', JSON.stringify(state.funding));
-  localStorage.setItem('vb_suggestions', JSON.stringify(state.suggestions));
+  try {
+    localStorage.setItem('vb_ideas', JSON.stringify(state.ideas));
+    localStorage.setItem('vb_profile', JSON.stringify(state.profile));
+    localStorage.setItem('vb_collabs', JSON.stringify(state.collaborations));
+    localStorage.setItem('vb_funding', JSON.stringify(state.funding));
+    localStorage.setItem('vb_suggestions', JSON.stringify(state.suggestions));
+  } catch (err) {
+    console.error('Error saving to localStorage (possibly quota exceeded):', err);
+  }
 }

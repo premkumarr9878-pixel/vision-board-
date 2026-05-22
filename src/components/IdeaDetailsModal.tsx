@@ -252,39 +252,46 @@ export default function IdeaDetailsModal({
               <div className="lg:col-span-2 space-y-8">
                 
                 {/* 1. Description */}
-                <div>
-                  <h3 className="text-xs font-black text-slate-600 dark:text-slate-400 font-mono tracking-widest mb-4 flex items-center space-x-2.5 uppercase select-none">
-                    <BrainCircuit className="h-5 w-5 text-blue-600 dark:text-blue-400 font-black" />
+                <div className="group">
+                  <h3 className="text-[11px] font-black text-slate-500 dark:text-slate-400 font-mono tracking-widest mb-4 flex items-center space-x-2.5 uppercase select-none">
+                    <div className="p-1.5 rounded-lg bg-blue-600/10 dark:bg-blue-400/10">
+                      <BrainCircuit className="h-4 w-4 text-blue-600 dark:text-blue-400" />
+                    </div>
                     <span>The Innovation Concept</span>
                   </h3>
-                  <div className="bg-white dark:bg-slate-900 border-2 border-slate-200 dark:border-slate-800 p-8 rounded-3xl shadow-md">
-                    <p className="text-slate-950 dark:text-slate-100 text-[15px] font-bold leading-relaxed whitespace-pre-wrap" dir="auto">
+                  <div className="bg-white dark:bg-slate-900/50 border-2 border-slate-200 dark:border-slate-800 p-7 sm:p-10 rounded-[2rem] shadow-[0_10px_40px_-10px_rgba(0,0,0,0.02)] transition-all hover:shadow-[0_10px_50px_-10px_rgba(0,0,0,0.04)] hover:border-slate-300 dark:hover:border-slate-700 relative overflow-hidden group">
+                    <div className="absolute top-0 left-0 w-1.5 h-full bg-blue-600/20 group-hover:bg-blue-600/40 transition-colors" />
+                    <p className="text-slate-950 dark:text-slate-100 text-[16px] font-medium leading-[1.7] whitespace-pre-wrap font-sans multilingual-text" dir="auto">
                       {idea.description}
                     </p>
                   </div>
                 </div>
 
                 {/* Bento Grid layout for Problem and Strategy details */}
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-8">
                   
                   {/* 2. Problem Solved */}
-                  <div className="p-6 bg-orange-50 dark:bg-orange-950/20 border-2 border-orange-200 dark:border-orange-900/50 rounded-2xl space-y-3 shadow-sm">
-                    <h3 className="text-xs font-black text-orange-800 dark:text-orange-400 font-mono tracking-widest flex items-center space-x-2 uppercase select-none">
-                      <ClipboardList className="h-4 w-4 shrink-0 font-black" />
+                  <div className="p-7 bg-orange-50/50 dark:bg-orange-950/10 border-2 border-orange-200/60 dark:border-orange-900/30 rounded-[1.5rem] space-y-4 shadow-sm hover:shadow-md transition-all group">
+                    <h3 className="text-[10px] font-black text-orange-800 dark:text-orange-400 font-mono tracking-widest flex items-center space-x-2 uppercase select-none">
+                      <div className="p-1.5 rounded-lg bg-orange-200/30 dark:bg-orange-900/30">
+                        <ClipboardList className="h-3.5 w-3.5 shrink-0" />
+                      </div>
                       <span>Pain Point / Problem</span>
                     </h3>
-                    <p className="text-slate-900 dark:text-slate-200 text-sm font-bold leading-relaxed" dir="auto">
+                    <p className="text-slate-900 dark:text-slate-200 text-[14px] font-semibold leading-relaxed multilingual-text" dir="auto">
                       {idea.problemSolved}
                     </p>
                   </div>
 
                   {/* 3. Why it works in market */}
-                  <div className="p-6 bg-blue-50 dark:bg-blue-950/20 border-2 border-blue-200 dark:border-blue-900/50 rounded-2xl space-y-3 shadow-sm">
-                    <h3 className="text-xs font-black text-blue-800 dark:text-blue-400 font-mono tracking-widest flex items-center space-x-2 uppercase select-none">
-                      <Globe className="h-4 w-4 shrink-0 font-black" />
+                  <div className="p-7 bg-blue-50/50 dark:bg-blue-950/10 border-2 border-blue-200/60 dark:border-blue-900/30 rounded-[1.5rem] space-y-4 shadow-sm hover:shadow-md transition-all group">
+                    <h3 className="text-[10px] font-black text-blue-800 dark:text-blue-400 font-mono tracking-widest flex items-center space-x-2 uppercase select-none">
+                      <div className="p-1.5 rounded-lg bg-blue-200/30 dark:bg-blue-900/30">
+                        <Globe className="h-3.5 w-3.5 shrink-0" />
+                      </div>
                       <span>Market Edge</span>
                     </h3>
-                    <p className="text-slate-900 dark:text-slate-200 text-sm font-bold leading-relaxed" dir="auto">
+                    <p className="text-slate-900 dark:text-slate-200 text-[14px] font-semibold leading-relaxed multilingual-text" dir="auto">
                       {idea.whyThisWorks}
                     </p>
                   </div>
@@ -292,12 +299,14 @@ export default function IdeaDetailsModal({
                 </div>
 
                 {/* 4. Target Audience */}
-                <div className="p-6 bg-indigo-50 dark:bg-indigo-950/20 border-2 border-indigo-200 dark:border-indigo-900/50 rounded-2xl space-y-3 shadow-sm">
-                  <h3 className="text-xs font-black text-indigo-800 dark:text-indigo-400 font-mono tracking-widest flex items-center space-x-2 uppercase select-none">
-                    <Users className="h-4 w-4 shrink-0 font-black" />
+                <div className="p-7 bg-indigo-50/50 dark:bg-indigo-950/10 border-2 border-indigo-200/60 dark:border-indigo-900/30 rounded-[1.5rem] space-y-4 shadow-sm hover:shadow-md transition-all group">
+                  <h3 className="text-[10px] font-black text-indigo-800 dark:text-indigo-400 font-mono tracking-widest flex items-center space-x-2 uppercase select-none">
+                    <div className="p-1.5 rounded-lg bg-indigo-200/30 dark:bg-indigo-900/30">
+                      <Users className="h-3.5 w-3.5 shrink-0" />
+                    </div>
                     <span>User Persona (Target Audience)</span>
                   </h3>
-                  <p className="text-slate-900 dark:text-slate-200 text-sm font-bold leading-relaxed" dir="auto">
+                  <p className="text-slate-900 dark:text-slate-200 text-[14px] font-semibold leading-relaxed multilingual-text" dir="auto">
                     {idea.targetAudience}
                   </p>
                 </div>

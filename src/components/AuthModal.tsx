@@ -208,7 +208,7 @@ export default function AuthModal({
                       onChange={(e) => setName(e.target.value)}
                       dir="auto"
                       placeholder="Sarah Jenkins"
-                      className="w-full pl-11 pr-4 py-3 bg-slate-50 dark:bg-slate-900 border-2 border-slate-100 dark:border-slate-800 rounded-2xl text-xs font-medium placeholder-slate-400 focus:outline-none focus:ring-4 focus:ring-blue-500/10 focus:border-blue-600 dark:focus:border-blue-400 dark:text-white transition-all"
+                      className="w-full pl-11 pr-4 py-3 bg-slate-50 dark:bg-slate-50 border-2 border-slate-100 dark:border-slate-200 rounded-2xl text-xs font-medium placeholder-slate-400 focus:outline-none focus:ring-4 focus:ring-blue-500/10 focus:border-blue-600 dark:focus:border-blue-400 dark:text-black transition-all"
                     />
                   </div>
                 </div>
@@ -223,7 +223,7 @@ export default function AuthModal({
                     onChange={(e) => setBio(e.target.value)}
                     dir="auto"
                     placeholder="e.g. Fullstack developer open to building AI tools..."
-                    className="w-full px-4 py-3 bg-slate-50 dark:bg-slate-900 border-2 border-slate-100 dark:border-slate-800 rounded-2xl text-xs font-medium placeholder-slate-400 focus:outline-none focus:ring-4 focus:ring-blue-500/10 focus:border-blue-600 dark:focus:border-blue-400 dark:text-white transition-all resize-none"
+                    className="w-full px-4 py-3 bg-slate-50 dark:bg-slate-50 border-2 border-slate-100 dark:border-slate-200 rounded-2xl text-xs font-medium placeholder-slate-400 focus:outline-none focus:ring-4 focus:ring-blue-500/10 focus:border-blue-600 dark:focus:border-blue-400 dark:text-black transition-all resize-none"
                   />
                 </div>
 
@@ -237,7 +237,7 @@ export default function AuthModal({
                     onChange={(e) => setBuildingDesc(e.target.value)}
                     dir="auto"
                     placeholder="Tell people what you are building and why it matters..."
-                    className="w-full px-4 py-3 bg-slate-50 dark:bg-slate-900 border-2 border-slate-100 dark:border-slate-800 rounded-2xl text-xs font-medium placeholder-slate-400 focus:outline-none focus:ring-4 focus:ring-blue-500/10 focus:border-blue-600 dark:focus:border-blue-400 dark:text-white transition-all resize-none"
+                    className="w-full px-4 py-3 bg-slate-50 dark:bg-slate-50 border-2 border-slate-100 dark:border-slate-200 rounded-2xl text-xs font-medium placeholder-slate-400 focus:outline-none focus:ring-4 focus:ring-blue-500/10 focus:border-blue-600 dark:focus:border-blue-400 dark:text-black transition-all resize-none"
                   />
                 </div>
 
@@ -301,7 +301,7 @@ export default function AuthModal({
                     onChange={(e) => setEmail(e.target.value)}
                     dir="auto"
                     placeholder="name@company.com"
-                    className="w-full pl-11 pr-4 py-3 bg-slate-50 dark:bg-slate-900 border-2 border-slate-100 dark:border-slate-800 rounded-2xl text-xs font-medium placeholder-slate-400 focus:outline-none focus:ring-4 focus:ring-blue-500/10 focus:border-blue-600 dark:focus:border-blue-400 dark:text-white transition-all"
+                    className="w-full pl-11 pr-4 py-3 bg-slate-50 dark:bg-slate-50 border-2 border-slate-100 dark:border-slate-200 rounded-2xl text-xs font-medium placeholder-slate-400 focus:outline-none focus:ring-4 focus:ring-blue-500/10 focus:border-blue-600 dark:focus:border-blue-400 dark:text-black transition-all"
                   />
                 </div>
               </div>
@@ -319,7 +319,7 @@ export default function AuthModal({
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
                     placeholder="••••••••"
-                    className="w-full pl-11 pr-4 py-3 bg-slate-50 dark:bg-slate-900 border-2 border-slate-100 dark:border-slate-800 rounded-2xl text-xs font-bold placeholder-slate-400 focus:outline-none focus:ring-4 focus:ring-blue-500/10 focus:border-blue-600 dark:focus:border-blue-400 dark:text-white transition-all"
+                    className="w-full pl-11 pr-4 py-3 bg-slate-50 dark:bg-slate-50 border-2 border-slate-100 dark:border-slate-200 rounded-2xl text-xs font-bold placeholder-slate-400 focus:outline-none focus:ring-4 focus:ring-blue-500/10 focus:border-blue-600 dark:focus:border-blue-400 dark:text-black transition-all"
                   />
                 </div>
               </div>

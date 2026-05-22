@@ -152,7 +152,7 @@ export default function InterestModal({
                       onChange={(e) => setName(e.target.value)}
                       dir="auto"
                       placeholder="e.g. Alex Rivera"
-                      className="w-full pl-12 pr-5 py-4 border-2 border-slate-100 dark:border-slate-800/80 bg-slate-50/50 dark:bg-slate-900/50 rounded-[1.25rem] text-xs placeholder-slate-400 focus:outline-none focus:ring-4 focus:ring-blue-500/10 focus:border-blue-600 dark:text-white font-medium transition-all"
+                      className="w-full pl-12 pr-5 py-4 border-2 border-slate-100 dark:border-slate-700 bg-slate-50/50 dark:bg-slate-50 rounded-[1.25rem] text-xs placeholder-slate-400 focus:outline-none focus:ring-4 focus:ring-blue-500/10 focus:border-blue-600 dark:text-black font-medium transition-all"
                     />
                   </div>
                 </div>
@@ -171,7 +171,7 @@ export default function InterestModal({
                         value={email}
                         onChange={(e) => setEmail(e.target.value)}
                         placeholder="name@gmail.com"
-                        className="w-full pl-12 pr-5 py-4 border-2 border-slate-100 dark:border-slate-800/80 bg-slate-50/50 dark:bg-slate-900/50 rounded-[1.25rem] text-xs placeholder-slate-400 focus:outline-none focus:ring-4 focus:ring-blue-500/10 focus:border-blue-600 dark:text-white font-bold transition-all"
+                        className="w-full pl-12 pr-5 py-4 border-2 border-slate-100 dark:border-slate-700 bg-slate-50/50 dark:bg-slate-50 rounded-[1.25rem] text-xs placeholder-slate-400 focus:outline-none focus:ring-4 focus:ring-blue-500/10 focus:border-blue-600 dark:text-black font-bold transition-all"
                       />
                     </div>
                   </div>
@@ -189,7 +189,7 @@ export default function InterestModal({
                         value={phone}
                         onChange={(e) => setPhone(e.target.value)}
                         placeholder="+1 (555) 0192"
-                        className="w-full pl-12 pr-5 py-4 border-2 border-slate-100 dark:border-slate-800/80 bg-slate-50/50 dark:bg-slate-900/50 rounded-[1.25rem] text-xs placeholder-slate-400 focus:outline-none focus:ring-4 focus:ring-blue-500/10 focus:border-blue-600 dark:text-white font-bold transition-all"
+                        className="w-full pl-12 pr-5 py-4 border-2 border-slate-100 dark:border-slate-700 bg-slate-50/50 dark:bg-slate-50 rounded-[1.25rem] text-xs placeholder-slate-400 focus:outline-none focus:ring-4 focus:ring-blue-500/10 focus:border-blue-600 dark:text-black font-bold transition-all"
                       />
                     </div>
                   </div>
@@ -207,7 +207,7 @@ export default function InterestModal({
                       id="interest-role-select"
                       value={role}
                       onChange={(e) => setRole(e.target.value)}
-                      className="w-full pl-12 pr-10 py-4 border-2 border-slate-100 dark:border-slate-800/80 bg-slate-50/50 dark:bg-slate-900/50 rounded-[1.25rem] text-xs focus:outline-none focus:ring-4 focus:ring-blue-500/10 focus:border-blue-600 dark:text-white font-bold transition-all appearance-none cursor-pointer"
+                      className="w-full pl-12 pr-10 py-4 border-2 border-slate-100 dark:border-slate-700 bg-slate-50/50 dark:bg-slate-50 rounded-[1.25rem] text-xs focus:outline-none focus:ring-4 focus:ring-blue-500/10 focus:border-blue-600 dark:text-black font-bold transition-all appearance-none cursor-pointer"
                     >
                       <option value="">Select a role...</option>
                       <option value="Technical Co-founder">Technical Co-founder</option>
@@ -233,7 +233,7 @@ export default function InterestModal({
                       id="interest-funding-select"
                       value={investmentAmount}
                       onChange={(e) => setInvestmentAmount(e.target.value)}
-                      className="w-full pl-12 pr-10 py-4 border-2 border-slate-100 dark:border-slate-800/80 bg-slate-50/50 dark:bg-slate-900/50 rounded-[1.25rem] text-xs focus:outline-none focus:ring-4 focus:ring-blue-500/10 focus:border-blue-600 dark:text-white font-bold transition-all appearance-none cursor-pointer"
+                      className="w-full pl-12 pr-10 py-4 border-2 border-slate-100 dark:border-slate-700 bg-slate-50/50 dark:bg-slate-50 rounded-[1.25rem] text-xs focus:outline-none focus:ring-4 focus:ring-blue-500/10 focus:border-blue-600 dark:text-black font-bold transition-all appearance-none cursor-pointer"
                     >
                       <option value="">Select amount...</option>
                       <option value="$500 - $5,000">$500 - $5,000</option>
@@ -269,7 +269,7 @@ export default function InterestModal({
                         ? 'Briefly introduce yourself and why you want to build this...'
                         : 'Share your background and what excites you about this idea...'
                     }
-                    className="w-full pl-12 pr-5 py-4.5 border-2 border-slate-100 dark:border-slate-800/80 bg-slate-50/50 dark:bg-slate-900/50 rounded-[1.5rem] text-xs placeholder-slate-400 focus:outline-none focus:ring-4 focus:ring-blue-500/10 focus:border-blue-600 dark:text-white font-medium transition-all resize-none leading-relaxed"
+                    className="w-full pl-12 pr-5 py-4.5 border-2 border-slate-100 dark:border-slate-700 bg-slate-50/50 dark:bg-slate-50 rounded-[1.5rem] text-xs placeholder-slate-400 focus:outline-none focus:ring-4 focus:ring-blue-500/10 focus:border-blue-600 dark:text-black font-medium transition-all resize-none leading-relaxed"
                   />
                 </div>
               </div>

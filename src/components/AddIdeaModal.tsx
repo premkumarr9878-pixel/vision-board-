@@ -21,6 +21,50 @@ const PRESET_BANNERS = [
 
 const PRESET_LOGOS = ['🚀', '🏥', '🔄', '🛡️', '🎓', '🤖', '🤝', '🚴', '📝', '⚡', '🎨', '🧩', '📈', '🌐', '🥑'];
 
+const AutoResizeTextarea = ({
+  value,
+  onChange,
+  placeholder,
+  required = false,
+  maxLength,
+  id,
+  rows = 3,
+  className = ""
+}: {
+  value: string;
+  onChange: (e: React.ChangeEvent<HTMLTextAreaElement>) => void;
+  placeholder: string;
+  required?: boolean;
+  maxLength?: number;
+  id?: string;
+  rows?: number;
+  className?: string;
+}) => {
+  const textareaRef = React.useRef<HTMLTextAreaElement>(null);
+
+  React.useEffect(() => {
+    if (textareaRef.current) {
+      textareaRef.current.style.height = 'auto';
+      textareaRef.current.style.height = `${textareaRef.current.scrollHeight}px`;
+    }
+  }, [value]);
+
+  return (
+    <textarea
+      ref={textareaRef}
+      id={id}
+      rows={rows}
+      maxLength={maxLength}
+      required={required}
+      value={value}
+      onChange={onChange}
+      dir="auto"
+      placeholder={placeholder}
+      className={`w-full py-3.5 px-4 border-2 border-slate-200 dark:border-slate-700 rounded-2xl text-[14px] placeholder-slate-400/70 bg-white dark:bg-slate-50 dark:text-black focus:outline-none focus:ring-4 focus:ring-blue-500/10 focus:border-blue-500 transition-all resize-none leading-relaxed font-sans overflow-hidden min-h-[100px] multilingual-text ${className}`}
+    />
+  );
+};
+
 export default function AddIdeaModal({
   isOpen,
   onClose,
@@ -494,74 +538,96 @@ export default function AddIdeaModal({
             </div>
 
             {/* SECTION 4: Elevator Pitch & Problem */}
-            <div className="bg-slate-50/50 dark:bg-slate-900/40 p-4 sm:p-5 rounded-2xl border border-slate-200/40 dark:border-slate-800/50 space-y-4 hover:shadow-[0_4px_16px_rgba(0,0,0,0.01)] transition-all">
-              <div className="flex items-center space-x-2 border-b border-slate-200/45 dark:border-slate-800/50 pb-2.5">
-                <div className="w-1.5 h-3 bg-emerald-500 rounded-full" />
+            <div className="bg-slate-50/50 dark:bg-slate-900/40 p-5 sm:p-7 rounded-[2rem] border border-slate-200/40 dark:border-slate-800/50 space-y-6 hover:shadow-[0_8px_30px_rgba(0,0,0,0.02)] transition-all">
+              <div className="flex items-center space-x-3 border-b border-slate-200/45 dark:border-slate-800/50 pb-4">
+                <div className="w-2 h-4 bg-emerald-500 rounded-full" />
                 <div>
-                  <span className="block text-[9px] font-bold font-mono text-slate-400 dark:text-slate-500 uppercase tracking-widest leading-none select-none">SECTION 4</span>
-                  <span className="block text-xs font-extrabold text-slate-800 dark:text-slate-200 mt-1 select-none">Pitch Definition & Story</span>
+                  <span className="block text-[10px] font-bold font-mono text-slate-400 dark:text-slate-500 uppercase tracking-widest leading-none select-none">SECTION 4</span>
+                  <span className="block text-sm font-black text-slate-900 dark:text-slate-100 mt-1 select-none">Pitch Definition & Story</span>
                 </div>
               </div>
 
-              <div className="space-y-4">
-                <div>
-                  <div className="flex justify-between items-center mb-1.5">
-                    <label className="block text-2xs font-black font-mono text-slate-950 dark:text-white uppercase tracking-widest select-none text-[10px] bg-yellow-100 dark:bg-yellow-900/40 px-2 py-0.5 rounded">
-                      Describe Your Idea <span className="text-red-500">*</span>
+              <div className="space-y-6">
+                <div className="group">
+                  <div className="flex justify-between items-center mb-2.5 px-1">
+                    <label className="flex items-center space-x-2 text-[11px] font-black font-mono text-slate-700 dark:text-slate-300 uppercase tracking-widest select-none">
+                      <div className="w-1.5 h-1.5 rounded-full bg-blue-500" />
+                      <span>Describe Your Idea</span>
+                      <span className="text-red-500 ml-0.5">*</span>
                     </label>
-                    <span className="text-[9px] font-mono text-slate-400">{description.length}/2000 chars</span>
+                    <span className={`text-[10px] font-mono font-bold ${description.length > 1800 ? 'text-orange-500' : 'text-slate-400'}`}>
+                      {description.length.toLocaleString()} / 2,000
+                    </span>
                   </div>
-                  <textarea
+                  <AutoResizeTextarea
                     id="add-idea-desc"
-                    rows={4}
-                    maxLength={2000}
-                    required
                     value={description}
                     onChange={(e) => setDescription(e.target.value)}
-                    dir="auto"
-                    placeholder="Summarize the product concept, core values, and features visually."
-                    className="w-full py-3 px-4 border-2 border-slate-200 dark:border-slate-800 rounded-xl text-xs placeholder-slate-400 bg-white dark:bg-slate-950 dark:text-white focus:outline-none focus:ring-4 focus:ring-blue-500/10 focus:border-blue-500 transition-all resize-none leading-relaxed font-medium"
+                    maxLength={2000}
+                    required
+                    placeholder="Summarize the product concept, core values, and features visually. (Supports any language)"
+                    className="group-hover:border-slate-300 dark:group-hover:border-slate-700"
                   />
+                  <p className="mt-2 text-[10px] text-slate-400 dark:text-slate-500 font-medium italic px-1">
+                    Tip: Be clear and concise. This is the first thing people see.
+                  </p>
                 </div>
 
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div>
-                    <label className="block text-2xs font-black font-mono text-slate-950 dark:text-white uppercase tracking-widest mb-1.5 select-none text-[10px] bg-yellow-100 dark:bg-yellow-900/40 px-2 py-0.5 rounded">
-                      Why this idea works <span className="text-red-500">*</span>
-                    </label>
-                    <textarea
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  <div className="group">
+                    <div className="flex justify-between items-center mb-2.5 px-1">
+                      <label className="flex items-center space-x-2 text-[11px] font-black font-mono text-slate-700 dark:text-slate-300 uppercase tracking-widest select-none">
+                        <div className="w-1.5 h-1.5 rounded-full bg-emerald-500" />
+                        <span>Why this idea works</span>
+                        <span className="text-red-500 ml-0.5">*</span>
+                      </label>
+                      <span className="text-[10px] font-mono font-bold text-slate-400">
+                        {whyThisWorks.length.toLocaleString()}
+                      </span>
+                    </div>
+                    <AutoResizeTextarea
                       id="why-works-textarea"
-                      rows={3}
-                      required
                       value={whyThisWorks}
                       onChange={(e) => setWhyThisWorks(e.target.value)}
-                      dir="auto"
-                      placeholder="Describe unique market advantages, viability, and demand."
-                      className="w-full py-3 px-4 border-2 border-slate-200 dark:border-slate-800 rounded-xl text-xs placeholder-slate-400 bg-white dark:bg-slate-950 dark:text-white focus:outline-none focus:ring-4 focus:ring-blue-500/10 focus:border-blue-500 transition-all resize-none leading-relaxed font-medium"
+                      required
+                      placeholder="Unique market advantages, viability, and demand."
+                      className="group-hover:border-slate-300 dark:group-hover:border-slate-700 min-h-[120px]"
                     />
                   </div>
 
-                  <div>
-                    <label className="block text-2xs font-black font-mono text-slate-950 dark:text-white uppercase tracking-widest mb-1.5 select-none text-[10px] bg-yellow-100 dark:bg-yellow-900/40 px-2 py-0.5 rounded">
-                      Exact Problem Solved <span className="text-red-500">*</span>
-                    </label>
-                    <textarea
+                  <div className="group">
+                    <div className="flex justify-between items-center mb-2.5 px-1">
+                      <label className="flex items-center space-x-2 text-[11px] font-black font-mono text-slate-700 dark:text-slate-300 uppercase tracking-widest select-none">
+                        <div className="w-1.5 h-1.5 rounded-full bg-orange-500" />
+                        <span>Exact Problem Solved</span>
+                        <span className="text-red-500 ml-0.5">*</span>
+                      </label>
+                      <span className="text-[10px] font-mono font-bold text-slate-400">
+                        {problemSolved.length.toLocaleString()}
+                      </span>
+                    </div>
+                    <AutoResizeTextarea
                       id="problem-textarea"
-                      rows={3}
-                      required
                       value={problemSolved}
                       onChange={(e) => setProblemSolved(e.target.value)}
-                      dir="auto"
-                      placeholder="Describe user pain points this idea targets directly."
-                      className="w-full py-3 px-4 border-2 border-slate-200 dark:border-slate-800 rounded-xl text-xs placeholder-slate-400 bg-white dark:bg-slate-950 dark:text-white focus:outline-none focus:ring-4 focus:ring-blue-500/10 focus:border-blue-500 transition-all resize-none leading-relaxed font-medium"
+                      required
+                      placeholder="User pain points this idea targets directly."
+                      className="group-hover:border-slate-300 dark:group-hover:border-slate-700 min-h-[120px]"
                     />
                   </div>
                 </div>
 
-                <div>
-                  <label className="block text-2xs font-black font-mono text-slate-950 dark:text-white uppercase tracking-widest mb-1.5 select-none text-[10px] bg-yellow-100 dark:bg-yellow-900/40 px-2 py-0.5 rounded">
-                    Target Audience / Segment <span className="text-red-500">*</span>
-                  </label>
+                <div className="group">
+                  <div className="flex justify-between items-center mb-2.5 px-1">
+                    <label className="flex items-center space-x-2 text-[11px] font-black font-mono text-slate-700 dark:text-slate-300 uppercase tracking-widest select-none">
+                      <div className="w-1.5 h-1.5 rounded-full bg-indigo-500" />
+                      <span>Target Audience / Segment</span>
+                      <span className="text-red-500 ml-0.5">*</span>
+                    </label>
+                    <span className="text-[10px] font-mono font-bold text-slate-400">
+                      {targetAudience.length.toLocaleString()}
+                    </span>
+                  </div>
                   <input
                     id="target-audience-input"
                     type="text"
@@ -569,8 +635,8 @@ export default function AddIdeaModal({
                     value={targetAudience}
                     onChange={(e) => setTargetAudience(e.target.value)}
                     dir="auto"
-                    placeholder="e.g. Physicians, Node Engineers, College Students barter network"
-                    className="w-full py-3 px-4 border border-slate-200 dark:border-slate-800/80 rounded-xl text-xs placeholder-slate-400 focus:outline-none focus:ring-4 focus:ring-blue-500/10 focus:border-blue-500 dark:focus:border-blue-400 transition-all bg-white dark:bg-slate-950 dark:text-white font-medium"
+                    placeholder="e.g. Physicians, Node Engineers, College Students..."
+                    className="w-full py-4 px-4 border-2 border-slate-200 dark:border-slate-700 rounded-2xl text-[14px] font-sans font-medium placeholder-slate-400 bg-white dark:bg-slate-50 dark:text-black focus:outline-none focus:ring-4 focus:ring-blue-500/10 focus:border-blue-500 transition-all group-hover:border-slate-300 dark:group-hover:border-slate-600 multilingual-text"
                   />
                 </div>
               </div>
@@ -624,8 +690,8 @@ export default function AddIdeaModal({
             </div>
 
             {/* SECTION 6: Project Growth Strategy */}
-            <div className="bg-slate-50/50 dark:bg-slate-900/40 p-4 sm:p-5 rounded-2xl border border-slate-200/40 dark:border-slate-800/50 space-y-4 hover:shadow-[0_4px_16px_rgba(0,0,0,0.01)] transition-all">
-              <div className="flex items-center justify-between border-b border-slate-200/45 dark:border-slate-800/50 pb-2.5">
+            <div className="bg-slate-50/50 dark:bg-slate-900/40 p-5 sm:p-6 rounded-[2rem] border border-slate-200/40 dark:border-slate-800/50 space-y-8 hover:shadow-[0_4px_16px_rgba(0,0,0,0.01)] transition-all">
+              <div className="flex items-center justify-between border-b border-slate-200/45 dark:border-slate-800/50 pb-3">
                 <div className="flex items-center space-x-2">
                   <div className="w-1.5 h-3 bg-blue-600 rounded-full" />
                   <div>
@@ -635,84 +701,114 @@ export default function AddIdeaModal({
                 </div>
               </div>
 
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
-                <div className="space-y-2">
-                  <label className="block text-2xs font-extrabold font-mono text-slate-400 dark:text-slate-500 uppercase tracking-widest select-none text-[9px]">
+              <div className="space-y-8">
+                {/* Progress Stage - Now Full Width */}
+                <div className="space-y-3">
+                  <label className="block text-[10px] font-black font-mono text-slate-500 dark:text-slate-400 uppercase tracking-widest select-none px-1">
                     Current Progress Stage <span className="text-red-500">*</span>
                   </label>
-                  <select
-                    id="progress-stage-select"
-                    value={progressStage}
-                    onChange={(e) => setProgressStage(e.target.value as any)}
-                    className="w-full py-2.5 px-3.5 border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-950 dark:text-white rounded-xl text-xs focus:ring-4 focus:ring-blue-500/10 outline-none"
-                  >
-                    <option value="JUST IDEA NOW">JUST IDEA NOW (Concept Sketch)</option>
-                    <option value="IDEATION">IDEATION (Active Blueprint & Specs)</option>
-                    <option value="MVP BUILDING">MVP BUILDING (Under construction)</option>
-                    <option value="PROTOTYPE">PROTOTYPE (Pre-seed demo ready)</option>
-                    <option value="SCALE">SCALE (Live user production)</option>
-                  </select>
+                  <div className="relative">
+                    <select
+                      id="progress-stage-select"
+                      value={progressStage}
+                      onChange={(e) => setProgressStage(e.target.value as any)}
+                      className="w-full py-3.5 px-4 border-2 border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-950 dark:text-white rounded-2xl text-[13px] font-bold focus:outline-none focus:ring-4 focus:ring-blue-500/10 focus:border-blue-500 transition-all appearance-none cursor-pointer"
+                    >
+                      <option value="JUST IDEA NOW">JUST IDEA NOW (Concept Sketch)</option>
+                      <option value="IDEATION">IDEATION (Active Blueprint & Specs)</option>
+                      <option value="MVP BUILDING">MVP BUILDING (Under construction)</option>
+                      <option value="PROTOTYPE">PROTOTYPE (Pre-seed demo ready)</option>
+                      <option value="SCALE">SCALE (Live user production)</option>
+                    </select>
+                    <div className="absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none">
+                      <div className="w-5 h-5 rounded-lg bg-slate-100 dark:bg-slate-800 flex items-center justify-center">
+                        <Rocket className="w-3 h-3 text-slate-400 rotate-180" />
+                      </div>
+                    </div>
+                  </div>
                 </div>
 
-                {/* Highly Polished & Highlighted Public / Private Choices */}
-                <div className="space-y-2.5">
-                  <div className="flex items-center justify-between">
-                    <label className="block text-2xs font-extrabold font-mono text-slate-400 dark:text-slate-500 uppercase tracking-widest select-none text-[9px]">
+                {/* Highly Polished & Highlighted Public / Private Choices - Now Side-by-Side */}
+                <div className="space-y-4">
+                  <div className="flex items-center justify-between px-1">
+                    <label className="block text-[10px] font-black font-mono text-slate-500 dark:text-slate-400 uppercase tracking-widest select-none">
                       Concept Visibility Strategy <span className="text-red-500">*</span>
                     </label>
                   </div>
                   
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-3" id="visibility-card-selectors">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4" id="visibility-card-selectors">
                     {/* Public Card */}
                     <button
                       type="button"
                       onClick={() => setIsPublic(true)}
-                      className={`text-left p-4.5 rounded-2xl border transition-all duration-200 cursor-pointer flex items-start space-x-3.5 relative hover:scale-[1.015] ${
+                      className={`group relative text-left p-5 rounded-[1.5rem] border-2 transition-all duration-300 cursor-pointer flex flex-col h-full ${
                         isPublic 
-                          ? 'bg-blue-500/5 dark:bg-blue-400/5 border-blue-500/80 ring-4 ring-blue-500/5 shadow-2xs' 
-                          : 'bg-white dark:bg-slate-900 border-slate-200/80 dark:border-slate-800 opacity-75 hover:opacity-100 hover:border-slate-300'
+                          ? 'bg-blue-50/50 dark:bg-blue-500/5 border-blue-500 ring-4 ring-blue-500/10 shadow-lg translate-y-[-2px]' 
+                          : 'bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-800 opacity-80 hover:opacity-100 hover:border-slate-300 dark:hover:border-slate-700'
                       }`}
                     >
                       {isPublic && (
-                        <span className="absolute top-3.5 right-3.5 h-2 w-2 rounded-full bg-blue-600 animate-pulse" />
+                        <div className="absolute top-4 right-4 h-2.5 w-2.5 rounded-full bg-blue-600 shadow-[0_0_10px_rgba(37,99,235,0.5)] animate-pulse" />
                       )}
-                      <div className={`p-2.5 rounded-xl shrink-0 ${isPublic ? 'bg-blue-500/10 text-blue-600' : 'bg-slate-100 dark:bg-slate-800 text-slate-400'}`}>
-                        <Eye className="h-4.5 w-4.5" />
-                      </div>
-                      <div>
-                        <span className={`block text-xs font-bold leading-tight ${isPublic ? 'text-blue-950 dark:text-blue-200' : 'text-slate-800 dark:text-slate-200'}`}>
-                          🌐 Public Live Pitch (Recommended)
-                        </span>
-                        <span className="block text-[10.5px] text-slate-500 dark:text-slate-400 mt-1.5 leading-relaxed">
-                          Featured directly on the homepage feed of future startup ideas so coworkers, co-founders, and investors can find you.
+                      
+                      <div className="flex items-center space-x-3 mb-4">
+                        <div className={`p-3 rounded-2xl transition-colors duration-300 ${isPublic ? 'bg-blue-600 text-white shadow-blue-200' : 'bg-slate-100 dark:bg-slate-800 text-slate-400 group-hover:bg-slate-200'}`}>
+                          <Eye className="h-5 w-5" />
+                        </div>
+                        <span className={`text-[13px] font-black leading-tight uppercase tracking-tight ${isPublic ? 'text-blue-900 dark:text-blue-200' : 'text-slate-800 dark:text-slate-200'}`}>
+                          Public Pitch
                         </span>
                       </div>
+
+                      <div className="space-y-2">
+                        <span className={`block text-[11px] font-bold leading-relaxed ${isPublic ? 'text-blue-800/80 dark:text-blue-300/80' : 'text-slate-500 dark:text-slate-400'}`}>
+                          Featured on homepage feed. Let co-founders and investors find your vision.
+                        </span>
+                      </div>
+
+                      {isPublic && (
+                        <div className="mt-auto pt-4 flex items-center text-[10px] font-black text-blue-600 dark:text-blue-400 uppercase tracking-widest">
+                          <Sparkles className="h-3 w-3 mr-1.5" />
+                          Recommended
+                        </div>
+                      )}
                     </button>
 
                     {/* Private Card */}
                     <button
                       type="button"
                       onClick={() => setIsPublic(false)}
-                      className={`text-left p-4.5 rounded-2xl border transition-all duration-200 cursor-pointer flex items-start space-x-3.5 relative hover:scale-[1.015] ${
+                      className={`group relative text-left p-5 rounded-[1.5rem] border-2 transition-all duration-300 cursor-pointer flex flex-col h-full ${
                         !isPublic 
-                          ? 'bg-amber-500/5 dark:bg-amber-400/5 border-amber-500 ring-4 ring-amber-500/5 shadow-2xs' 
-                          : 'bg-white dark:bg-slate-900 border-slate-200/80 dark:border-slate-800 opacity-75 hover:opacity-100 hover:border-slate-300'
+                          ? 'bg-amber-50/50 dark:bg-amber-500/5 border-amber-500 ring-4 ring-amber-500/10 shadow-lg translate-y-[-2px]' 
+                          : 'bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-800 opacity-80 hover:opacity-100 hover:border-slate-300 dark:hover:border-slate-700'
                       }`}
                     >
                       {!isPublic && (
-                        <span className="absolute top-3.5 right-3.5 h-2 w-2 rounded-full bg-amber-500 animate-pulse" />
+                        <div className="absolute top-4 right-4 h-2.5 w-2.5 rounded-full bg-amber-500 shadow-[0_0_10px_rgba(245,158,11,0.5)] animate-pulse" />
                       )}
-                      <div className={`p-2.5 rounded-xl shrink-0 ${!isPublic ? 'bg-amber-500/10 text-amber-600' : 'bg-slate-100 dark:bg-slate-800 text-slate-400'}`}>
-                        <Rocket className="h-4.5 w-4.5 rotate-90" />
-                      </div>
-                      <div>
-                        <span className={`block text-xs font-bold leading-tight ${!isPublic ? 'text-amber-950 dark:text-amber-200' : 'text-slate-800 dark:text-slate-300'}`}>
-                          🔒 Private Draft Mode
-                        </span>
-                        <span className="block text-[10.5px] text-slate-500 dark:text-slate-400 mt-1.5 leading-relaxed">
-                          Hidden completely from the homepage feed. Can only be accessed and managed in your secure Founder Hub dashboard.
+
+                      <div className="flex items-center space-x-3 mb-4">
+                        <div className={`p-3 rounded-2xl transition-colors duration-300 ${!isPublic ? 'bg-amber-500 text-white shadow-amber-200' : 'bg-slate-100 dark:bg-slate-800 text-slate-400 group-hover:bg-slate-200'}`}>
+                          <Rocket className="h-5 w-5 rotate-90" />
+                        </div>
+                        <span className={`text-[13px] font-black leading-tight uppercase tracking-tight ${!isPublic ? 'text-amber-900 dark:text-amber-200' : 'text-slate-800 dark:text-slate-200'}`}>
+                          Private Draft
                         </span>
                       </div>
+
+                      <div className="space-y-2">
+                        <span className={`block text-[11px] font-bold leading-relaxed ${!isPublic ? 'text-amber-800/80 dark:text-amber-300/80' : 'text-slate-500 dark:text-slate-400'}`}>
+                          Hidden from feed. Manage securely in your private Founder Hub.
+                        </span>
+                      </div>
+
+                      {!isPublic && (
+                        <div className="mt-auto pt-4 flex items-center text-[10px] font-black text-amber-600 dark:text-amber-400 uppercase tracking-widest">
+                          <X className="h-3 w-3 mr-1.5" />
+                          Confidential
+                        </div>
+                      )}
                     </button>
                   </div>
                 </div>

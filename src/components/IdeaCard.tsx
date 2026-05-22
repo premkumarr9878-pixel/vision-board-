@@ -100,7 +100,7 @@ export default function IdeaCard({
         </div>
 
         {/* MIDDLE: Description Text */}
-        <p className="text-slate-600 dark:text-slate-400 text-sm font-bold leading-relaxed mb-8 line-clamp-3 select-none" dir="auto">
+        <p className="text-slate-600 dark:text-slate-400 text-sm font-bold leading-relaxed mb-8 line-clamp-3 select-none multilingual-text" dir="auto">
           {idea.description}
         </p>
 
