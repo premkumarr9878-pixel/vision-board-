@@ -67,103 +67,85 @@ const TOP_FOUNDERS: LeaderboardFounder[] = [
 
 export default function LeaderboardTable() {
   return (
-    <div className="w-full bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl overflow-hidden shadow-sm" id="leaderboard-table-widget">
+    <div className="w-full bg-white dark:bg-slate-950 border-2 border-slate-200 dark:border-slate-800 rounded-3xl overflow-hidden shadow-lg" id="leaderboard-table-widget">
       
       {/* Title block */}
-      <div className="px-6 py-4 border-b border-slate-200 dark:border-slate-800 flex items-center justify-between bg-slate-50 dark:bg-slate-950 select-none">
-        <div className="flex items-center space-x-2.5">
-          <div className="w-8 h-8 rounded-lg bg-orange-50 dark:bg-orange-95/40 dark:bg-orange-950/40 flex items-center justify-center border border-orange-200 dark:border-orange-900">
-            <Award className="h-4 w-4 text-orange-600 dark:text-orange-400" />
+      <div className="px-8 py-6 border-b-2 border-slate-100 dark:border-slate-800 flex items-center justify-between bg-slate-50 dark:bg-slate-900/50 select-none">
+        <div className="flex items-center space-x-4">
+          <div className="w-10 h-10 rounded-xl bg-orange-100 dark:bg-orange-900/30 flex items-center justify-center border-2 border-orange-200 dark:border-orange-900/50 shadow-sm">
+            <Award className="h-5 w-5 text-orange-600 dark:text-orange-400" />
           </div>
           <div>
-            <h3 className="font-display font-bold text-sm text-slate-900 dark:text-white">Founder Integrity Leaderboard</h3>
-            <p className="text-[11px] text-slate-500 dark:text-slate-400 mt-0.5">Ranked by peer endorsements, collaboration engagement, and project quality.</p>
+            <h3 className="font-display font-black text-lg text-slate-950 dark:text-white tracking-tight">Founder Integrity Leaderboard</h3>
+            <p className="text-xs font-bold text-slate-600 dark:text-slate-400 mt-1">Ranked by peer endorsements, collaboration engagement, and project quality.</p>
           </div>
         </div>
         
-        <div className="flex items-center space-x-1 text-[10px] font-bold font-mono text-blue-600 dark:text-blue-400 bg-blue-50/70 dark:bg-blue-950/30 border border-blue-100 dark:border-blue-900/30 rounded px-2.5 py-0.5 select-none shrink-0 border-0">
-          <Sparkles className="h-3 w-3" />
+        <div className="flex items-center space-x-2 text-[10px] font-black font-mono text-blue-700 dark:text-blue-400 bg-blue-100 dark:bg-blue-900/50 border-2 border-blue-200 dark:border-blue-800 rounded-lg px-3.5 py-1.5 select-none shrink-0 shadow-sm">
+          <Sparkles className="h-4 w-4" />
           <span>VERIFIED BUILDERS</span>
         </div>
       </div>
 
       {/* Table block */}
       <div className="overflow-x-auto">
-        <table className="w-full text-left border-collapse min-w-[700px]">
+        <table className="w-full text-left border-collapse min-w-[800px]">
           <thead>
-            <tr className="border-b border-slate-200 dark:border-slate-800 text-[10px] font-bold font-mono text-slate-400 dark:text-slate-500 tracking-wider bg-slate-50 dark:bg-slate-950 select-none">
-              <th className="py-2.5 px-6 text-center w-16">RANK</th>
-              <th className="py-2.5 px-6">FOUNDER PROFILE</th>
-              <th className="py-2.5 px-6">VERIFIED SKILLS</th>
-              <th className="py-2.5 px-6 text-center">CONCEPTS</th>
-              <th className="py-2.5 px-6 text-center">NET LIKES</th>
-              <th className="py-2.5 px-6">STATUS REQUIREMENT</th>
+            <tr className="border-b-2 border-slate-100 dark:border-slate-800 text-[11px] font-black font-mono text-slate-500 dark:text-slate-400 tracking-widest bg-slate-50/50 dark:bg-slate-900/30 select-none">
+              <th className="py-4 px-8 text-center w-20">RANK</th>
+              <th className="py-4 px-8">FOUNDER PROFILE</th>
+              <th className="py-4 px-8">VERIFIED SKILLS</th>
+              <th className="py-4 px-8 text-center">CONCEPTS</th>
+              <th className="py-4 px-8 text-center">NET LIKES</th>
+              <th className="py-4 px-8">STATUS REQUIREMENT</th>
             </tr>
           </thead>
-          <tbody className="divide-y divide-slate-100 dark:divide-slate-800 bg-white dark:bg-slate-900">
-            {TOP_FOUNDERS.map((cur) => (
-              <tr key={cur.rank} className="hover:bg-slate-50/50 dark:hover:bg-slate-950/40 transition-colors">
-                {/* Ranks badge */}
-                <td className="py-4 px-6 text-center select-none">
-                  <span className={`inline-flex items-center justify-center w-6 h-6 rounded text-xs font-bold font-mono ${
-                    cur.rank === 1 ? 'bg-amber-100 dark:bg-amber-950/30 text-amber-800 dark:text-amber-400 border border-amber-200 dark:border-amber-900/60 shadow-xs' :
-                    cur.rank === 2 ? 'bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 border border-slate-200 dark:border-slate-700' :
-                    cur.rank === 3 ? 'bg-orange-100 dark:bg-orange-950/30 text-orange-850 text-orange-800 dark:text-orange-400 border border-orange-200 dark:border-orange-900/60' :
-                    'bg-slate-50 dark:bg-slate-800 text-slate-400 dark:text-slate-500 border border-slate-150 dark:border-slate-700'
+          <tbody className="divide-y-2 divide-slate-50 dark:divide-slate-900">
+            {TOP_FOUNDERS.map((founder) => (
+              <tr key={founder.rank} className="hover:bg-slate-50 dark:hover:bg-slate-900/50 transition-colors group">
+                <td className="py-6 px-8 text-center">
+                  <span className={`inline-flex items-center justify-center w-8 h-8 rounded-lg font-black text-sm shadow-sm ${
+                    founder.rank === 1 ? 'bg-amber-100 text-amber-700 border-2 border-amber-200' :
+                    founder.rank === 2 ? 'bg-slate-100 text-slate-700 border-2 border-slate-200' :
+                    founder.rank === 3 ? 'bg-orange-50 text-orange-700 border-2 border-orange-100' :
+                    'text-slate-500 dark:text-slate-400'
                   }`}>
-                    0{cur.rank}
+                    {founder.rank}
                   </span>
                 </td>
-
-                {/* Profile card details */}
-                <td className="py-4 px-6">
-                  <div className="flex items-center space-x-3">
-                    <div className="w-10 h-10 rounded-lg overflow-hidden border border-slate-200 dark:border-slate-805 shrink-0 select-none bg-slate-50 dark:bg-slate-800">
-                      <img src={cur.avatar} alt={cur.name} className="w-full h-full object-cover" />
+                <td className="py-6 px-8">
+                  <div className="flex items-center space-x-4">
+                    <div className="w-12 h-12 rounded-2xl border-2 border-slate-200 dark:border-slate-800 overflow-hidden shadow-md group-hover:scale-110 transition-transform">
+                      <img src={founder.avatar} alt={founder.name} className="w-full h-full object-cover" />
                     </div>
                     <div>
-                      <h4 className="font-display font-bold text-xs text-slate-900 dark:text-white flex items-center space-x-1.5 select-all">
-                        <span>{cur.name}</span>
-                        {cur.rank <= 2 && <UserCheck className="h-3 w-3 text-blue-600 dark:text-blue-400" title="Super Builder" />}
-                      </h4>
-                      <p className="text-[10px] text-slate-500 dark:text-slate-400 leading-tight mt-0.5 max-w-xs truncate">{cur.bio}</p>
+                      <h4 className="font-black text-slate-950 dark:text-white text-sm tracking-tight">{founder.name}</h4>
+                      <p className="text-[11px] font-bold text-slate-500 dark:text-slate-400 line-clamp-1 max-w-[200px] mt-0.5">{founder.bio}</p>
                     </div>
                   </div>
                 </td>
-
-                {/* Skills columns */}
-                <td className="py-4 px-6">
-                  <div className="flex flex-wrap gap-1" id={`leaderboard-skills-${cur.rank}`}>
-                    {cur.skills.map((s) => (
-                      <span key={s} className="px-2 py-0.5 rounded text-[10px] font-semibold bg-slate-100 dark:bg-slate-800 text-slate-650 dark:text-slate-350 border border-slate-200/50 dark:border-slate-700/50">
-                        {s}
+                <td className="py-6 px-8">
+                  <div className="flex flex-wrap gap-1.5">
+                    {founder.skills.map(skill => (
+                      <span key={skill} className="px-2.5 py-1 rounded-md bg-slate-100 dark:bg-slate-800 text-[10px] font-black text-slate-700 dark:text-slate-300 border border-slate-200 dark:border-slate-700 shadow-sm uppercase tracking-tight">
+                        {skill}
                       </span>
                     ))}
                   </div>
                 </td>
-
-                {/* Idea counts */}
-                <td className="py-4 px-5 text-center text-xs font-semibold text-slate-800 dark:text-slate-200 font-display">
-                  {cur.ideasCount}
+                <td className="py-6 px-8 text-center">
+                  <span className="text-sm font-black text-slate-950 dark:text-white">{founder.ideasCount}</span>
                 </td>
-
-                {/* Endorsements Likes counter */}
-                <td className="py-4 px-6 text-center">
-                  <span className="inline-flex items-center space-x-1 text-xs font-semibold text-red-650 text-red-600 dark:text-red-400 font-display">
-                    <Heart className="h-3.5 w-3.5 fill-current shrink-0" />
-                    <span>{cur.netLikes}</span>
-                  </span>
+                <td className="py-6 px-8 text-center">
+                  <div className="flex items-center justify-center space-x-1.5">
+                    <Heart className="h-3.5 w-3.5 text-red-500 fill-current" />
+                    <span className="text-sm font-black text-slate-950 dark:text-white">{founder.netLikes}</span>
+                  </div>
                 </td>
-
-                {/* Status Column */}
-                <td className="py-4 px-6">
-                  <span className={`inline-block px-2.5 py-1 rounded text-[9px] font-bold tracking-wider ${
-                    cur.status.includes('CO-FOUNDER') ? 'bg-blue-50 dark:bg-blue-950/20 text-blue-700 dark:text-blue-400 border border-blue-100 dark:border-blue-900/40' :
-                    cur.status.includes('BACKING') ? 'bg-amber-50 dark:bg-amber-955/20 text-amber-700 dark:text-amber-400 border border-amber-100 dark:border-amber-900/40' :
-                    cur.status.includes('HIRING') ? 'bg-purple-50 dark:bg-purple-955/20 text-purple-700 dark:text-purple-400 border border-purple-100 dark:border-purple-900/40' :
-                    'bg-slate-105 dark:bg-slate-800 text-slate-705 text-slate-700 dark:text-slate-300 border border-slate-200 dark:border-slate-700'
-                  }`}>
-                    {cur.status}
+                <td className="py-6 px-8">
+                  <span className="inline-flex items-center space-x-1.5 px-3 py-1.5 rounded-lg bg-blue-50 dark:bg-blue-900/30 text-blue-700 dark:text-blue-400 text-[10px] font-black border-2 border-blue-100 dark:border-blue-900/50 uppercase tracking-widest shadow-sm">
+                    <UserCheck className="h-3 w-3" />
+                    <span>{founder.status}</span>
                   </span>
                 </td>
               </tr>
@@ -171,7 +153,6 @@ export default function LeaderboardTable() {
           </tbody>
         </table>
       </div>
-      
     </div>
   );
 }

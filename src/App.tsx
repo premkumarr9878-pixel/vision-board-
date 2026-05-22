@@ -126,6 +126,7 @@ export default function App() {
     const freshProfile: FounderProfile = {
       id: `usr_${Date.now()}`,
       name,
+      email,
       bio: customBio || `Tech enthusiast, product scale co-founder. Open to build & execute. Contact at: ${email}`,
       skills: ['TypeScript', 'Growth', 'Product Dev'],
       buildingDesc: buildingDesc || 'Product concept launching soon on VisionBoard. Stay tuned for further announcements!',
@@ -160,6 +161,7 @@ export default function App() {
     const freshProfile: FounderProfile = {
       id: `usr_${Date.now()}`,
       name,
+      email,
       bio,
       skills: ['TypeScript', 'Growth', 'Product Dev'],
       buildingDesc,
@@ -377,7 +379,7 @@ export default function App() {
   };
 
   // Expressions of interest submit handlers
-  const handleInterestSubmit = (formData: { name: string; email: string; phone: string; message: string }) => {
+  const handleInterestSubmit = (formData: { name: string; email: string; phone: string; message: string; role?: string; fundingCapacity?: string }) => {
     if (!interestTargetIdea || !interestTargetType) return;
 
     if (interestTargetType === 'collaboration') {
@@ -389,7 +391,9 @@ export default function App() {
         name: formData.name,
         email: formData.email,
         phone: formData.phone,
+        role: formData.role || 'Partner',
         message: formData.message,
+        status: 'pending',
         createdAt: new Date().toISOString()
       };
 
@@ -413,7 +417,9 @@ export default function App() {
         name: formData.name,
         email: formData.email,
         phone: formData.phone,
+        fundingCapacity: formData.fundingCapacity || 'Not specified',
         message: formData.message,
+        status: 'pending',
         createdAt: new Date().toISOString()
       };
 
@@ -432,6 +438,27 @@ export default function App() {
 
     setInterestTargetIdea(null);
     setInterestTargetType(null);
+  };
+
+  const handleUpdateRequestStatus = (type: 'collaboration' | 'funding', requestId: string, newStatus: RequestStatus) => {
+    setState(prev => {
+      if (type === 'collaboration') {
+        return {
+          ...prev,
+          collaborations: prev.collaborations.map(c => c.id === requestId ? { ...c, status: newStatus } : c)
+        };
+      } else {
+        return {
+          ...prev,
+          funding: prev.funding.map(f => f.id === requestId ? { ...f, status: newStatus } : f)
+        };
+      }
+    });
+    
+    const statusMsg = newStatus === 'accepted' ? 'Request accepted!' : 
+                     newStatus === 'rejected' ? 'Request declined.' : 
+                     'Marked as contacted.';
+    showToast(statusMsg);
   };
 
   // Filter ideas logic: query search, category pills & timeFilter
@@ -535,23 +562,23 @@ export default function App() {
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10 space-y-12" id="explore-view">
             
             {/* Geometric Centered Headline Callout */}
-            <div className="text-center max-w-3xl mx-auto space-y-4 select-none mb-6 pt-4" id="hero-centered-headline">
+            <div className="text-center max-w-4xl mx-auto space-y-6 select-none mb-16 pt-4" id="hero-centered-headline">
               {/* Optional verification alert */}
-              <div className="inline-flex items-center space-x-2 px-3.5 py-1.5 bg-blue-500/5 dark:bg-blue-400/10 text-blue-650 dark:text-blue-450 text-[10px] font-bold font-mono uppercase tracking-wider rounded-full border border-blue-500/15 shadow-2xs">
-                <Sparkles className="h-3 w-3 text-blue-500 shrink-0 fill-current animate-pulse" />
+              <div className="inline-flex items-center space-x-2 px-4 py-2 bg-blue-500/5 dark:bg-blue-400/10 text-blue-700 dark:text-blue-400 text-[10px] font-black font-mono uppercase tracking-wider rounded-full border-2 border-blue-500/15 shadow-sm">
+                <Sparkles className="h-4 w-4 text-blue-500 shrink-0 fill-current animate-pulse" />
                 <span>Sandbox Version 2.0 Live</span>
               </div>
               
-              <h2 className="font-display font-extrabold text-4xl sm:text-5xl md:text-[52px] text-slate-950 dark:text-white tracking-tight leading-[1.1] md:leading-[1.05]" id="main-visionboard-headline">
-                The database of <span className="bg-gradient-to-r from-blue-600 via-indigo-550 to-purple-600 dark:from-blue-400 dark:via-indigo-400 dark:to-purple-400 bg-clip-text text-transparent">future startup ideas</span>
+              <h2 className="font-display font-black text-5xl sm:text-7xl md:text-[72px] text-slate-950 dark:text-white tracking-tighter leading-[0.95]" id="main-visionboard-headline">
+                The database of <span className="bg-gradient-to-r from-blue-600 via-indigo-550 to-purple-600 dark:from-blue-400 dark:via-indigo-400 dark:to-purple-400 bg-clip-text text-transparent block sm:inline">future startup ideas</span>
               </h2>
               
-              <p className="text-sm sm:text-base text-slate-500 dark:text-slate-400 max-w-xl mx-auto font-medium leading-relaxed">
+              <p className="text-lg text-slate-700 dark:text-slate-300 max-w-2xl mx-auto font-bold leading-relaxed px-4">
                 Publish ideas, find collaborators, attract funding, and build your startup validation boards alongside a network of peers.
               </p>
 
               {/* Home Add Idea trigger and Search Bar alignment */}
-              <div className="flex flex-col sm:flex-row items-center justify-center gap-2.5 max-w-md mx-auto pt-4">
+              <div className="flex flex-col sm:flex-row items-center justify-center gap-4 max-w-md mx-auto pt-4">
                 <button
                   id="add-idea-hero-btn"
                   onClick={() => {
@@ -562,181 +589,165 @@ export default function App() {
                       setShowAddIdeaModal(true);
                     }
                   }}
-                  className="px-8 py-3 bg-gradient-to-r from-blue-600 to-indigo-650 hover:from-blue-700 hover:to-indigo-700 text-white text-sm font-semibold rounded-xl hover:scale-[1.03] active:scale-[0.98] transition-all select-none cursor-pointer text-center duration-200 shadow-[0_4px_16px_rgba(59,130,246,0.22)] dark:shadow-[0_4px_16px_rgba(59,130,246,0.12)]"
+                  className="px-10 py-4 bg-gradient-to-r from-blue-600 to-indigo-650 hover:from-blue-700 hover:to-indigo-700 text-white text-sm font-black rounded-2xl hover:scale-[1.03] active:scale-[0.98] transition-all select-none cursor-pointer text-center duration-200 shadow-[0_8px_24px_rgba(59,130,246,0.25)] dark:shadow-[0_8px_24px_rgba(59,130,246,0.15)]"
                 >
                   + Add Your Startup Idea
                 </button>
               </div>
             </div>
 
-             {/* Dynamic Idea Metrics Showcase & Date Filters */}
-            <div className="max-w-4xl mx-auto select-none pt-2 flex flex-col md:flex-row items-stretch justify-center gap-4" id="dynamics-metrics">
-              {/* Total Ideas Card */}
-              <div className="bg-white/80 dark:bg-slate-900/65 backdrop-blur-md border border-slate-200/60 download-glass dark:border-slate-800/80 p-6 rounded-2xl text-center shadow-[0_4px_18px_rgba(0,0,0,0.015)] hover:shadow-[0_8px_30px_rgba(59,130,246,0.03)] dark:hover:shadow-[0_8px_30px_rgba(255,255,255,0.01)] transition-all duration-300 hover:-translate-y-1 flex-1 flex flex-col justify-center">
-                <span className="block text-[10px] font-bold font-mono text-slate-450 dark:text-slate-500 uppercase tracking-widest">Total Ideas Shared</span>
-                <span className="block text-4xl font-extrabold bg-gradient-to-r from-blue-650 to-indigo-600 dark:from-blue-400 dark:to-indigo-400 bg-clip-text text-transparent mt-1">
-                  {(state.ideas.length + 1245).toLocaleString()}
+            {/* Stats Summary Panel */}
+            <div className="flex flex-col md:flex-row items-center justify-center gap-6 md:gap-12" id="hero-stats-panel">
+              <div className="text-center group select-none">
+                <span className="block text-[10px] font-black font-mono text-slate-500 dark:text-slate-400 uppercase tracking-widest mb-1 group-hover:text-blue-600 transition-colors">Total Ideas Shared</span>
+                <span className="text-4xl font-display font-black text-slate-950 dark:text-white tracking-tighter" id="total-ideas-count">
+                  {state.ideas.length.toLocaleString()}
                 </span>
-                <span className="block text-[9px] text-slate-400 dark:text-slate-500 mt-1 font-mono">UPDATED DYNAMICALLY</span>
+                <div className="h-1 w-8 bg-blue-600 mx-auto mt-2 rounded-full transform group-hover:scale-x-150 transition-transform" />
               </div>
 
-              {/* Day filter tabs card side-by-side */}
-              <div className="bg-white/80 dark:bg-slate-900/65 backdrop-blur-md border border-slate-200/60 dark:border-slate-800/80 p-6 rounded-2xl shadow-[0_4px_18px_rgba(0,0,0,0.015)] hover:shadow-[0_8px_30px_rgba(99,102,241,0.03)] dark:hover:shadow-[0_8px_30px_rgba(255,255,255,0.01)] transition-all duration-300 hover:-translate-y-1 flex-1 flex flex-col justify-center">
-                <div className="flex items-center justify-between">
-                  <span className="block text-[10px] font-bold font-mono text-slate-455 dark:text-slate-500 uppercase tracking-widest text-center md:text-left">
-                    Filter by release day
-                  </span>
-                </div>
-                <div className="flex flex-wrap items-center justify-center md:justify-start gap-11/12 gap-2 mt-3" id="days-filter-tabs">
+              <div className="hidden md:block w-px h-12 bg-slate-200 dark:bg-slate-800" />
+
+              {/* Home Filter Toggle Tabs (Time range) */}
+              <div className="flex flex-col space-y-2 select-none" id="time-filter-tabs">
+                <span className="text-[10px] font-black font-mono text-slate-500 dark:text-slate-400 uppercase tracking-widest text-center md:text-left mb-1">Filter by Release Day</span>
+                <div className="flex items-center p-1.5 bg-white dark:bg-slate-900 border-2 border-slate-200 dark:border-slate-800 rounded-2xl shadow-sm">
                   {[
                     { id: 'all', label: 'All Time' },
                     { id: 'day', label: 'Today' },
                     { id: 'week', label: 'Weekly' },
                     { id: 'month', label: 'Monthly' }
-                  ].map(tab => (
+                  ].map((f) => (
                     <button
-                      key={tab.id}
-                      onClick={() => {
-                        setTimeFilter(tab.id as 'all' | 'day' | 'week' | 'month');
-                        showToast(`Filtered feed: ${tab.label}`);
-                      }}
-                      className={`px-3.5 py-1.5 text-xs font-semibold rounded-xl border transition-all duration-150 cursor-pointer ${
-                        timeFilter === tab.id
-                          ? 'bg-slate-950 dark:bg-slate-100 text-white dark:text-slate-950 border-slate-950 dark:border-slate-100 shadow-sm'
-                          : 'bg-white dark:bg-slate-800/60 text-slate-600 dark:text-slate-300 border-slate-200/80 dark:border-slate-705 hover:bg-slate-50 dark:hover:bg-slate-750 hover:border-slate-300'
+                      key={f.id}
+                      id={`time-filter-${f.id}`}
+                      onClick={() => setTimeFilter(f.id as any)}
+                      className={`px-4 py-2 rounded-xl text-xs font-black transition-all cursor-pointer ${
+                        timeFilter === f.id
+                          ? 'bg-slate-950 dark:bg-slate-100 text-white dark:text-slate-950 shadow-md scale-105'
+                          : 'text-slate-600 dark:text-slate-400 hover:text-slate-950 dark:hover:text-white'
                       }`}
                     >
-                      {tab.label}
+                      {f.label}
                     </button>
                   ))}
                 </div>
-                <span className="block text-[9px] text-slate-400 dark:text-slate-500 mt-2.5 font-mono text-center md:text-left">
-                  {timeFilter === 'all' && "SHOWING ALL IDEAS"}
-                  {timeFilter === 'day' && "SHARED IN THE LAST 24 HOURS"}
-                  {timeFilter === 'week' && "SHARED IN THE LAST 7 DAYS"}
-                  {timeFilter === 'month' && "SHARED IN THE LAST 30 DAYS"}
-                </span>
               </div>
             </div>
 
             {/* Category selection tab caps */}
-            <div className="border-t border-b border-slate-200 py-4 font-sans" id="filters-cap-row">
-              <span className="block text-[10px] font-bold font-mono text-slate-400 uppercase tracking-widest text-center select-none mb-3">
-                Designated Categories
-              </span>
+            <div className="mb-10" id="category-filter-section">
+              <div className="flex items-center justify-between mb-4 px-1">
+                <span className="text-[10px] font-bold font-mono uppercase tracking-widest text-slate-400 dark:text-slate-500">Designated Categories</span>
+                <div className="h-px flex-1 mx-4 bg-gradient-to-r from-slate-200/40 via-transparent to-transparent dark:from-slate-800/40" />
+              </div>
               <CategoryFilters
                 selectedCategory={selectedCategory}
                 onSelectCategory={setSelectedCategory}
               />
             </div>
 
-            {/* MAIN GRIDS Row-by-Row matching TrustMRR Card Rows */}
-            <div className="space-y-12" id="card-feed-sections">
-              
-              {/* SECTION 1: Trending Ideas Section (APPEARS FIRST) */}
-              <section id="trending-section" className="space-y-4">
-                <div className="flex items-center justify-between border-b border-slate-200 pb-2 select-none">
-                  <div className="flex items-center space-x-2">
-                    <Flame className="h-4 w-4 text-emerald-500 shrink-0 animate-pulse" />
-                    <h3 className="font-sans font-bold text-xs uppercase tracking-widest text-slate-400">Trending ideas</h3>
+          <div className="flex flex-col space-y-16" id="ideas-main-feed">
+            {/* 1. Trending Ideas (Sorted by high engagement) */}
+            <section id="trending-ideas-section">
+              <div className="flex items-center justify-between mb-8 px-1">
+                <div className="flex items-center space-x-3 select-none">
+                  <div className="p-2 rounded-xl bg-emerald-500 shadow-lg shadow-emerald-500/20">
+                    <Flame className="h-5 w-5 text-white" />
                   </div>
-                  <span className="text-[10px] font-mono text-slate-500 font-bold bg-slate-100 border border-slate-200/50 rounded px-2.5 py-0.5">PEER VALIDATED</span>
+                  <h2 className="text-xl font-display font-black text-slate-950 dark:text-white uppercase tracking-tight">Trending Ideas</h2>
                 </div>
-
-                {trendingIdeas.length === 0 ? (
-                  <p className="text-xs text-gray-400 italic bg-gray-50 border border-gray-100 p-6 rounded-2xl">
-                    No trending ideas match the active query.
-                  </p>
-                ) : (
-                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5" id="trending-grid">
-                    {trendingIdeas.map(idea => (
-                      <IdeaCard
-                        key={idea.id}
-                        idea={idea}
-                        onCardClick={() => setSelectedIdea(idea)}
-                        onLikeClick={() => handleLikeToggle(idea.id)}
-                        isLikedByUser={likedIdeaIds.includes(idea.id)}
-                        rowStyle="trending"
-                      />
-                    ))}
-                  </div>
-                )}
-              </section>
-
-              {/* SECTION 2: Recently Added Ideas */}
-              <section id="recently-added-section" className="space-y-4">
-                <div className="flex items-center justify-between border-b border-slate-200 pb-2 select-none">
-                  <div className="flex items-center space-x-2">
-                    <Lightbulb className="h-4 w-4 text-blue-500 shrink-0" />
-                    <h3 className="font-sans font-bold text-xs uppercase tracking-widest text-slate-400">Recently listed ideas</h3>
-                  </div>
-                  <span className="text-[10px] font-mono text-slate-500 font-bold bg-slate-100 border border-slate-200/50 rounded px-2.5 py-0.5">LIVE STREAM</span>
+                <div className="flex items-center space-x-2 text-[10px] font-black font-mono text-emerald-600 dark:text-emerald-400 uppercase tracking-widest bg-emerald-50 dark:bg-emerald-950/30 px-3 py-1.5 rounded-lg border border-emerald-100 dark:border-emerald-900 shadow-sm">
+                  <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
+                  <span>Feed Validated</span>
                 </div>
+              </div>
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+                {trendingIdeas.map(idea => (
+                  <IdeaCard 
+                    key={idea.id} 
+                    idea={idea} 
+                    onCardClick={() => setSelectedIdea(idea)}
+                    onLikeClick={() => handleLikeToggle(idea.id)}
+                    isLikedByUser={likedIdeaIds.includes(idea.id)}
+                    rowStyle="trending"
+                  />
+                ))}
+              </div>
+            </section>
 
-                {recentlyListedIdeas.length === 0 ? (
-                  <p className="text-xs text-slate-400 italic bg-white border border-slate-200 p-6 rounded-xl text-center">
-                    No recently added ideas found in this tag category.
-                  </p>
-                ) : (
-                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5" id="recently-listed-grid">
-                    {recentlyListedIdeas.map(idea => (
-                      <IdeaCard
-                        key={idea.id}
-                        idea={idea}
-                        onCardClick={() => setSelectedIdea(idea)}
-                        onLikeClick={() => handleLikeToggle(idea.id)}
-                        isLikedByUser={likedIdeaIds.includes(idea.id)}
-                        rowStyle="recent"
-                      />
-                    ))}
+            {/* 2. Recently Listed (Chronological) */}
+            <section id="recently-listed-section">
+              <div className="flex items-center justify-between mb-8 px-1">
+                <div className="flex items-center space-x-3 select-none">
+                  <div className="p-2 rounded-xl bg-blue-600 shadow-lg shadow-blue-500/20">
+                    <Sparkles className="h-5 w-5 text-white" />
                   </div>
-                )}
-              </section>
-
-              {/* SECTION 3: Best Ideas This Week */}
-              <section id="best-ideas-weekly-section" className="space-y-4">
-                <div className="flex items-center justify-between border-b border-slate-200 pb-2 select-none">
-                  <div className="flex items-center space-x-2">
-                    <Star className="h-4 w-4 text-purple-500 shrink-0 fill-current" />
-                    <h3 className="font-sans font-bold text-xs uppercase tracking-widest text-slate-400">Best ideas this week</h3>
-                  </div>
-                  <span className="text-[10px] font-mono text-slate-500 font-bold bg-slate-100 border border-slate-200/50 rounded px-2.5 py-0.5">GOLD VALIDATED</span>
+                  <h2 className="text-xl font-display font-black text-slate-950 dark:text-white uppercase tracking-tight">Recently Listed Ideas</h2>
                 </div>
-
-                {weeklyBestIdeas.length === 0 ? (
-                  <p className="text-xs text-slate-400 italic bg-white border border-slate-200 p-6 rounded-xl text-center">
-                    No validated weekly best items filtered.
-                  </p>
-                ) : (
-                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5" id="weekly-best-grid">
-                    {weeklyBestIdeas.map(idea => (
-                      <IdeaCard
-                        key={idea.id}
-                        idea={idea}
-                        onCardClick={() => setSelectedIdea(idea)}
-                        onLikeClick={() => handleLikeToggle(idea.id)}
-                        isLikedByUser={likedIdeaIds.includes(idea.id)}
-                        rowStyle="weekly"
-                      />
-                    ))}
-                  </div>
-                )}
-              </section>
-
-              {/* SECTION 4: Founder Leaderboard (below rows, clean modern table UI) */}
-              <section id="leaderboard-section" className="space-y-4 pt-4">
-                <div className="flex items-center justify-between border-b border-slate-200 pb-2 select-none">
-                  <div className="flex items-center space-x-2">
-                    <Users className="h-4 w-4 text-cyan-600 shrink-0" />
-                    <h3 className="font-sans font-bold text-xs uppercase tracking-widest text-slate-400">Visionary founder tables</h3>
-                  </div>
-                  <span className="text-[10px] font-mono text-slate-500 font-bold bg-slate-100 border border-slate-200/50 rounded px-2.5 py-0.5">UPDATES REALTIME</span>
+                <div className="flex items-center space-x-2 text-[10px] font-black font-mono text-blue-600 dark:text-blue-400 uppercase tracking-widest bg-blue-50 dark:bg-blue-950/30 px-3 py-1.5 rounded-lg border border-blue-100 dark:border-blue-900 shadow-sm">
+                  <span className="w-1.5 h-1.5 rounded-full bg-blue-600 animate-pulse" />
+                  <span>Live Stream</span>
                 </div>
-                
-                <LeaderboardTable />
-              </section>
+              </div>
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+                {recentlyListedIdeas.map(idea => (
+                  <IdeaCard 
+                    key={idea.id} 
+                    idea={idea} 
+                    onCardClick={() => setSelectedIdea(idea)}
+                    onLikeClick={() => handleLikeToggle(idea.id)}
+                    isLikedByUser={likedIdeaIds.includes(idea.id)}
+                    rowStyle="recent"
+                  />
+                ))}
+              </div>
+            </section>
 
-            </div>
+            {/* 3. Weekly Best (Staff picks / High Upvotes) */}
+            <section id="weekly-best-section">
+              <div className="flex items-center justify-between mb-8 px-1">
+                <div className="flex items-center space-x-3 select-none">
+                  <div className="p-2 rounded-xl bg-purple-600 shadow-lg shadow-purple-500/20">
+                    <Star className="h-5 w-5 text-white" />
+                  </div>
+                  <h2 className="text-xl font-display font-black text-slate-950 dark:text-white uppercase tracking-tight">Best Ideas This Week</h2>
+                </div>
+                <div className="flex items-center space-x-2 text-[10px] font-black font-mono text-purple-600 dark:text-purple-400 uppercase tracking-widest bg-purple-50 dark:bg-purple-950/30 px-3 py-1.5 rounded-lg border border-purple-100 dark:border-purple-900 shadow-sm">
+                  <span className="w-1.5 h-1.5 rounded-full bg-purple-600 animate-pulse" />
+                  <span>Gold Validated</span>
+                </div>
+              </div>
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+                {weeklyBestIdeas.map(idea => (
+                  <IdeaCard 
+                    key={idea.id} 
+                    idea={idea} 
+                    onCardClick={() => setSelectedIdea(idea)}
+                    onLikeClick={() => handleLikeToggle(idea.id)}
+                    isLikedByUser={likedIdeaIds.includes(idea.id)}
+                    rowStyle="weekly"
+                  />
+                ))}
+              </div>
+            </section>
+
+            {/* 4. Visionary Founder Table (Leaderboard) */}
+            <section id="leaderboard-section">
+              <div className="flex items-center justify-between mb-8 px-1">
+                <div className="flex items-center space-x-3 select-none">
+                  <div className="p-2 rounded-xl bg-amber-500 shadow-lg shadow-amber-500/20">
+                    <Users className="h-5 w-5 text-white" />
+                  </div>
+                  <h2 className="text-xl font-display font-black text-slate-950 dark:text-white uppercase tracking-tight">Visionary Founder Tables</h2>
+                </div>
+                <div className="text-[10px] font-black font-mono text-amber-600 dark:text-amber-400 uppercase tracking-widest bg-amber-50 dark:bg-amber-950/30 px-3 py-1.5 rounded-lg border border-amber-100 dark:border-amber-900 shadow-sm">
+                  Updates Realtime
+                </div>
+              </div>
+              <LeaderboardTable />
+            </section>
+          </div>
 
           </div>
         ) : currentView === 'onboarding' ? (
@@ -772,6 +783,7 @@ export default function App() {
                 setIdeaToEdit(idea);
                 setShowAddIdeaModal(true);
               }}
+              onUpdateRequestStatus={handleUpdateRequestStatus}
             />
           ) : (
             <div className="py-20 text-center text-xs text-gray-400 select-none">
@@ -830,7 +842,8 @@ export default function App() {
             setInterestTargetIdea(selectedIdea);
           }}
           currentUser={currentUser}
-        />
+            isCollaborationRequested={state.collaborations.some(c => c.ideaId === selectedIdea.id && (currentUser ? c.email === currentUser.email : false))}
+          />
       )}
 
       {/* 3. Add Startup Idea Form Popup */}

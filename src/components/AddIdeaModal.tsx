@@ -505,27 +505,27 @@ export default function AddIdeaModal({
               <div className="space-y-4">
                 <div>
                   <div className="flex justify-between items-center mb-1.5">
-                    <label className="block text-2xs font-extrabold font-mono text-slate-400 dark:text-slate-550 uppercase tracking-widest select-none text-[9px]">
-                      Elevator Pitch & Vision <span className="text-red-500">*</span>
+                    <label className="block text-2xs font-black font-mono text-slate-950 dark:text-white uppercase tracking-widest select-none text-[10px] bg-yellow-100 dark:bg-yellow-900/40 px-2 py-0.5 rounded">
+                      Describe Your Idea <span className="text-red-500">*</span>
                     </label>
-                    <span className="text-[9px] font-mono text-slate-400">{description.length}/200 chars</span>
+                    <span className="text-[9px] font-mono text-slate-400">{description.length}/2000 chars</span>
                   </div>
                   <textarea
-                    id="desc-textarea"
-                    rows={3}
-                    maxLength={250}
+                    id="add-idea-desc"
+                    rows={4}
+                    maxLength={2000}
                     required
                     value={description}
                     onChange={(e) => setDescription(e.target.value)}
                     placeholder="Summarize the product concept, core values, and features visually."
-                    className="w-full py-2.5 px-3.5 border border-slate-200 dark:border-slate-800/80 rounded-xl text-xs placeholder-slate-400 bg-white dark:bg-slate-950 dark:text-white focus:outline-none focus:ring-4 focus:ring-blue-500/10 focus:border-blue-500 transition-all resize-none leading-relaxed"
+                    className="w-full py-2.5 px-3.5 border-2 border-slate-200 dark:border-slate-800 rounded-xl text-xs placeholder-slate-400 bg-white dark:bg-slate-950 dark:text-white focus:outline-none focus:ring-4 focus:ring-blue-500/10 focus:border-blue-500 transition-all resize-none leading-relaxed font-bold"
                   />
                 </div>
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div>
-                    <label className="block text-2xs font-extrabold font-mono text-slate-400 dark:text-slate-550 uppercase tracking-widest mb-1.5 select-none text-[9px]">
-                      Why this works in the Market <span className="text-red-500">*</span>
+                    <label className="block text-2xs font-black font-mono text-slate-950 dark:text-white uppercase tracking-widest mb-1.5 select-none text-[10px] bg-yellow-100 dark:bg-yellow-900/40 px-2 py-0.5 rounded">
+                      Why this idea works <span className="text-red-500">*</span>
                     </label>
                     <textarea
                       id="why-works-textarea"
@@ -534,12 +534,12 @@ export default function AddIdeaModal({
                       value={whyThisWorks}
                       onChange={(e) => setWhyThisWorks(e.target.value)}
                       placeholder="Describe unique market advantages, viability, and demand."
-                      className="w-full py-2.5 px-3.5 border border-slate-200 dark:border-slate-800/80 rounded-xl text-xs placeholder-slate-400 bg-white dark:bg-slate-950 dark:text-white focus:outline-none focus:ring-4 focus:ring-blue-500/10 focus:border-blue-500 transition-all resize-none leading-relaxed"
+                      className="w-full py-2.5 px-3.5 border-2 border-slate-200 dark:border-slate-800 rounded-xl text-xs placeholder-slate-400 bg-white dark:bg-slate-950 dark:text-white focus:outline-none focus:ring-4 focus:ring-blue-500/10 focus:border-blue-500 transition-all resize-none leading-relaxed font-bold"
                     />
                   </div>
 
                   <div>
-                    <label className="block text-2xs font-extrabold font-mono text-slate-400 dark:text-slate-550 uppercase tracking-widest mb-1.5 select-none text-[9px]">
+                    <label className="block text-2xs font-black font-mono text-slate-950 dark:text-white uppercase tracking-widest mb-1.5 select-none text-[10px] bg-yellow-100 dark:bg-yellow-900/40 px-2 py-0.5 rounded">
                       Exact Problem Solved <span className="text-red-500">*</span>
                     </label>
                     <textarea
@@ -549,13 +549,13 @@ export default function AddIdeaModal({
                       value={problemSolved}
                       onChange={(e) => setProblemSolved(e.target.value)}
                       placeholder="Describe user pain points this idea targets directly."
-                      className="w-full py-2.5 px-3.5 border border-slate-200 dark:border-slate-800/80 rounded-xl text-xs placeholder-slate-400 bg-white dark:bg-slate-950 dark:text-white focus:outline-none focus:ring-4 focus:ring-blue-500/10 focus:border-blue-500 transition-all resize-none leading-relaxed"
+                      className="w-full py-2.5 px-3.5 border-2 border-slate-200 dark:border-slate-800 rounded-xl text-xs placeholder-slate-400 bg-white dark:bg-slate-950 dark:text-white focus:outline-none focus:ring-4 focus:ring-blue-500/10 focus:border-blue-500 transition-all resize-none leading-relaxed font-bold"
                     />
                   </div>
                 </div>
 
                 <div>
-                  <label className="block text-2xs font-extrabold font-mono text-slate-400 dark:text-slate-550 uppercase tracking-widest mb-1.5 select-none text-[9px]">
+                  <label className="block text-2xs font-black font-mono text-slate-950 dark:text-white uppercase tracking-widest mb-1.5 select-none text-[10px] bg-yellow-100 dark:bg-yellow-900/40 px-2 py-0.5 rounded">
                     Target Audience / Segment <span className="text-red-500">*</span>
                   </label>
                   <input

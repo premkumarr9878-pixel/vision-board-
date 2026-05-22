@@ -1,6 +1,7 @@
 export interface FounderProfile {
   id: string;
   name: string;
+  email: string;
   bio: string;
   skills: string[];
   buildingDesc?: string; // "What Are You Building?"
@@ -55,6 +56,8 @@ export interface StartupIdea {
   createdAt: string;
 }
 
+export type RequestStatus = 'pending' | 'accepted' | 'rejected' | 'contacted';
+
 export interface CollaborationRequest {
   id: string;
   ideaId: string;
@@ -63,7 +66,9 @@ export interface CollaborationRequest {
   name: string;
   email: string;
   phone: string;
+  role: string;
   message: string;
+  status: RequestStatus;
   createdAt: string;
 }
 
@@ -75,7 +80,9 @@ export interface FundingRequest {
   name: string;
   email: string;
   phone: string;
+  investmentAmount: string;
   message: string;
+  status: RequestStatus;
   createdAt: string;
 }
 

@@ -14,8 +14,8 @@
 
 body {
   font-family: var(--font-sans);
-  background-color: #F9FAFB;
-  color: #0f172a;
+  background-color: #F8FAFC;
+  color: #020617; /* slate-950 */
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   transition: background-color 0.3s ease, color 0.3s ease;
@@ -23,7 +23,7 @@ body {
 
 html.dark body {
   background-color: #020617; /* slate-950 */
-  color: #f8fafc; /* slate-50 */
+  color: #FFFFFF; /* pure white for better contrast in dark mode */
 }
 
 /* Custom scrollbar for premium touch */

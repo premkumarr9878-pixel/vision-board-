@@ -14,7 +14,30 @@ interface IdeaDetailsModalProps {
   onCollaborationClick: () => void;
   onFundingClick: () => void;
   currentUser: FounderProfile | null;
+  isCollaborationRequested?: boolean;
 }
+
+const SocialIcon = ({ type, url }: { type: 'instagram' | 'facebook' | 'website', url?: string }) => {
+  if (!url) return null;
+  
+  const icons = {
+    instagram: <Instagram className="h-5 w-5" />,
+    facebook: <Facebook className="h-5 w-5" />,
+    website: <Globe className="h-5 w-5" />
+  };
+
+  return (
+    <a 
+      href={url.startsWith('http') ? url : `https://${url}`} 
+      target="_blank" 
+      rel="noopener noreferrer"
+      className="p-3 bg-white dark:bg-slate-900 border-2 border-slate-200 dark:border-slate-800 rounded-xl text-slate-600 dark:text-slate-400 hover:text-blue-600 dark:hover:text-blue-400 hover:border-blue-600 transition-all shadow-sm"
+      title={type.charAt(0).toUpperCase() + type.slice(1)}
+    >
+      {icons[type]}
+    </a>
+  );
+};
 
 export default function IdeaDetailsModal({
   idea,
@@ -26,7 +49,8 @@ export default function IdeaDetailsModal({
   onAddSuggestion,
   onCollaborationClick,
   onFundingClick,
-  currentUser
+  currentUser,
+  isCollaborationRequested = false
 }: IdeaDetailsModalProps) {
   const [newSuggestion, setNewSuggestion] = useState('');
   const [guestName, setGuestName] = useState('');
@@ -57,21 +81,21 @@ export default function IdeaDetailsModal({
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
           onClick={onClose}
-          className="fixed inset-0 bg-slate-950/50 dark:bg-slate-950/75 backdrop-blur-md"
+          className="fixed inset-0 bg-slate-950/80 backdrop-blur-sm"
           id="details-backdrop"
         />
 
         {/* Modal Container */}
         <motion.div
-          initial={{ opacity: 0, scale: 0.96, y: 15 }}
+          initial={{ opacity: 0, scale: 0.98, y: 10 }}
           animate={{ opacity: 1, scale: 1, y: 0 }}
-          exit={{ opacity: 0, scale: 0.96, y: 15 }}
-          transition={{ type: 'spring', damping: 25, stiffness: 180 }}
-          className="relative bg-white dark:bg-slate-900 w-full max-w-3xl rounded-3xl border border-slate-200/50 dark:border-slate-800/80 shadow-[0_24px_50px_-12px_rgba(0,0,0,0.12)] dark:shadow-[0_24px_50px_-12px_rgba(0,0,0,0.55)] overflow-hidden flex flex-col max-h-[90vh]"
+          exit={{ opacity: 0, scale: 0.98, y: 10 }}
+          transition={{ type: 'spring', damping: 30, stiffness: 200 }}
+          className="relative bg-white dark:bg-slate-950 w-full max-w-4xl rounded-3xl border-2 border-slate-200 dark:border-slate-800 shadow-2xl overflow-hidden flex flex-col max-h-[92vh]"
           id="details-modal-container"
         >
           {/* Header Banner Background */}
-          <div className="relative h-44 sm:h-52 bg-slate-100 shrink-0 select-none">
+          <div className="relative h-44 sm:h-52 bg-slate-200 dark:bg-slate-800 shrink-0 select-none">
             {idea.banner ? (
               <img 
                 src={idea.banner} 
@@ -80,40 +104,40 @@ export default function IdeaDetailsModal({
                 referrerPolicy="no-referrer"
               />
             ) : (
-              <div className="w-full h-full bg-gradient-to-r from-blue-500 to-indigo-600 opacity-80" />
+              <div className="w-full h-full bg-gradient-to-r from-blue-600 to-indigo-700 opacity-90" />
             )}
             {/* Absolute close and share */}
             <div className="absolute top-4 right-4 flex space-x-2">
               <button
                 id="share-details-btn"
                 onClick={handleShare}
-                className="p-2 bg-white/95 hover:bg-white text-gray-700 rounded-xl transition-all shadow-sm flex items-center justify-center cursor-pointer"
+                className="p-2 bg-white hover:bg-slate-100 text-slate-900 rounded-xl transition-all shadow-md flex items-center justify-center cursor-pointer border border-slate-200"
                 title="Copy Link to Idea"
               >
-                <Share2 className="h-4 w-4" />
+                <Share2 className="h-4 w-4 font-black" />
               </button>
               <button
                 id="close-details-btn"
                 onClick={onClose}
-                className="p-2 bg-white/95 hover:bg-white text-gray-700 rounded-xl transition-all shadow-sm flex items-center justify-center cursor-pointer"
+                className="p-2 bg-white hover:bg-slate-100 text-slate-900 rounded-xl transition-all shadow-md flex items-center justify-center cursor-pointer border border-slate-200"
                 title="Close"
               >
-                <X className="h-4 w-4" />
+                <X className="h-4 w-4 font-black" />
               </button>
             </div>
 
             {/* Notification alert for copy */}
             {showShareNotification && (
-              <div className="absolute top-16 right-4 px-3.5 py-1.5 bg-gray-950 text-white text-[11px] rounded-lg shadow-sm flex items-center space-x-1 animate-fade-in font-medium">
-                <Check className="h-3.5 w-3.5 text-green-400" />
+              <div className="absolute top-16 right-4 px-3.5 py-1.5 bg-slate-900 text-white text-[11px] rounded-lg shadow-xl flex items-center space-x-1 animate-fade-in font-black border border-slate-700">
+                <Check className="h-3.5 w-3.5 text-emerald-400" />
                 <span>Link copied to clipboard!</span>
               </div>
             )}
             
             {/* Logo overlay */}
-            <div className="absolute -bottom-8 left-6 sm:left-8 w-16 h-16 rounded-2xl bg-white flex items-center justify-center text-3xl border border-gray-100 shadow-md select-none overflow-hidden">
+            <div className="absolute -bottom-8 left-6 sm:left-8 w-22 h-22 rounded-2xl bg-white dark:bg-slate-900 flex items-center justify-center text-4xl border-4 border-white dark:border-slate-950 shadow-xl select-none overflow-hidden">
               {idea.logo && (idea.logo.startsWith('data:image/') || idea.logo.startsWith('http')) ? (
-                <img src={idea.logo} alt={idea.name} className="w-full h-full object-cover rounded-2xl" />
+                <img src={idea.logo} alt={idea.name} className="w-full h-full object-cover rounded-xl" />
               ) : (
                 idea.logo
               )}
@@ -121,63 +145,63 @@ export default function IdeaDetailsModal({
           </div>
 
           {/* Modal Body (Scrollable contents) */}
-          <div className="flex-1 overflow-y-auto p-6 sm:p-8 pt-10" id="details-modal-scrollable">
+          <div className="flex-1 overflow-y-auto p-6 sm:p-10 pt-14" id="details-modal-scrollable">
             {/* Meta Row: Title and Main Tags */}
-            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">
+            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-6 mb-10">
               <div>
-                <h1 className="font-display font-extrabold text-2xl sm:text-3xl text-slate-950 dark:text-white tracking-tight" id="idea-details-title">
+                <h1 className="font-display font-black text-4xl sm:text-5xl text-slate-950 dark:text-white tracking-tighter" id="idea-details-title">
                   {idea.name}
                 </h1>
-                <div className="flex flex-wrap items-center gap-2 mt-2">
-                  <span className="px-2.5 py-0.5 rounded-lg text-xs font-semibold bg-blue-50 dark:bg-blue-950/40 text-blue-700 dark:text-blue-350 border border-blue-100 dark:border-blue-900/30">
+                <div className="flex flex-wrap items-center gap-3 mt-5">
+                  <span className="px-4 py-1.5 rounded-xl text-xs font-black bg-blue-600 text-white shadow-md">
                     {idea.category}
                   </span>
-                  <span className="px-2.5 py-0.5 rounded-lg text-xs font-bold bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-350 uppercase tracking-tight font-mono">
+                  <span className="px-4 py-1.5 rounded-xl text-xs font-black bg-slate-100 dark:bg-slate-900 text-slate-950 dark:text-slate-100 uppercase tracking-widest font-mono border-2 border-slate-200 dark:border-slate-800 shadow-sm">
                     STAGE: {idea.progressStage === 'JUST IDEA NOW' || idea.progressStage === 'IDEATION' ? 'Ideation' : idea.progressStage}
                   </span>
                   {idea.isPublic ? (
-                    <span className="px-2.5 py-0.5 rounded-lg text-xs font-bold bg-emerald-50 dark:bg-emerald-950/40 text-emerald-700 dark:text-emerald-350 border border-emerald-100 dark:border-emerald-900/30 uppercase tracking-tight font-mono flex items-center space-x-1 shadow-2xs hover:scale-105 transition-all">
-                      <Globe className="h-3 w-3 text-emerald-605 text-emerald-555" />
-                      <span>🌐 Public Live Pitch</span>
+                    <span className="px-4 py-1.5 rounded-xl text-xs font-black bg-emerald-100 dark:bg-emerald-950/50 text-emerald-900 dark:text-emerald-400 border-2 border-emerald-200 dark:border-emerald-900 uppercase tracking-widest font-mono flex items-center space-x-2 shadow-sm">
+                      <Globe className="h-4 w-4" />
+                      <span>Public Live Pitch</span>
                     </span>
                   ) : (
-                    <span className="px-2.5 py-0.5 rounded-lg text-xs font-bold bg-amber-50 dark:bg-amber-950/40 text-amber-700 dark:text-amber-350 border border-amber-200 dark:border-amber-900/30 uppercase tracking-tight font-mono flex items-center space-x-1 shadow-2xs hover:scale-105 transition-all">
-                      <span className="inline-block h-1.5 w-1.5 rounded-full bg-amber-500 animate-ping" />
-                      <span>🔒 Private Draft (Workspace only)</span>
+                    <span className="px-4 py-1.5 rounded-xl text-xs font-black bg-amber-100 dark:bg-amber-950/50 text-amber-900 dark:text-amber-400 border-2 border-amber-200 dark:border-amber-900 uppercase tracking-widest font-mono flex items-center space-x-2 shadow-sm">
+                      <span className="inline-block h-2.5 w-2.5 rounded-full bg-amber-600 animate-pulse" />
+                      <span>Private Draft</span>
                     </span>
                   )}
                 </div>
               </div>
               
               {/* Like / Interaction Counters */}
-              <div className="flex items-center space-x-3 sm:self-start">
+              <div className="flex items-center space-x-4 sm:self-start">
                 <button
                   id="like-details-modal-btn"
                   onClick={onLike}
-                  className={`px-4 py-2 rounded-xl text-xs font-medium border flex items-center space-x-1.5 transition-all select-none cursor-pointer ${
+                  className={`px-6 py-3 rounded-2xl text-sm font-black border-2 flex items-center space-x-2.5 transition-all select-none cursor-pointer shadow-md active:scale-95 ${
                     isLikedByUser
-                      ? 'bg-red-50 dark:bg-red-950/30 border-red-200 dark:border-red-900/40 text-red-600 dark:text-red-400 shadow-sm'
-                      : 'bg-white dark:bg-slate-800 border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 hover:text-slate-950 dark:hover:text-white'
+                      ? 'bg-red-600 border-red-600 text-white'
+                      : 'bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-800 text-slate-950 dark:text-slate-200 hover:border-red-600 hover:text-red-600'
                   }`}
                 >
-                  <Heart className={`h-4 w-4 ${isLikedByUser ? 'fill-current text-red-500' : ''}`} />
+                  <Heart className={`h-5 w-5 ${isLikedByUser ? 'fill-current' : ''}`} />
                   <span>{idea.likes} Likes</span>
                 </button>
               </div>
             </div>
 
             {/* ADVANCED MATURITY STEPPER (Answers 'Kaisa idea hai, kis level pe hai!') */}
-            <div className="mb-8 bg-gradient-to-br from-slate-50 to-slate-100/60 border border-slate-200 p-5 rounded-2xl select-none" id="details-stage-stepper">
-              <div className="flex items-center justify-between mb-3">
-                <span className="block text-[10px] font-bold font-mono tracking-wider uppercase text-slate-400">
+            <div className="mb-12 bg-slate-50 dark:bg-slate-900/50 border-2 border-slate-200 dark:border-slate-800 p-8 rounded-3xl select-none shadow-sm" id="details-stage-stepper">
+              <div className="flex items-center justify-between mb-6">
+                <span className="block text-xs font-black font-mono tracking-widest uppercase text-slate-600 dark:text-slate-400">
                   Concept Maturity Roadmap
                 </span>
-                <span className="text-[10px] font-mono font-bold text-blue-600 bg-blue-50 border border-blue-100 rounded px-2 py-0.5">
-                  ACTIVE PHASE
+                <span className="text-xs font-black font-mono text-blue-800 dark:text-blue-400 bg-blue-100 dark:bg-blue-900/50 border-2 border-blue-200 dark:border-blue-800 rounded-lg px-3 py-1.5 uppercase shadow-sm">
+                  Active Phase
                 </span>
               </div>
               
-              <div className="grid grid-cols-4 gap-2 relative mt-1">
+              <div className="grid grid-cols-4 gap-4 relative mt-2">
                 {[
                   { key: 'IDEATION', label: '1. Ideation', desc: 'Concept logged' },
                   { key: 'RESEARCH', label: '2. Research', desc: 'Market analysis' },
@@ -194,27 +218,27 @@ export default function IdeaDetailsModal({
                   return (
                     <div key={st.key} className="flex flex-col items-center sm:items-start text-center sm:text-left">
                       <div className="flex items-center w-full">
-                        <div className={`h-7 w-7 rounded-full flex items-center justify-center text-xs font-bold shrink-0 shadow-sm border transition-all ${
+                        <div className={`h-10 w-10 rounded-full flex items-center justify-center text-sm font-black shrink-0 shadow-lg border-2 transition-all ${
                           isCurrent 
-                            ? 'bg-blue-600 text-white border-blue-500 ring-4 ring-blue-550/10 ring-blue-500/15' 
+                            ? 'bg-blue-600 text-white border-blue-600 ring-4 ring-blue-500/20 scale-110' 
                             : isPassed 
-                              ? 'bg-emerald-500 text-white border-emerald-400' 
-                              : 'bg-white text-slate-400 border-slate-250 border-slate-200'
+                              ? 'bg-emerald-600 text-white border-emerald-600' 
+                              : 'bg-white dark:bg-slate-800 text-slate-400 border-slate-300 dark:border-slate-700'
                         }`}>
                           {isPassed ? '✓' : idx + 1}
                         </div>
                         {idx < 3 && (
-                          <div className={`hidden sm:block flex-1 h-0.5 mx-2 ${
-                            isPassed ? 'bg-emerald-550 bg-emerald-500' : 'bg-slate-200'
+                          <div className={`hidden sm:block flex-1 h-1.5 mx-3 rounded-full ${
+                            isPassed ? 'bg-emerald-600' : 'bg-slate-200 dark:bg-slate-800'
                           }`} />
                         )}
                       </div>
-                      <span className={`text-[11px] font-bold mt-2 leading-tight ${
-                        isCurrent ? 'text-blue-600' : isPassed ? 'text-emerald-600' : 'text-slate-500'
+                      <span className={`text-[13px] font-black mt-4 leading-tight uppercase tracking-tight ${
+                        isCurrent ? 'text-blue-800 dark:text-blue-400' : isPassed ? 'text-emerald-800 dark:text-emerald-400' : 'text-slate-600 dark:text-slate-500'
                       }`}>
                         {st.label}
                       </span>
-                      <span className="hidden sm:block text-[9px] text-slate-450 text-slate-400 mt-0.5 leading-tight">{st.desc}</span>
+                      <span className="hidden sm:block text-[11px] font-bold text-slate-600 dark:text-slate-500 mt-1.5 leading-tight">{st.desc}</span>
                     </div>
                   );
                 })}
@@ -222,45 +246,45 @@ export default function IdeaDetailsModal({
             </div>
 
             {/* Grid Layout: Main Columns & Side Card */}
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 mb-8" id="details-columns-grid">
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-10 mb-10" id="details-columns-grid">
               
               {/* Left Column: Extensive Product Info */}
-              <div className="lg:col-span-2 space-y-6">
+              <div className="lg:col-span-2 space-y-8">
                 
                 {/* 1. Description */}
                 <div>
-                  <h3 className="text-xs font-bold text-gray-400 font-mono tracking-wider mb-2.5 flex items-center space-x-1.5 uppercase select-none">
-                    <BrainCircuit className="h-4 w-4 text-blue-600" />
+                  <h3 className="text-xs font-black text-slate-600 dark:text-slate-400 font-mono tracking-widest mb-4 flex items-center space-x-2.5 uppercase select-none">
+                    <BrainCircuit className="h-5 w-5 text-blue-600 dark:text-blue-400 font-black" />
                     <span>The Innovation Concept</span>
                   </h3>
-                  <div className="bg-white border border-gray-150 p-5 rounded-2xl shadow-2xs">
-                    <p className="text-gray-750 text-slate-700 text-sm leading-relaxed whitespace-pre-wrap">
+                  <div className="bg-white dark:bg-slate-900 border-2 border-slate-200 dark:border-slate-800 p-8 rounded-3xl shadow-md">
+                    <p className="text-slate-950 dark:text-slate-100 text-[15px] font-bold leading-relaxed whitespace-pre-wrap">
                       {idea.description}
                     </p>
                   </div>
                 </div>
 
                 {/* Bento Grid layout for Problem and Strategy details */}
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
                   
                   {/* 2. Problem Solved */}
-                  <div className="p-5 bg-orange-50/40 border border-orange-100 rounded-2xl space-y-2">
-                    <h3 className="text-xs font-bold text-orange-700 font-mono tracking-wider flex items-center space-x-1.5 uppercase select-none">
-                      <ClipboardList className="h-4 w-4 shrink-0" />
+                  <div className="p-6 bg-orange-50 dark:bg-orange-950/20 border-2 border-orange-200 dark:border-orange-900/50 rounded-2xl space-y-3 shadow-sm">
+                    <h3 className="text-xs font-black text-orange-800 dark:text-orange-400 font-mono tracking-widest flex items-center space-x-2 uppercase select-none">
+                      <ClipboardList className="h-4 w-4 shrink-0 font-black" />
                       <span>Pain Point / Problem</span>
                     </h3>
-                    <p className="text-slate-705 text-slate-700 text-xs leading-relaxed">
+                    <p className="text-slate-900 dark:text-slate-200 text-sm font-bold leading-relaxed">
                       {idea.problemSolved}
                     </p>
                   </div>
 
                   {/* 3. Why it works in market */}
-                  <div className="p-5 bg-blue-50/30 border border-blue-100 rounded-2xl space-y-2">
-                    <h3 className="text-xs font-bold text-blue-700 font-mono tracking-wider flex items-center space-x-1.5 uppercase select-none">
-                      <Globe className="h-4 w-4 shrink-0" />
+                  <div className="p-6 bg-blue-50 dark:bg-blue-950/20 border-2 border-blue-200 dark:border-blue-900/50 rounded-2xl space-y-3 shadow-sm">
+                    <h3 className="text-xs font-black text-blue-800 dark:text-blue-400 font-mono tracking-widest flex items-center space-x-2 uppercase select-none">
+                      <Globe className="h-4 w-4 shrink-0 font-black" />
                       <span>Market Edge</span>
                     </h3>
-                    <p className="text-slate-705 text-slate-700 text-xs leading-relaxed">
+                    <p className="text-slate-900 dark:text-slate-200 text-sm font-bold leading-relaxed">
                       {idea.whyThisWorks}
                     </p>
                   </div>
@@ -268,43 +292,43 @@ export default function IdeaDetailsModal({
                 </div>
 
                 {/* 4. Target Audience */}
-                <div className="p-5 bg-indigo-50/30 border border-indigo-100 rounded-2xl space-y-2">
-                  <h3 className="text-xs font-bold text-indigo-700 font-mono tracking-wider flex items-center space-x-1.5 uppercase select-none">
-                    <Users className="h-4 w-4 shrink-0" />
+                <div className="p-6 bg-indigo-50 dark:bg-indigo-950/20 border-2 border-indigo-200 dark:border-indigo-900/50 rounded-2xl space-y-3 shadow-sm">
+                  <h3 className="text-xs font-black text-indigo-800 dark:text-indigo-400 font-mono tracking-widest flex items-center space-x-2 uppercase select-none">
+                    <Users className="h-4 w-4 shrink-0 font-black" />
                     <span>User Persona (Target Audience)</span>
                   </h3>
-                  <p className="text-slate-705 text-slate-700 text-xs leading-relaxed">
+                  <p className="text-slate-900 dark:text-slate-200 text-sm font-bold leading-relaxed">
                     {idea.targetAudience}
                   </p>
                 </div>
 
                 {/* Modern Status Indicators Checkboxes */}
-                <div className="border-t border-gray-100 pt-6">
-                  <h4 className="text-xs font-bold text-gray-400 font-mono uppercase tracking-wider mb-3 select-none">Engagement Requirements</h4>
-                  <div className="grid grid-cols-2 gap-3" id="active-requirements-toggles">
-                    <div className={`p-4 rounded-2xl border flex items-center space-x-3 transition-colors select-none ${
+                <div className="border-t-2 border-slate-200 dark:border-slate-800 pt-8">
+                  <h4 className="text-xs font-black text-slate-500 dark:text-slate-400 font-mono uppercase tracking-widest mb-4 select-none">Engagement Requirements</h4>
+                  <div className="grid grid-cols-2 gap-4" id="active-requirements-toggles">
+                    <div className={`p-5 rounded-2xl border-2 flex items-center space-x-4 transition-all select-none shadow-sm ${
                       idea.needCollaboration 
-                        ? 'bg-blue-50/40 border-blue-100 text-blue-900' 
-                        : 'bg-gray-50 border-gray-200 text-gray-400'
+                        ? 'bg-blue-100 dark:bg-blue-900/50 border-blue-300 dark:border-blue-800 text-blue-950 dark:text-blue-100' 
+                        : 'bg-slate-50 dark:bg-slate-950 border-slate-200 dark:border-slate-800 text-slate-400 dark:text-slate-600 opacity-60'
                     }`}>
-                      <Users className="h-5 w-5 text-blue-600 shrink-0" />
+                      <Users className="h-6 w-6 text-blue-700 dark:text-blue-400 shrink-0 font-black" />
                       <div>
-                        <span className="block text-xs font-bold leading-tight">Co-founder Wanted</span>
-                        <span className="block text-[10px] text-gray-500 mt-0.5">
+                        <span className="block text-sm font-black leading-tight uppercase tracking-tight">Co-founder Wanted</span>
+                        <span className="block text-[11px] font-bold text-slate-600 dark:text-slate-400 mt-1 uppercase">
                           {idea.needCollaboration ? `Active recruitment` : 'Team complete'}
                         </span>
                       </div>
                     </div>
 
-                    <div className={`p-4 rounded-2xl border flex items-center space-x-3 transition-colors select-none ${
+                    <div className={`p-5 rounded-2xl border-2 flex items-center space-x-4 transition-all select-none shadow-sm ${
                       idea.needFunding 
-                        ? 'bg-amber-50/45 border-amber-100 text-amber-900' 
-                        : 'bg-gray-50 border-gray-200 text-gray-400'
+                        ? 'bg-amber-100 dark:bg-amber-900/50 border-amber-300 dark:border-amber-800 text-amber-950 dark:text-amber-100' 
+                        : 'bg-slate-50 dark:bg-slate-950 border-slate-200 dark:border-slate-800 text-slate-400 dark:text-slate-600 opacity-60'
                     }`}>
-                      <CircleDollarSign className="h-5 w-5 text-amber-600 shrink-0" />
+                      <CircleDollarSign className="h-6 w-6 text-amber-700 dark:text-amber-400 shrink-0 font-black" />
                       <div>
-                        <span className="block text-xs font-bold leading-tight">Funding Target</span>
-                        <span className="block text-[10px] text-gray-500 mt-0.5">
+                        <span className="block text-sm font-black leading-tight uppercase tracking-tight">Funding Target</span>
+                        <span className="block text-[11px] font-bold text-slate-600 dark:text-slate-400 mt-1 uppercase">
                           {idea.needFunding ? `Seeking investors` : 'No capital requests'}
                         </span>
                       </div>
@@ -334,6 +358,15 @@ export default function IdeaDetailsModal({
                       <span className="inline-block mt-0.5 text-[10px] text-slate-500 font-medium">Concept Owner</span>
                     </div>
                   </div>
+
+                  {/* Founder Social Links */}
+                  {(idea.instagramUrl || idea.facebookUrl || idea.websiteUrl) && (
+                    <div className="flex items-center gap-3 mb-6">
+                      <SocialIcon type="instagram" url={idea.instagramUrl} />
+                      <SocialIcon type="facebook" url={idea.facebookUrl} />
+                      <SocialIcon type="website" url={idea.websiteUrl} />
+                    </div>
+                  )}
 
                   <p className="text-slate-500 dark:text-slate-400 text-xs leading-normal">
                     This builder is seeking peer suggestions and active partnerships to bring their roadmap to fruition.
@@ -403,16 +436,20 @@ export default function IdeaDetailsModal({
                   </div>
                 </div>
 
-                {/* Actions Sidebar Buttons */}
-                <div className="space-y-2.5">
+                  {/* Actions Sidebar Buttons */}
+                <div className="space-y-4">
                   {idea.needCollaboration && (
                     <button
                       id="collaboration-action-btn"
                       onClick={onCollaborationClick}
-                      className="w-full py-3 px-4 bg-slate-900 hover:bg-slate-950 text-white dark:bg-slate-100 dark:hover:bg-white dark:text-slate-955 rounded-xl text-xs font-semibold tracking-wide transition-all shadow-[0_4px_12px_rgba(0,0,0,0.12)] hover:-translate-y-0.5 select-none cursor-pointer flex items-center justify-center space-x-1.5"
+                      className={`w-full py-4 px-5 rounded-2xl text-sm font-black tracking-wide transition-all shadow-xl hover:-translate-y-0.5 select-none cursor-pointer flex items-center justify-center space-x-2 border-0 ${
+                        isCollaborationRequested 
+                          ? 'bg-emerald-600 text-white hover:bg-emerald-700' 
+                          : 'bg-slate-950 dark:bg-white text-white dark:text-slate-950 hover:bg-slate-800 dark:hover:bg-slate-100'
+                      }`}
                     >
-                      <Users className="h-3.5 w-3.5" />
-                      <span>Request Collaboration</span>
+                      <Users className={`h-5 w-5 ${isCollaborationRequested ? 'text-white' : ''}`} />
+                      <span>{isCollaborationRequested ? 'Collaboration Requested' : 'Request Collaboration'}</span>
                     </button>
                   )}
 
@@ -420,9 +457,9 @@ export default function IdeaDetailsModal({
                     <button
                       id="funding-action-btn"
                       onClick={onFundingClick}
-                      className="w-full py-3 px-4 bg-blue-600 hover:bg-blue-700 text-white rounded-xl text-xs font-semibold tracking-wide transition-all shadow-[0_4px_12px_rgba(59,130,246,0.18)] hover:-translate-y-0.5 select-none cursor-pointer flex items-center justify-center space-x-1.5"
+                      className="w-full py-4 px-5 bg-blue-600 hover:bg-blue-700 text-white rounded-2xl text-sm font-black tracking-wide transition-all shadow-xl hover:-translate-y-0.5 select-none cursor-pointer flex items-center justify-center space-x-2 border-0"
                     >
-                      <CircleDollarSign className="h-3.5 w-3.5" />
+                      <CircleDollarSign className="h-5 w-5" />
                       <span>Express Funding Interest</span>
                     </button>
                   )}
@@ -432,35 +469,38 @@ export default function IdeaDetailsModal({
             </div>
 
             {/* SUGGESTION / COMMENT SYSTEM FORUM */}
-            <div className="border-t border-slate-100 dark:border-slate-800 pt-8" id="details-suggestions-section">
-              <div className="flex items-center justify-between mb-4 select-none">
-                <h3 className="font-display font-bold text-lg text-slate-950 dark:text-white flex items-center space-x-2">
-                  <MessageSquare className="h-4 w-4 text-blue-600" />
-                  <span>Suggestions Forum</span>
-                  <span className="text-xs bg-slate-150/70 dark:bg-slate-850 text-slate-705 dark:text-slate-350 rounded-full px-2 py-0.5 font-bold">
-                    {suggestions.length}
-                  </span>
-                </h3>
+            <div className="border-t-2 border-slate-200 dark:border-slate-800 pt-10" id="details-suggestions-section">
+              <div className="flex items-center justify-between mb-6 px-1 select-none">
+                <div className="flex items-center space-x-2.5">
+                  <div className="p-1.5 rounded-lg bg-indigo-600 border border-indigo-700 shadow-sm">
+                    <MessageSquare className="h-4 w-4 text-white" />
+                  </div>
+                  <h3 className="font-display font-black text-base text-slate-900 dark:text-white uppercase tracking-tight">Suggestions Forum</h3>
+                </div>
+                <span className="px-3 py-1 rounded bg-slate-200 dark:bg-slate-800 text-[10px] font-black font-mono text-slate-700 dark:text-slate-300 border border-slate-300 dark:border-slate-700 uppercase tracking-widest">
+                  {suggestions.length} INPUTS
+                </span>
               </div>
 
               {/* Suggestions List */}
-              <div className="space-y-4 mb-6" id="suggestions-list-container">
+              <div className="space-y-4 max-h-[400px] overflow-y-auto pr-2 mb-8 no-scrollbar" id="suggestions-list-container">
                 {suggestions.length === 0 ? (
-                  <p className="text-xs text-slate-500 bg-slate-50/50 dark:bg-slate-950/25 border border-slate-200/50 dark:border-slate-850 p-4 rounded-xl text-center select-none leading-relaxed">
-                    No suggestions yet. Be the first to give feedback or build suggestion inputs!
-                  </p>
+                  <div className="py-12 text-center bg-slate-50 dark:bg-slate-950 rounded-2xl border-2 border-dashed border-slate-200 dark:border-slate-800 select-none">
+                    <MessageSquare className="mx-auto h-10 w-10 text-slate-300 dark:text-slate-700 mb-3" />
+                    <p className="text-sm text-slate-500 dark:text-slate-400 font-black uppercase tracking-tight">No suggestions yet. Be the first to give feedback!</p>
+                  </div>
                 ) : (
                   suggestions.map((s) => (
-                    <div key={s.id} className="p-4 border border-slate-150/50 dark:border-slate-800/80 bg-white dark:bg-slate-900/50 rounded-2xl flex items-start space-x-3 shadow-2xs">
-                      <div className="w-8 h-8 rounded-full border border-slate-100 dark:border-slate-800 overflow-hidden select-none shrink-0">
+                    <div key={s.id} className="flex space-x-4 group" id={`suggestion-${s.id}`}>
+                      <div className="w-10 h-10 rounded-full border-2 border-slate-200 dark:border-slate-800 overflow-hidden shrink-0 shadow-sm select-none">
                         <img src={s.authorAvatar} alt={s.authorName} className="w-full h-full object-cover" />
                       </div>
-                      <div className="min-w-0 flex-1">
-                        <div className="flex items-center justify-between">
-                          <span className="font-display font-bold text-xs text-slate-950 dark:text-white">{s.authorName}</span>
-                          <span className="text-[10px] text-slate-400">{new Date(s.createdAt).toLocaleDateString()}</span>
+                      <div className="flex-1 min-w-0 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 p-4 rounded-2xl group-hover:border-blue-500 transition-colors shadow-sm">
+                        <div className="flex items-center justify-between mb-2">
+                          <span className="text-xs font-black text-slate-900 dark:text-white truncate uppercase tracking-tight">{s.authorName}</span>
+                          <span className="text-[10px] text-slate-500 dark:text-slate-400 font-black font-mono">{new Date(s.createdAt).toLocaleDateString()}</span>
                         </div>
-                        <p className="text-slate-650 dark:text-slate-350 text-xs leading-normal mt-1 whitespace-pre-wrap">
+                        <p className="text-sm text-slate-800 dark:text-slate-100 leading-relaxed font-bold whitespace-pre-wrap">
                           {s.content}
                         </p>
                       </div>
@@ -470,55 +510,54 @@ export default function IdeaDetailsModal({
               </div>
 
               {/* Add Suggestion Input */}
-              <form onSubmit={handleSuggestionSubmit} className="space-y-3 p-4 bg-slate-50/50 border border-slate-150 rounded-2xl">
-                <div className="flex items-start space-x-3">
-                  <div className="w-8 h-8 rounded-full overflow-hidden border border-gray-100 shrink-0 select-none hidden sm:block">
+              <form onSubmit={handleSuggestionSubmit} className="mt-10 pt-8 border-t-2 border-slate-200 dark:border-slate-800" id="suggestion-input-box">
+                <div className="flex space-x-4">
+                  <div className="w-12 h-12 rounded-full border-2 border-slate-200 dark:border-slate-800 overflow-hidden shrink-0 bg-slate-100 dark:bg-slate-800 flex items-center justify-center shadow-sm select-none hidden sm:flex">
                     <img 
                       src={currentUser ? currentUser.avatar : "https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?auto=format&fit=crop&q=80&w=80"} 
                       alt={currentUser ? currentUser.name : "Guest Avatar"} 
                       className="w-full h-full object-cover" 
                     />
                   </div>
-                  <div className="flex-1">
+                  <div className="flex-1 space-y-4">
                     <textarea
                       id="suggestion-textarea"
-                      rows={2}
+                      rows={3}
                       value={newSuggestion}
                       onChange={(e) => setNewSuggestion(e.target.value)}
                       placeholder={currentUser ? "Add a constructive suggestion or co-founder pitch..." : "Share feedback, suggestions or co-founder interest instantly..."}
-                      className="w-full py-2 px-3 border border-gray-200 rounded-xl text-xs placeholder-gray-400 bg-white focus:outline-none focus:ring-2 focus:ring-blue-500/10 focus:border-blue-500 transition-all resize-none"
+                      className="w-full py-3 px-4 bg-slate-50 dark:bg-slate-950 border-2 border-slate-200 dark:border-slate-800 rounded-xl text-sm font-bold focus:outline-none focus:ring-4 focus:ring-blue-500/10 focus:border-blue-500 dark:focus:border-blue-500 dark:text-white transition-all resize-none placeholder-slate-400"
                     />
-                  </div>
-                </div>
+                    
+                    <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+                      {!currentUser ? (
+                        <div className="flex flex-col sm:flex-row sm:items-center gap-2 select-none">
+                          <span className="text-[10px] font-black font-mono text-slate-500 dark:text-slate-400 uppercase tracking-wider">Post as Guest:</span>
+                          <input
+                            type="text"
+                            placeholder="Your Name (Optional)"
+                            value={guestName}
+                            onChange={(e) => setGuestName(e.target.value)}
+                            className="py-1.5 px-3 border-2 border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-950 rounded-lg text-[11px] font-bold text-slate-700 dark:text-slate-300 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500/10 max-w-[180px]"
+                            id="guest-name-suggestion-input"
+                          />
+                        </div>
+                      ) : (
+                        <div className="flex items-center space-x-2 select-none">
+                          <div className="w-2 h-2 rounded-full bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.5)]" />
+                          <span className="text-[11px] font-black text-slate-500 dark:text-slate-400 uppercase tracking-tight">Posting as: <strong className="text-slate-700 dark:text-slate-200">{currentUser.name}</strong></span>
+                        </div>
+                      )}
 
-                <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 pt-1 border-t border-slate-100">
-                  {!currentUser ? (
-                    <div className="flex flex-col sm:flex-row sm:items-center gap-2 select-none">
-                      <span className="text-[10px] font-bold font-mono text-slate-400 uppercase tracking-wider">Post as Guest:</span>
-                      <input
-                        type="text"
-                        placeholder="Your Name (Optional)"
-                        value={guestName}
-                        onChange={(e) => setGuestName(e.target.value)}
-                        className="py-1 px-2.5 border border-slate-200 bg-white rounded-lg text-[11px] placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500/10 max-w-[150px] font-semibold text-slate-700"
-                        id="guest-name-suggestion-input"
-                      />
+                      <button
+                        id="submit-suggestion-btn"
+                        type="submit"
+                        disabled={!newSuggestion.trim()}
+                        className="inline-flex items-center justify-center px-6 py-2.5 bg-slate-900 dark:bg-slate-100 hover:bg-black dark:hover:bg-white text-white dark:text-slate-900 rounded-xl text-xs font-black transition-all disabled:opacity-50 disabled:cursor-not-allowed select-none cursor-pointer shadow-md uppercase tracking-widest"
+                      >
+                        Post Suggestion
+                      </button>
                     </div>
-                  ) : (
-                    <div className="flex items-center space-x-1 select-none">
-                      <span className="h-1.5 w-1.5 rounded-full bg-emerald-500" />
-                      <span className="text-[10px] font-medium text-slate-500">Posting as authenticated founder: <strong className="text-slate-700">{currentUser.name}</strong></span>
-                    </div>
-                  )}
-
-                  <div className="flex items-center space-x-2 justify-end">
-                    <button
-                      id="submit-suggestion-btn"
-                      type="submit"
-                      className="py-1.5 px-4 bg-gray-950 hover:bg-gray-900 text-white rounded-lg text-xs font-semibold select-none cursor-pointer tracking-wide"
-                    >
-                      Post Suggestion
-                    </button>
                   </div>
                 </div>
               </form>
