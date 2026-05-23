@@ -117,11 +117,9 @@ export default function AuthModal({
               full_name: name,
               is_new_user: true,
               user_role: 'founder_hub'
-            }
+            },
+            emailRedirectTo: `${window.location.origin}`
           }
-        }).catch(err => {
-          console.error('Sign up promise rejected:', err);
-          return { data: { user: null }, error: err };
         });
 
         if (signUpError) {
@@ -131,9 +129,8 @@ export default function AuthModal({
         
         if (data?.user) {
           console.log('Sign up successful, user ID:', data.user.id);
-          const { data: { session }, error: sessionError } = await supabase.auth.getSession().catch(() => ({ data: { session: null }, error: null }));
-          
-          if (session) {
+          // For many configurations, auto-confirm is off. We check if a session exists.
+          if (data.session) {
             console.log('Session detected, redirecting to success...');
             onAuthSuccess();
             onClose();
@@ -147,9 +144,6 @@ export default function AuthModal({
         const { data, error: signInError } = await supabase.auth.signInWithPassword({
           email,
           password
-        }).catch(err => {
-          console.error('Sign in promise rejected:', err);
-          return { data: { user: null }, error: err };
         });
 
         if (signInError) {
