@@ -110,26 +110,27 @@ export default function AuthModal({
       if (isSignUp) {
         console.log('Attempting sign up for:', email);
         
-        // 1. Strict pre-check: Check if email exists in public.profiles
+        // 1. Strict Production Pre-check: Check if email exists in public.profiles
+        // This is crucial for providing immediate feedback before Supabase Auth is triggered
         const { data: existingProfile, error: profileError } = await supabase
           .from('profiles')
           .select('email')
-          .eq('email', email)
+          .eq('email', email.trim().toLowerCase())
           .maybeSingle();
 
         if (existingProfile) {
-          setError('Account already exists. Please login.');
+          setError('This email is already registered. Please login.');
           setIsLoading(false);
           return;
         }
 
-        // 2. Attempt Supabase Auth Sign Up
+        // 2. Secure Supabase Auth Sign Up
         const { data, error: signUpError } = await supabase.auth.signUp({
-          email,
+          email: email.trim().toLowerCase(),
           password,
           options: {
             data: {
-              full_name: name,
+              full_name: name.trim(),
               is_new_user: true,
               user_role: 'founder_hub'
             },
@@ -139,20 +140,21 @@ export default function AuthModal({
 
         if (signUpError) {
           console.error('Supabase Sign Up Error:', signUpError);
-          // Standard Supabase error for existing user
+          // Handle standard Supabase duplicate user error codes
           if (signUpError.message?.toLowerCase().includes('already registered') || 
               signUpError.message?.toLowerCase().includes('already exists') ||
               signUpError.status === 422) {
-            setError('Account already exists. Please login.');
+            setError('This email is already registered. Please login.');
             return;
           }
           throw signUpError;
         }
         
         if (data?.user) {
-          // In some Supabase configs, signUp returns a user but identities is empty if user exists
+          // If auto-confirm is enabled, session will exist. Otherwise, check identities.
+          // If identities is empty, it means the user exists but hasn't confirmed email (Supabase behavior)
           if (data.user.identities && data.user.identities.length === 0) {
-            setError('Account already exists. Please login.');
+            setError('This email is already registered. Please login.');
             return;
           }
 
@@ -167,7 +169,7 @@ export default function AuthModal({
       } else {
         console.log('Attempting sign in for:', email);
         const { data, error: signInError } = await supabase.auth.signInWithPassword({
-          email,
+          email: email.trim().toLowerCase(),
           password
         });
 
@@ -196,7 +198,7 @@ export default function AuthModal({
       if (msg.toLowerCase().includes('rate limit') || err.status === 429) {
         setError('Too many attempts. Please try again in a minute.');
       } else if (msg.toLowerCase().includes('already registered') || msg.toLowerCase().includes('unique constraint')) {
-        setError('This email is already registered. Please Sign In instead.');
+        setError('This email is already registered. Please login.');
       } else {
         setError(msg);
       }
