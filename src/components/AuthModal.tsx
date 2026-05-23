@@ -109,6 +109,20 @@ export default function AuthModal({
     try {
       if (isSignUp) {
         console.log('Attempting sign up for:', email);
+        
+        // Manual check for email existence to provide better feedback
+        const { data: existingUser } = await supabase
+          .from('profiles')
+          .select('email')
+          .eq('email', email)
+          .maybeSingle();
+
+        if (existingUser) {
+          setError('This email is already registered. Please Sign In instead.');
+          setIsLoading(false);
+          return;
+        }
+
         const { data, error: signUpError } = await supabase.auth.signUp({
           email,
           password,
@@ -124,6 +138,10 @@ export default function AuthModal({
 
         if (signUpError) {
           console.error('Supabase Sign Up Error:', signUpError);
+          if (signUpError.message?.toLowerCase().includes('already registered')) {
+            setError('This email is already registered. Please Sign In instead.');
+            return;
+          }
           throw signUpError;
         }
         
@@ -152,6 +170,10 @@ export default function AuthModal({
             setError('Please confirm your email first. Check your inbox (and spam folder)!');
             return;
           }
+          if (signInError.message?.toLowerCase().includes('invalid login credentials')) {
+            setError('Invalid email or password. Please try again.');
+            return;
+          }
           throw signInError;
         }
         
@@ -166,7 +188,7 @@ export default function AuthModal({
       const msg = err.message || 'Authentication failed. Please try again.';
       if (msg.toLowerCase().includes('rate limit') || err.status === 429) {
         setError('Too many attempts. Please try again in a minute.');
-      } else if (msg.toLowerCase().includes('already registered')) {
+      } else if (msg.toLowerCase().includes('already registered') || msg.toLowerCase().includes('unique constraint')) {
         setError('This email is already registered. Please Sign In instead.');
       } else {
         setError(msg);
