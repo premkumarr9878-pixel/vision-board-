@@ -1,17 +1,11 @@
 import React, { useState } from 'react';
 import { Mail, Lock, User, ArrowRight, Sparkles, Code, Lightbulb, Users, Target, ShieldCheck, AlertCircle, Upload, Rocket } from 'lucide-react';
 import { FounderProfile } from '../types';
+import { supabase } from '../supabase';
 
 interface OnboardingViewProps {
   source: 'add-idea' | 'founder-hub' | null;
-  onComplete: (
-    name: string, 
-    email: string, 
-    bio: string, 
-    buildingDesc: string, 
-    avatar?: string, 
-    startupLogo?: string
-  ) => void;
+  onComplete: () => void;
   onCancel: () => void;
 }
 
@@ -26,6 +20,7 @@ export default function OnboardingView({ source, onComplete, onCancel }: Onboard
   const [startupLogo, setStartupLogo] = useState('');
   const [error, setError] = useState('');
   const [step, setStep] = useState<1 | 2>(1);
+  const [isLoading, setIsLoading] = useState(false);
 
   const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>, setter: (val: string) => void) => {
     const file = e.target.files?.[0];
@@ -44,7 +39,7 @@ export default function OnboardingView({ source, onComplete, onCancel }: Onboard
     }
   };
 
-  const handleNextStep = (e: React.FormEvent) => {
+  const handleNextStep = async (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
 
@@ -58,17 +53,28 @@ export default function OnboardingView({ source, onComplete, onCancel }: Onboard
     }
 
     if (!isSignUp) {
-      // Direct login path: skip step 2 and complete with friendly default values
-      const username = email.split('@')[0];
-      const parsedName = username.charAt(0).toUpperCase() + username.slice(1);
-      onComplete(
-        parsedName, 
-        email, 
-        `Active VisionBoard founder. Signed in securely under credentials: ${email}`, 
-        'Product concept launching soon on VisionBoard. Stay tuned for further announcements!',
-        undefined,
-        undefined
-      );
+      setIsLoading(true);
+      try {
+        const { data, error: signInError } = await supabase.auth.signInWithPassword({
+          email,
+          password
+        }).catch(err => ({ data: { user: null }, error: err }));
+
+        if (signInError) throw signInError;
+        
+        if (data?.user) {
+          onComplete();
+        }
+      } catch (err: any) {
+        const msg = err.message || 'Login failed.';
+        if (msg.toLowerCase().includes('rate limit') || err.status === 429) {
+          setError('Too many attempts. Please try again later.');
+        } else {
+          setError(msg);
+        }
+      } finally {
+        setIsLoading(false);
+      }
       return;
     }
 
@@ -81,21 +87,57 @@ export default function OnboardingView({ source, onComplete, onCancel }: Onboard
     setStep(2);
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
 
     if (!bio.trim() || bio.trim().length < 15) {
-      setError('Please write at least 15 characters for your Biography/Tagline, explaining what you want to build.');
+      setError('Please write at least 15 characters for your Biography.');
       return;
     }
 
     if (!buildingDesc.trim() || buildingDesc.trim().length < 15) {
-      setError('Please tell us about what you are building and why it matters (at least 15 characters).');
+      setError('Please tell us about what you are building (min 15 chars).');
       return;
     }
 
-    onComplete(name, email, bio, buildingDesc, avatar || undefined, startupLogo || undefined);
+    setIsLoading(true);
+    try {
+      const { data, error: signUpError } = await supabase.auth.signUp({
+        email,
+        password,
+        options: {
+          data: {
+            full_name: name,
+            bio: bio || 'Founder exploring new visions.',
+            building_desc: buildingDesc || 'Building the future, one idea at a time.',
+            avatar_url: avatar || null,
+            startup_logo_url: startupLogo || null
+          }
+        }
+      }).catch(err => ({ data: { user: null }, error: err }));
+
+      if (signUpError) throw signUpError;
+      
+      if (data?.user) {
+        const { data: { session } } = await supabase.auth.getSession().catch(() => ({ data: { session: null } }));
+        
+        if (session) {
+          onComplete();
+        } else {
+          setError('Account created! Please confirm your email, then sign in.');
+        }
+      }
+    } catch (err: any) {
+      const msg = err.message || 'Signup failed.';
+      if (msg.toLowerCase().includes('rate limit') || err.status === 429) {
+        setError('Too many signup attempts. Please try again later.');
+      } else {
+        setError(msg);
+      }
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   return (
@@ -428,22 +470,31 @@ export default function OnboardingView({ source, onComplete, onCancel }: Onboard
                 </div>
               </div>
 
-              <div className="pt-4 flex items-center justify-between border-t border-slate-100 mt-6">
-                <button
-                  type="button"
-                  onClick={() => setStep(1)}
-                  className="px-4 py-2 text-xs font-semibold text-slate-500 hover:text-slate-900 hover:bg-slate-50 rounded-xl transition-all cursor-pointer"
-                >
-                  Back to Account
-                </button>
-                <button
-                  type="submit"
-                  className="px-6 py-2.5 bg-blue-600 hover:bg-blue-700 text-white text-xs font-semibold rounded-xl flex items-center space-x-1 shadow-sm hover:scale-[1.01] transition-all cursor-pointer"
-                >
-                  <Sparkles className="h-4 w-4 shrink-0" />
-                  <span>Launch Founder Card</span>
-                </button>
-              </div>
+                {/* Action Buttons */}
+                <div className="flex flex-col sm:flex-row gap-3 pt-4">
+                  <button
+                    type="submit"
+                    disabled={isLoading}
+                    className="flex-1 bg-slate-900 dark:bg-white text-white dark:text-slate-900 py-4 rounded-2xl text-xs font-black uppercase tracking-widest hover:scale-[1.02] active:scale-[0.98] transition-all flex items-center justify-center disabled:opacity-50"
+                  >
+                    {isLoading ? (
+                      <Sparkles className="h-4 w-4 animate-spin" />
+                    ) : (
+                      <>
+                        Complete Profile
+                        <ArrowRight className="ml-2 h-4 w-4" />
+                      </>
+                    )}
+                  </button>
+                  <button
+                    type="button"
+                    onClick={handleSubmit}
+                    disabled={isLoading}
+                    className="flex-1 bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 py-4 rounded-2xl text-xs font-black uppercase tracking-widest hover:bg-slate-200 dark:hover:bg-slate-700 transition-all"
+                  >
+                    Skip for Now
+                  </button>
+                </div>
             </form>
           )}
         </div>

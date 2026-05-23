@@ -1,18 +1,12 @@
 import React, { useState } from 'react';
 import { X, Mail, Lock, AlertCircle, ArrowRight, Upload, User, Rocket } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
+import { supabase } from '../supabase';
 
 interface AuthModalProps {
   isOpen: boolean;
   onClose: () => void;
-  onAuthSuccess: (
-    name: string,
-    email: string,
-    bio?: string,
-    buildingDesc?: string,
-    avatar?: string,
-    startupLogo?: string
-  ) => void;
+  onAuthSuccess: () => void;
   defaultIsSignUp?: boolean;
   signupNoticeMessage?: string;
 }
@@ -35,10 +29,13 @@ export default function AuthModal({
   const [error, setError] = useState('');
   const [isLoading, setIsLoading] = useState(false);
 
+  const [showOptional, setShowOptional] = useState(false);
+
   React.useEffect(() => {
     if (isOpen) {
       setIsSignUp(defaultIsSignUp);
       setError('');
+      setShowOptional(false);
     }
   }, [isOpen, defaultIsSignUp]);
 
@@ -61,7 +58,7 @@ export default function AuthModal({
     }
   };
 
-  const handleEmailAuth = (e: React.FormEvent) => {
+  const handleEmailAuth = async (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
     
@@ -71,35 +68,87 @@ export default function AuthModal({
     }
 
     if (isSignUp) {
-      if (!name) {
-        setError('Please enter your full founder name.');
-        return;
-      }
-      if (!bio || bio.trim().length < 10) {
-        setError('Please tell us a bit about yourself in Biography (at least 10 characters).');
-        return;
-      }
-      if (!buildingDesc || buildingDesc.trim().length < 15) {
-        setError('Please fill in "What Are You Building?" explaining your startup (at least 15 characters).');
+      if (!name.trim()) {
+        setError('Please enter your full name.');
         return;
       }
     }
 
     setIsLoading(true);
+    setError('');
     
-    // Simulate database delay
-    setTimeout(() => {
+    try {
+      if (isSignUp) {
+        console.log('Attempting sign up for:', email);
+        const { data, error: signUpError } = await supabase.auth.signUp({
+          email,
+          password,
+          options: {
+            data: {
+              full_name: name,
+              is_new_user: true
+            }
+          }
+        }).catch(err => {
+          console.error('Sign up promise rejected:', err);
+          return { data: { user: null }, error: err };
+        });
+
+        if (signUpError) {
+          console.error('Supabase Sign Up Error:', signUpError);
+          throw signUpError;
+        }
+        
+        if (data?.user) {
+          console.log('Sign up successful, user ID:', data.user.id);
+          const { data: { session }, error: sessionError } = await supabase.auth.getSession().catch(() => ({ data: { session: null }, error: null }));
+          
+          if (session) {
+            console.log('Session detected, redirecting to success...');
+            onAuthSuccess();
+            onClose();
+          } else {
+            console.log('No session detected, email confirmation likely required.');
+            setError('Account created! Please check your email to confirm your account before signing in.');
+          }
+        }
+      } else {
+        console.log('Attempting sign in for:', email);
+        const { data, error: signInError } = await supabase.auth.signInWithPassword({
+          email,
+          password
+        }).catch(err => {
+          console.error('Sign in promise rejected:', err);
+          return { data: { user: null }, error: err };
+        });
+
+        if (signInError) {
+          console.error('Supabase Sign In Error:', signInError);
+          if (signInError.message?.includes('Email not confirmed')) {
+            throw new Error('Please confirm your email first. Check your inbox!');
+          }
+          throw signInError;
+        }
+        
+        if (data?.user) {
+          console.log('Sign in successful, user ID:', data.user.id);
+          onAuthSuccess();
+          onClose();
+        }
+      }
+    } catch (err: any) {
+      console.error('Auth handler caught error:', err);
+      const msg = err.message || 'Authentication failed. Please try again.';
+      if (msg.toLowerCase().includes('rate limit') || err.status === 429) {
+        setError('Too many attempts. Please try again in a minute.');
+      } else if (msg.toLowerCase().includes('already registered')) {
+        setError('This email is already registered. Please Sign In instead.');
+      } else {
+        setError(msg);
+      }
+    } finally {
       setIsLoading(false);
-      onAuthSuccess(
-        isSignUp ? name : email.split('@')[0], 
-        email, 
-        isSignUp ? bio : undefined, 
-        isSignUp ? buildingDesc : undefined,
-        isSignUp ? avatar || undefined : undefined,
-        isSignUp ? startupLogo || undefined : undefined
-      );
-      onClose();
-    }, 800);
+    }
   };
 
   return (
@@ -186,16 +235,21 @@ export default function AuthModal({
           {error && (
             <div className="mb-6 p-4 bg-red-50 dark:bg-red-900/20 border border-red-100 dark:border-red-900/30 rounded-2xl flex items-start space-x-2.5 text-red-600 dark:text-red-400 text-xs font-bold" id="auth-error">
               <AlertCircle className="h-4 w-4 shrink-0 mt-0.5" />
-              <span>{error}</span>
+              <div className="flex flex-col gap-1">
+                <span>{error}</span>
+                {error.includes('Too many attempts') && (
+                  <span className="text-[10px] opacity-80 underline cursor-pointer" onClick={() => setError('')}>Try again now</span>
+                )}
+              </div>
             </div>
           )}
 
           {/* Auth Form */}
           <form onSubmit={handleEmailAuth} className="space-y-5">
-            {isSignUp && (
-              <div className="space-y-5 overflow-y-auto max-h-[40vh] pr-2 custom-scrollbar">
+            <div className="space-y-4">
+              {isSignUp && (
                 <div>
-                  <label className="block text-[10px] font-black text-slate-500 dark:text-slate-400 mb-2 uppercase tracking-widest select-none">Full Name</label>
+                  <label className="block text-[10px] font-black text-slate-500 dark:text-slate-400 mb-2 uppercase tracking-widest select-none px-1">Full Name</label>
                   <div className="relative">
                     <span className="absolute inset-y-0 left-0 pl-4 flex items-center text-slate-400">
                       <User className="h-4 w-4" />
@@ -207,88 +261,15 @@ export default function AuthModal({
                       value={name}
                       onChange={(e) => setName(e.target.value)}
                       dir="auto"
-                      placeholder="Sarah Jenkins"
-                      className="w-full pl-11 pr-4 py-3 bg-slate-50 dark:bg-slate-50 border-2 border-slate-100 dark:border-slate-200 rounded-2xl text-xs font-medium placeholder-slate-400 focus:outline-none focus:ring-4 focus:ring-blue-500/10 focus:border-blue-600 dark:focus:border-blue-400 dark:text-black transition-all"
+                      placeholder="Sahil"
+                      className="w-full pl-11 pr-4 py-3 bg-slate-50 dark:bg-slate-50 border-2 border-slate-100 dark:border-slate-200 rounded-2xl text-[13px] font-medium placeholder-slate-400 focus:outline-none focus:ring-4 focus:ring-blue-500/10 focus:border-blue-600 dark:focus:border-blue-400 dark:text-black transition-all"
                     />
                   </div>
                 </div>
+              )}
 
-                <div>
-                  <label className="block text-[10px] font-black text-slate-500 dark:text-slate-400 mb-2 uppercase tracking-widest select-none">Biography / Tagline</label>
-                  <textarea
-                    id="signup-bio-input"
-                    rows={2}
-                    required
-                    value={bio}
-                    onChange={(e) => setBio(e.target.value)}
-                    dir="auto"
-                    placeholder="e.g. Fullstack developer open to building AI tools..."
-                    className="w-full px-4 py-3 bg-slate-50 dark:bg-slate-50 border-2 border-slate-100 dark:border-slate-200 rounded-2xl text-xs font-medium placeholder-slate-400 focus:outline-none focus:ring-4 focus:ring-blue-500/10 focus:border-blue-600 dark:focus:border-blue-400 dark:text-black transition-all resize-none"
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-[10px] font-black text-slate-500 dark:text-slate-400 mb-2 uppercase tracking-widest select-none">What Are You Building?</label>
-                  <textarea
-                    id="signup-building-desc-input"
-                    rows={3}
-                    required
-                    value={buildingDesc}
-                    onChange={(e) => setBuildingDesc(e.target.value)}
-                    dir="auto"
-                    placeholder="Tell people what you are building and why it matters..."
-                    className="w-full px-4 py-3 bg-slate-50 dark:bg-slate-50 border-2 border-slate-100 dark:border-slate-200 rounded-2xl text-xs font-medium placeholder-slate-400 focus:outline-none focus:ring-4 focus:ring-blue-500/10 focus:border-blue-600 dark:focus:border-blue-400 dark:text-black transition-all resize-none"
-                  />
-                </div>
-
-                <div className="grid grid-cols-2 gap-4">
-                  <div>
-                    <label className="block text-[10px] font-black text-slate-500 dark:text-slate-400 mb-2 uppercase tracking-widest select-none">Profile Picture</label>
-                    <div className="flex flex-col items-center justify-center border-2 border-dashed border-slate-200 dark:border-slate-800 hover:border-blue-500 dark:hover:border-blue-400 hover:bg-blue-50/10 dark:hover:bg-blue-900/10 rounded-2xl p-4 bg-slate-50 dark:bg-slate-900 relative group transition-all text-center min-h-[6.5rem]">
-                      <input
-                        type="file"
-                        id="avatar-upload-input"
-                        accept="image/*"
-                        className="absolute inset-0 opacity-0 cursor-pointer w-full h-full z-10"
-                        onChange={(e) => handleImageUpload(e, setAvatar)}
-                      />
-                      {avatar ? (
-                        <img src={avatar} alt="Profile preview" className="h-16 w-16 rounded-full object-cover border-2 border-white dark:border-slate-800 shadow-md" />
-                      ) : (
-                        <div className="flex flex-col items-center">
-                          <Upload className="h-5 w-5 text-slate-400 mb-1" />
-                          <span className="text-[9px] text-slate-600 dark:text-slate-400 font-black uppercase">Upload Pic</span>
-                        </div>
-                      )}
-                    </div>
-                  </div>
-                  <div>
-                    <label className="block text-[10px] font-black text-slate-500 dark:text-slate-400 mb-2 uppercase tracking-widest select-none">Brand Logo</label>
-                    <div className="flex flex-col items-center justify-center border-2 border-dashed border-slate-200 dark:border-slate-800 hover:border-blue-500 dark:hover:border-blue-400 hover:bg-blue-50/10 dark:hover:bg-blue-900/10 rounded-2xl p-4 bg-slate-50 dark:bg-slate-900 relative group transition-all text-center min-h-[6.5rem]">
-                      <input
-                        type="file"
-                        id="logo-upload-input"
-                        accept="image/*"
-                        className="absolute inset-0 opacity-0 cursor-pointer w-full h-full z-10"
-                        onChange={(e) => handleImageUpload(e, setStartupLogo)}
-                      />
-                      {startupLogo ? (
-                        <img src={startupLogo} alt="Startup preview" className="h-16 w-16 rounded-2xl object-cover border-2 border-white dark:border-slate-800 shadow-md" />
-                      ) : (
-                        <div className="flex flex-col items-center">
-                          <Rocket className="h-5 w-5 text-slate-400 mb-1" />
-                          <span className="text-[9px] text-slate-600 dark:text-slate-400 font-black uppercase">Upload Logo</span>
-                        </div>
-                      )}
-                    </div>
-                  </div>
-                </div>
-              </div>
-            )}
-
-            <div className="space-y-4">
               <div>
-                <label className="block text-[10px] font-black text-slate-500 dark:text-slate-400 mb-2 uppercase tracking-widest select-none">Email Address</label>
+                <label className="block text-[10px] font-black text-slate-500 dark:text-slate-400 mb-2 uppercase tracking-widest select-none px-1">Email Address</label>
                 <div className="relative">
                   <span className="absolute inset-y-0 left-0 pl-4 flex items-center text-slate-400">
                     <Mail className="h-4 w-4" />
@@ -301,13 +282,13 @@ export default function AuthModal({
                     onChange={(e) => setEmail(e.target.value)}
                     dir="auto"
                     placeholder="name@company.com"
-                    className="w-full pl-11 pr-4 py-3 bg-slate-50 dark:bg-slate-50 border-2 border-slate-100 dark:border-slate-200 rounded-2xl text-xs font-medium placeholder-slate-400 focus:outline-none focus:ring-4 focus:ring-blue-500/10 focus:border-blue-600 dark:focus:border-blue-400 dark:text-black transition-all"
+                    className="w-full pl-11 pr-4 py-3 bg-slate-50 dark:bg-slate-50 border-2 border-slate-100 dark:border-slate-200 rounded-2xl text-[13px] font-medium placeholder-slate-400 focus:outline-none focus:ring-4 focus:ring-blue-500/10 focus:border-blue-600 dark:focus:border-blue-400 dark:text-black transition-all"
                   />
                 </div>
               </div>
 
               <div>
-                <label className="block text-[10px] font-black text-slate-500 dark:text-slate-400 mb-2 uppercase tracking-widest select-none">Password</label>
+                <label className="block text-[10px] font-black text-slate-500 dark:text-slate-400 mb-2 uppercase tracking-widest select-none px-1">Password</label>
                 <div className="relative">
                   <span className="absolute inset-y-0 left-0 pl-4 flex items-center text-slate-400">
                     <Lock className="h-4 w-4" />
@@ -319,7 +300,7 @@ export default function AuthModal({
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
                     placeholder="••••••••"
-                    className="w-full pl-11 pr-4 py-3 bg-slate-50 dark:bg-slate-50 border-2 border-slate-100 dark:border-slate-200 rounded-2xl text-xs font-bold placeholder-slate-400 focus:outline-none focus:ring-4 focus:ring-blue-500/10 focus:border-blue-600 dark:focus:border-blue-400 dark:text-black transition-all"
+                    className="w-full pl-11 pr-4 py-3 bg-slate-50 dark:bg-slate-50 border-2 border-slate-100 dark:border-slate-200 rounded-2xl text-[13px] font-bold placeholder-slate-400 focus:outline-none focus:ring-4 focus:ring-blue-500/10 focus:border-blue-600 dark:focus:border-blue-400 dark:text-black transition-all"
                   />
                 </div>
               </div>
@@ -337,10 +318,10 @@ export default function AuthModal({
                     <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
                     <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
                   </svg>
-                  <span>Authenticating...</span>
+                  <span>{isSignUp ? 'Creating Account...' : 'Signing In...'}</span>
                 </>
               ) : (
-                <span>{isSignUp ? 'Create Founder Account' : 'Sign In to Dashboard'}</span>
+                <span>{isSignUp ? 'Sign Up with Email' : 'Sign In to Dashboard'}</span>
               )}
             </button>
           </form>

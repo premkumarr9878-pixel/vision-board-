@@ -9,11 +9,13 @@ import AuthModal from './components/AuthModal';
 import DashboardView from './components/DashboardView';
 import LeaderboardTable from './components/LeaderboardTable';
 import OnboardingView from './components/OnboardingView';
+import ProfileSetup from './components/ProfileSetup';
 import { CardSkeleton, TableRowSkeleton } from './components/Skeleton';
 import { getLocalStorageState, saveLocalStorageState, DEFAULT_PROFILE, safeParse } from './data';
 import { StartupIdea, FounderProfile, CollaborationRequest, FundingRequest, Suggestion, RequestStatus } from './types';
 import { Star, Sparkles, Send, Flame, Lightbulb, Users, Globe, ExternalLink } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
+import { supabase } from './supabase';
 
 export default function App() {
   // Load state from localStorage on init
@@ -33,19 +35,92 @@ export default function App() {
     }
   });
 
-  const [currentUser, setCurrentUser] = useState<FounderProfile | null>(() => {
-    if (typeof window === 'undefined') return null;
-    try {
-      const sessionUser = localStorage.getItem('vb_auth_user');
-      return sessionUser ? JSON.parse(sessionUser) : null;
-    } catch (err) {
-      console.error('Session user load failed:', err);
-      localStorage.removeItem('vb_auth_user');
-      return null;
-    }
-  });
-  const [currentView, setCurrentView] = useState<'explore' | 'dashboard' | 'onboarding'>('explore');
+  const [currentUser, setCurrentUser] = useState<FounderProfile | null>(null);
+  const [currentView, setCurrentView] = useState<'explore' | 'dashboard' | 'onboarding' | 'profile-setup'>('explore');
   const [onboardingSource, setOnboardingSource] = useState<'add-idea' | 'founder-hub' | null>(null);
+
+  // Supabase Auth Listener
+  useEffect(() => {
+    // Check active sessions and sets the user
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      if (session?.user) {
+        fetchProfile(session.user.id, session.user.user_metadata?.is_new_user);
+      }
+    });
+
+    // Listen for changes on auth state (logged in, signed out, etc.)
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+      if (session?.user) {
+        fetchProfile(session.user.id, session.user.user_metadata?.is_new_user);
+      } else {
+        setCurrentUser(null);
+      }
+    });
+
+    return () => subscription.unsubscribe();
+  }, []);
+
+  const fetchProfile = async (userId: string, isNewUser?: boolean) => {
+    if (!userId) return;
+    console.log(`Fetching profile for user ${userId}, isNewUser: ${isNewUser}`);
+    let attempts = 0;
+    const maxAttempts = 5; // Increased attempts for more reliability
+    
+    while (attempts < maxAttempts) {
+      try {
+        const { data, error } = await supabase
+          .from('profiles')
+          .select('*')
+          .eq('id', userId)
+          .single()
+          .catch(err => ({ data: null, error: err }));
+
+        if (error) {
+          if ((error.code === 'PGRST116' || error.message?.includes('0 rows')) && attempts < maxAttempts - 1) {
+            // Profile not created yet by trigger, wait and retry
+            console.log(`Profile not found yet, retrying... (attempt ${attempts + 1})`);
+            attempts++;
+            await new Promise(r => setTimeout(r, 1000)); // Increased wait time to 1s
+            continue;
+          }
+          console.error('Final profile fetch error:', error);
+          throw error;
+        }
+
+        if (data) {
+          console.log('Profile successfully loaded:', data.name);
+          const profile: FounderProfile = {
+            id: data.id,
+            name: data.name || '',
+            email: data.email || '',
+            bio: data.bio || '',
+            skills: data.skills || [],
+            buildingDesc: data.building_desc || '',
+            avatar: data.avatar_url || '',
+            startupLogo: data.startup_logo_url || undefined,
+            github: data.github_url || '',
+            twitter: data.twitter_url || '',
+            linkedin: data.linkedin_url || ''
+          };
+          setCurrentUser(profile);
+
+          // If new user flag is present, redirect to profile setup
+          if (isNewUser) {
+            console.log('New user detected, redirecting to setup...');
+            setCurrentView('profile-setup');
+            // Clear the metadata flag in Supabase so it doesn't redirect again
+            await supabase.auth.updateUser({ data: { is_new_user: false } }).catch(e => console.warn('Metadata update failed:', e));
+          }
+          return;
+        }
+      } catch (err) {
+        console.warn(`Profile fetch attempt ${attempts + 1} failed:`, err);
+        if (attempts >= maxAttempts - 1) break;
+        attempts++;
+        await new Promise(r => setTimeout(r, 1000));
+      }
+    }
+  };
 
   // Theme support
   const [theme, setTheme] = useState<'light' | 'dark'>(() => {
@@ -136,13 +211,7 @@ export default function App() {
 
   // Sync current authenticated user session (Save user session after login)
   useEffect(() => {
-    if (typeof window !== 'undefined') {
-      if (currentUser) {
-        localStorage.setItem('vb_auth_user', JSON.stringify(currentUser));
-      } else {
-        localStorage.removeItem('vb_auth_user');
-      }
-    }
+    // Session is handled by Supabase Auth Listener above
   }, [currentUser]);
 
   const showToast = (msg: string) => {
@@ -151,49 +220,18 @@ export default function App() {
   };
 
   // Auth synchronization handlers
-  const handleAuthSuccess = (
-    name: string,
-    email: string,
-    customBio?: string,
-    buildingDesc?: string,
-    avatar?: string,
-    startupLogo?: string
-  ) => {
-    // Generate a valid Unsplash photo ID based on a small set of curated founder-style images
-    const founderPhotoIds = [
-      '1494790108377-be9c29b29330',
-      '1507003211169-0a1dd7228f2d',
-      '1438761681033-6461ffad8d80',
-      '1500648767791-00dcc994a43e',
-      '1544005313-94ddf0286df2'
-    ];
-    const randomId = founderPhotoIds[Math.floor(Math.random() * founderPhotoIds.length)];
-    const defaultAvatar = `https://images.unsplash.com/photo-${randomId}?auto=format&fit=crop&q=80&w=150`;
-    
-    const freshProfile: FounderProfile = {
-      id: `usr_${Date.now()}`,
-      name,
-      email,
-      bio: customBio || `Tech enthusiast, product scale co-founder. Open to build & execute. Contact at: ${email}`,
-      skills: ['TypeScript', 'Growth', 'Product Dev'],
-      buildingDesc: buildingDesc || 'Product concept launching soon on VisionBoard. Stay tuned for further announcements!',
-      avatar: avatar || defaultAvatar,
-      startupLogo: startupLogo || undefined,
-      github: 'https://github.com',
-      twitter: 'https://twitter.com',
-      linkedin: 'https://linkedin.com'
-    };
-    setCurrentUser(freshProfile);
-    setState(prev => ({ ...prev, profile: freshProfile }));
-    showToast(`Welcome builder, logged in as ${name}!`);
+  const handleAuthSuccess = async () => {
+    // Show feedback
+    showToast(`Successfully authenticated!`);
 
-    if (authTriggeredByAddIdea) {
-      setAuthTriggeredByAddIdea(false);
+    // Navigate to appropriate view
+    if (onboardingSource === 'add-idea') {
       setCurrentView('dashboard');
       setShowAddIdeaModal(true);
     } else {
       setCurrentView('dashboard');
     }
+    setOnboardingSource(null);
   };
 
   const handleOnboardingComplete = (
@@ -241,10 +279,21 @@ export default function App() {
     setOnboardingSource(null);
   };
 
-  const handleLogout = () => {
-    setCurrentUser(null);
-    setCurrentView('explore');
-    showToast('Signed out of developer session safely.');
+  const handleProfileSetupComplete = (updatedProfile: FounderProfile) => {
+    setCurrentUser(updatedProfile);
+    setCurrentView('dashboard');
+    showToast(`Profile updated! Welcome ${updatedProfile.name}`);
+  };
+
+  const handleLogout = async () => {
+    try {
+      await supabase.auth.signOut();
+      setCurrentUser(null);
+      setCurrentView('explore');
+      showToast('Signed out of developer session safely.');
+    } catch (err) {
+      console.error('Logout failed:', err);
+    }
   };
 
   const handleProfileUpdate = (updated: FounderProfile) => {
@@ -833,6 +882,11 @@ export default function App() {
               setCurrentView('explore');
               setOnboardingSource(null);
             }}
+          />
+        ) : currentView === 'profile-setup' && currentUser ? (
+          <ProfileSetup 
+            profile={currentUser}
+            onComplete={handleProfileSetupComplete}
           />
         ) : (
           /* DASHBOARD ROW (If view set to user center) */

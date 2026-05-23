@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { LayoutDashboard, Users, CircleDollarSign, Plus, Lightbulb, Heart, MessageSquare, Clipboard, ExternalLink, RefreshCw, Check, Trash2, Edit3, Save, Eye, EyeOff, Lock, Globe, Mail, Phone, Calendar, UserCheck, UserX, MessageCircle, Clock, MoreVertical, ShieldCheck, XCircle } from 'lucide-react';
 import { FounderProfile, StartupIdea, CollaborationRequest, FundingRequest, Suggestion, RequestStatus } from '../types';
 import { motion, AnimatePresence } from 'motion/react';
+import { supabase } from '../supabase';
 
 const StatusBadge = ({ status }: { status: RequestStatus }) => {
   const styles = {
@@ -92,10 +93,28 @@ export default function DashboardView({
   const privateIdeasCount = userIdeas.filter(i => !i.isPublic).length;
   const draftIdeasCount = userIdeas.filter(i => i.progressStage === 'JUST IDEA NOW' || i.progressStage === 'IDEATION').length;
 
-  const handleProfileSave = (e: React.FormEvent) => {
+  const handleProfileSave = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsSavingProfile(true);
-    setTimeout(() => {
+    
+    try {
+      const { error } = await supabase
+        .from('profiles')
+        .update({
+          name: editName,
+          bio: editBio,
+          building_desc: editBuildingDesc,
+          avatar_url: editAvatar,
+          startup_logo_url: editStartupLogo,
+          github_url: editGithub,
+          twitter_url: editTwitter,
+          linkedin_url: editLinkedin,
+          updated_at: new Date().toISOString()
+        })
+        .eq('id', profile.id);
+
+      if (error) throw error;
+
       onUpdateProfile({
         ...profile,
         name: editName,
@@ -107,10 +126,13 @@ export default function DashboardView({
         twitter: editTwitter,
         linkedin: editLinkedin
       });
-      setIsSavingProfile(false);
       setProfileSaveSuccess(true);
       setTimeout(() => setProfileSaveSuccess(false), 2000);
-    }, 600);
+    } catch (err) {
+      console.error('Error updating profile:', err);
+    } finally {
+      setIsSavingProfile(false);
+    }
   };
 
   return (
