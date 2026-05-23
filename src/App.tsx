@@ -100,7 +100,8 @@ export default function App() {
             startupLogo: data.startup_logo_url || undefined,
             github: data.github_url || '',
             twitter: data.twitter_url || '',
-            linkedin: data.linkedin_url || ''
+            linkedin: data.linkedin_url || '',
+            userRole: data.user_role as 'founder_hub' | 'vision_board'
           };
           setCurrentUser(profile);
 
@@ -110,8 +111,14 @@ export default function App() {
             setCurrentView('profile-setup');
             // Clear the metadata flag in Supabase so it doesn't redirect again
             await supabase.auth.updateUser({ data: { is_new_user: false } }).catch(e => console.warn('Metadata update failed:', e));
+          } else if (currentView === 'explore' || currentView === 'onboarding') {
+            // Role-based redirection after login (only if we are on entry screens)
+            if (data.user_role === 'founder_hub') {
+              setCurrentView('dashboard');
+            } else {
+              setCurrentView('explore');
+            }
           }
-          return;
         }
       } catch (err) {
         console.warn(`Profile fetch attempt ${attempts + 1} failed:`, err);
@@ -647,10 +654,8 @@ export default function App() {
           setSearchQuery('');
         }}
         onAuthClick={() => {
-          setAuthTriggeredByAddIdea(false);
-          setAuthDefaultIsSignUp(false);
-          setAuthNoticeMessage(undefined);
-          setShowAuthModal(true);
+          setOnboardingSource('get-started');
+          setCurrentView('onboarding');
         }}
         currentUser={currentUser}
         onLogout={handleLogout}
@@ -684,7 +689,21 @@ export default function App() {
               </p>
 
               {/* Home Add Idea trigger and Search Bar alignment */}
-              <div className="flex flex-col sm:flex-row items-center justify-center gap-4 max-w-md mx-auto pt-1">
+              <div className="flex flex-col sm:flex-row items-center justify-center gap-4 max-w-2xl mx-auto pt-1">
+                <button
+                  id="get-started-hero-btn"
+                  onClick={() => {
+                    if (!currentUser) {
+                      setOnboardingSource('get-started');
+                      setCurrentView('onboarding');
+                    } else {
+                      setCurrentView('dashboard');
+                    }
+                  }}
+                  className="px-10 py-4 bg-slate-950 dark:bg-white text-white dark:text-slate-950 text-sm font-black rounded-2xl hover:scale-[1.03] active:scale-[0.98] transition-all select-none cursor-pointer text-center duration-200 shadow-xl"
+                >
+                  Get Started Now
+                </button>
                 <button
                   id="add-idea-hero-btn"
                   onClick={() => {
@@ -695,7 +714,7 @@ export default function App() {
                       setShowAddIdeaModal(true);
                     }
                   }}
-                  className="px-10 py-4 bg-gradient-to-r from-blue-600 to-indigo-650 hover:from-blue-700 hover:to-indigo-700 text-white text-sm font-black rounded-2xl hover:scale-[1.03] active:scale-[0.98] transition-all select-none cursor-pointer text-center duration-200 shadow-[0_8px_24px_rgba(59,130,246,0.25)] dark:shadow-[0_8px_24px_rgba(59,130,246,0.15)]"
+                  className="px-10 py-4 bg-white dark:bg-slate-900 text-slate-900 dark:text-white border-2 border-slate-200 dark:border-slate-800 text-sm font-black rounded-2xl hover:scale-[1.03] active:scale-[0.98] transition-all select-none cursor-pointer text-center duration-200"
                 >
                   + Add Your Startup Idea
                 </button>

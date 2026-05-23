@@ -61,6 +61,7 @@ export default function DashboardView({
   const [editGithub, setEditGithub] = useState(profile.github || '');
   const [editTwitter, setEditTwitter] = useState(profile.twitter || '');
   const [editLinkedin, setEditLinkedin] = useState(profile.linkedin || '');
+  const [editRole, setEditRole] = useState<'founder_hub' | 'vision_board'>(profile.userRole || 'vision_board');
   const [isSavingProfile, setIsSavingProfile] = useState(false);
   const [profileSaveSuccess, setProfileSaveSuccess] = useState(false);
 
@@ -109,6 +110,7 @@ export default function DashboardView({
           github_url: editGithub,
           twitter_url: editTwitter,
           linkedin_url: editLinkedin,
+          user_role: editRole,
           updated_at: new Date().toISOString()
         })
         .eq('id', profile.id);
@@ -124,7 +126,8 @@ export default function DashboardView({
         startupLogo: editStartupLogo,
         github: editGithub,
         twitter: editTwitter,
-        linkedin: editLinkedin
+        linkedin: editLinkedin,
+        userRole: editRole
       });
       setProfileSaveSuccess(true);
       setTimeout(() => setProfileSaveSuccess(false), 2000);
@@ -885,6 +888,31 @@ export default function DashboardView({
               </div>
 
               <div className="grid grid-cols-1 gap-4">
+                <div>
+                  <label className="block text-[10px] font-bold font-mono text-slate-400 dark:text-slate-500 uppercase tracking-wider mb-1.5 select-none">Platform Entry Role</label>
+                  <div className="flex bg-slate-50 dark:bg-slate-950/40 p-1.5 rounded-2xl border-2 border-slate-100 dark:border-slate-800 max-w-sm">
+                    <button
+                      type="button"
+                      onClick={() => setEditRole('founder_hub')}
+                      className={`flex-1 py-2 text-[10px] font-black rounded-xl transition-all cursor-pointer ${
+                        editRole === 'founder_hub' ? 'bg-slate-950 text-white dark:bg-white dark:text-slate-950 shadow-lg' : 'text-slate-500 hover:text-slate-800 dark:hover:text-slate-200'
+                      }`}
+                    >
+                      FOUNDER HUB
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setEditRole('vision_board')}
+                      className={`flex-1 py-2 text-[10px] font-black rounded-xl transition-all cursor-pointer ${
+                        editRole === 'vision_board' ? 'bg-slate-950 text-white dark:bg-white dark:text-slate-950 shadow-lg' : 'text-slate-500 hover:text-slate-800 dark:hover:text-slate-200'
+                      }`}
+                    >
+                      VISION BOARD
+                    </button>
+                  </div>
+                  <p className="text-[9px] text-slate-400 mt-2 italic px-1">This determines your default destination after logging in.</p>
+                </div>
+
                 <div>
                   <label className="block text-[10px] font-bold font-mono text-slate-400 dark:text-slate-500 uppercase tracking-wider mb-1.5 select-none">Founder Display Name</label>
                   <input

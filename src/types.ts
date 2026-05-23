@@ -10,6 +10,7 @@ export interface FounderProfile {
   twitter?: string;
   linkedin?: string;
   avatar: string; // Founder avatar
+  userRole?: 'founder_hub' | 'vision_board';
 }
 
 export interface Suggestion {

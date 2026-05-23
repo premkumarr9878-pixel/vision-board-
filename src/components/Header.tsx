@@ -95,14 +95,18 @@ export default function Header({
           {/* LOGO */}
           <div 
             onClick={onExploreClick}
-            className="flex items-center space-x-2.5 cursor-pointer group shrink-0 select-none"
+            className="flex items-center cursor-pointer group shrink-0 select-none relative"
           >
-            <div className="p-2 bg-blue-600 rounded-xl shadow-lg shadow-blue-500/20 group-hover:scale-110 group-hover:rotate-6 transition-all">
-              <Rocket className="h-5 w-5 text-white" />
+            <div className="relative flex items-center h-10 sm:h-12 transition-all duration-500 ease-out group-hover:scale-[1.03] group-active:scale-95">
+              <img 
+                src="/logo.png" 
+                alt="VisionBoard" 
+                className="h-full w-auto object-contain brightness-110 dark:brightness-125 contrast-110 drop-shadow-sm group-hover:drop-shadow-md transition-all duration-300"
+                style={{ imageRendering: 'high-quality' }}
+              />
+              {/* Premium Glow Effect on Hover */}
+              <div className="absolute inset-0 bg-blue-500/0 group-hover:bg-blue-500/5 blur-2xl rounded-full transition-all duration-500 -z-10" />
             </div>
-            <span className="text-xl font-black font-display text-slate-950 dark:text-white tracking-tighter hidden sm:block">
-              Vision<span className="text-blue-600">Board</span>
-            </span>
           </div>
 
           {/* SEARCH BAR (Desktop) */}

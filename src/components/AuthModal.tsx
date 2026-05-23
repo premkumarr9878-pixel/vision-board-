@@ -30,6 +30,26 @@ export default function AuthModal({
   const [isLoading, setIsLoading] = useState(false);
 
   const [showOptional, setShowOptional] = useState(false);
+  const [resendLoading, setResendLoading] = useState(false);
+  const [resendSent, setResendSent] = useState(false);
+
+  const handleResendConfirmation = async () => {
+    if (!email) return;
+    setResendLoading(true);
+    try {
+      const { error: resendError } = await supabase.auth.resend({
+        type: 'signup',
+        email: email,
+      });
+      if (resendError) throw resendError;
+      setResendSent(true);
+      setError('Confirmation email resent! Please check your inbox.');
+    } catch (err: any) {
+      setError(err.message || 'Failed to resend confirmation email.');
+    } finally {
+      setResendLoading(false);
+    }
+  };
 
   React.useEffect(() => {
     if (isOpen) {
@@ -67,9 +87,18 @@ export default function AuthModal({
       return;
     }
 
+    if (password.length < 6) {
+      setError('Password must be at least 6 characters long.');
+      return;
+    }
+
     if (isSignUp) {
       if (!name.trim()) {
         setError('Please enter your full name.');
+        return;
+      }
+      if (name.trim().length < 3) {
+        setError('Full name must be at least 3 characters long.');
         return;
       }
     }
@@ -86,7 +115,8 @@ export default function AuthModal({
           options: {
             data: {
               full_name: name,
-              is_new_user: true
+              is_new_user: true,
+              user_role: 'founder_hub'
             }
           }
         }).catch(err => {
@@ -125,7 +155,8 @@ export default function AuthModal({
         if (signInError) {
           console.error('Supabase Sign In Error:', signInError);
           if (signInError.message?.includes('Email not confirmed')) {
-            throw new Error('Please confirm your email first. Check your inbox!');
+            setError('Please confirm your email first. Check your inbox (and spam folder)!');
+            return;
           }
           throw signInError;
         }
@@ -166,48 +197,50 @@ export default function AuthModal({
 
         {/* Modal Container */}
         <motion.div
-          initial={{ opacity: 0, scale: 0.95, y: 15 }}
+          initial={{ opacity: 0, scale: 0.95, y: 20 }}
           animate={{ opacity: 1, scale: 1, y: 0 }}
-          exit={{ opacity: 0, scale: 0.95, y: 15 }}
-          transition={{ type: 'spring', duration: 0.4 }}
-          className="relative bg-white dark:bg-slate-950 w-full max-w-md rounded-3xl border border-slate-200 dark:border-slate-800 shadow-2xl overflow-hidden p-6 sm:p-8"
+          exit={{ opacity: 0, scale: 0.95, y: 20 }}
+          transition={{ type: 'spring', damping: 25, stiffness: 400 }}
+          className="relative bg-white dark:bg-slate-900 w-full max-w-md rounded-[2.5rem] border-2 border-slate-200 dark:border-slate-800 shadow-2xl shadow-slate-950/20 dark:shadow-none overflow-hidden p-8 sm:p-10"
           id="auth-modal-card"
         >
           {/* Close button */}
           <button
             id="close-auth-modal-btn"
             onClick={onClose}
-            className="absolute top-4 right-4 p-2 text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-900 rounded-xl transition-all cursor-pointer"
+            className="absolute top-6 right-6 p-2 text-slate-500 hover:text-slate-950 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800 rounded-xl transition-all cursor-pointer z-10"
           >
             <X className="h-5 w-5" />
           </button>
 
           {/* Heading */}
-          <div className="mb-8 text-center select-none">
-            <div className="flex justify-center mb-4">
-              <div className="p-3 bg-blue-600 rounded-2xl shadow-lg shadow-blue-500/20">
-                <Rocket className="h-6 w-6 text-white" />
+          <div className="mb-10 text-center select-none">
+            <div className="flex justify-center mb-6">
+              <div className="relative h-16 sm:h-20 group/logo transition-transform duration-500 hover:scale-105">
+                <img 
+                  src="/logo.png" 
+                  alt="VisionBoard Logo" 
+                  className="h-full w-auto object-contain brightness-110 dark:brightness-125"
+                />
+                <div className="absolute inset-0 bg-blue-500/5 blur-3xl rounded-full -z-10 opacity-0 group-hover/logo:opacity-100 transition-opacity duration-500" />
               </div>
             </div>
-            <span className="text-2xl font-black font-display text-slate-950 dark:text-white tracking-tight">
-              Vision<span className="text-blue-600">Board</span>
-            </span>
-            <h2 className="text-xl font-black font-display text-slate-900 dark:text-slate-100 mt-2">
-              {isSignUp ? 'Create your Founder Account' : 'Welcome Back, Builder'}
+            <h2 className="text-xl font-black font-display text-slate-950 dark:text-slate-100 mt-3 leading-tight">
+              {isSignUp ? 'Create your Founder Account' : 'Sign In to VisionBoard'}
             </h2>
-            <p className="text-[11px] font-bold text-slate-500 dark:text-slate-400 mt-1 uppercase tracking-widest">
-              {isSignUp ? 'Join the database of future startup ideas.' : 'Access your dashboard, ideas, and collaborations.'}
+            <p className="text-[11px] font-bold text-slate-600 dark:text-slate-400 mt-2 uppercase tracking-[0.15em]">
+              {isSignUp ? 'Join the database of future startup ideas.' : 'Access your dashboard and network.'}
             </p>
           </div>
 
           {/* Tab Switcher */}
-          <div className="flex bg-slate-100 dark:bg-slate-900 p-1.5 rounded-2xl mb-8 select-none" id="auth-tabs">
+          <div className="flex bg-slate-50 dark:bg-slate-950/50 p-1.5 rounded-2xl border-2 border-slate-200 dark:border-slate-800 mb-8 select-none" id="auth-tabs">
             <button
               id="tab-login"
               type="button"
               onClick={() => { setIsSignUp(false); setError(''); }}
               className={`flex-1 py-2.5 text-xs font-black rounded-xl transition-all cursor-pointer ${
-                !isSignUp ? 'bg-white dark:bg-slate-800 text-blue-600 shadow-sm' : 'text-slate-500 hover:text-slate-800 dark:hover:text-slate-200'
+                !isSignUp ? 'bg-white dark:bg-slate-800 text-blue-600 dark:text-blue-400 shadow-lg shadow-slate-200/50 dark:shadow-none border border-slate-200 dark:border-slate-700' : 'text-slate-600 hover:text-slate-950 dark:hover:text-slate-200'
               }`}
             >
               SIGN IN
@@ -217,7 +250,7 @@ export default function AuthModal({
               type="button"
               onClick={() => { setIsSignUp(true); setError(''); }}
               className={`flex-1 py-2.5 text-xs font-black rounded-xl transition-all cursor-pointer ${
-                isSignUp ? 'bg-white dark:bg-slate-800 text-blue-600 shadow-sm' : 'text-slate-500 hover:text-slate-800 dark:hover:text-slate-200'
+                isSignUp ? 'bg-white dark:bg-slate-800 text-blue-600 dark:text-blue-400 shadow-lg shadow-slate-200/50 dark:shadow-none border border-slate-200 dark:border-slate-700' : 'text-slate-600 hover:text-slate-950 dark:hover:text-slate-200'
               }`}
             >
               SIGN UP
@@ -226,17 +259,29 @@ export default function AuthModal({
 
           {/* Optional Signup notice */}
           {isSignUp && signupNoticeMessage && (
-            <div className="mb-6 p-4 bg-blue-50 dark:bg-blue-900/20 border border-blue-100 dark:border-blue-800 rounded-2xl text-blue-800 dark:text-blue-300 text-[11px] leading-relaxed select-none font-bold">
-              💡 {signupNoticeMessage}
+            <div className="mb-6 p-4 bg-blue-500/5 dark:bg-blue-400/5 border border-blue-500/20 dark:border-blue-400/20 rounded-2xl text-blue-700 dark:text-blue-400 text-[11px] leading-relaxed select-none font-bold italic">
+              ✨ {signupNoticeMessage}
             </div>
           )}
 
           {/* Error notice */}
           {error && (
-            <div className="mb-6 p-4 bg-red-50 dark:bg-red-900/20 border border-red-100 dark:border-red-900/30 rounded-2xl flex items-start space-x-2.5 text-red-600 dark:text-red-400 text-xs font-bold" id="auth-error">
-              <AlertCircle className="h-4 w-4 shrink-0 mt-0.5" />
-              <div className="flex flex-col gap-1">
+            <div className="mb-6 p-4 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-900/30 rounded-2xl flex items-start space-x-3 text-red-600 dark:text-red-400 text-[11px] font-bold animate-in fade-in slide-in-from-top-2" id="auth-error">
+              <div className="bg-red-600 text-white rounded-full p-1 shadow-lg shadow-red-600/20 shrink-0">
+                <AlertCircle className="h-3 w-3" />
+              </div>
+              <div className="flex flex-col gap-2 w-full">
                 <span>{error}</span>
+                {error.includes('confirm your email') && !resendSent && (
+                  <button
+                    type="button"
+                    onClick={handleResendConfirmation}
+                    disabled={resendLoading}
+                    className="text-[10px] text-blue-600 dark:text-blue-400 underline hover:no-underline text-left font-black uppercase tracking-widest disabled:opacity-50"
+                  >
+                    {resendLoading ? 'Sending...' : 'Resend Confirmation Email'}
+                  </button>
+                )}
                 {error.includes('Too many attempts') && (
                   <span className="text-[10px] opacity-80 underline cursor-pointer" onClick={() => setError('')}>Try again now</span>
                 )}
@@ -245,15 +290,13 @@ export default function AuthModal({
           )}
 
           {/* Auth Form */}
-          <form onSubmit={handleEmailAuth} className="space-y-5">
+          <form onSubmit={handleEmailAuth} className="space-y-6">
             <div className="space-y-4">
               {isSignUp && (
                 <div>
-                  <label className="block text-[10px] font-black text-slate-500 dark:text-slate-400 mb-2 uppercase tracking-widest select-none px-1">Full Name</label>
-                  <div className="relative">
-                    <span className="absolute inset-y-0 left-0 pl-4 flex items-center text-slate-400">
-                      <User className="h-4 w-4" />
-                    </span>
+                  <label className="block text-[10px] font-black font-mono text-slate-500 dark:text-slate-400 uppercase tracking-widest mb-2 px-1">Full Founder Name</label>
+                  <div className="relative group/input">
+                    <User className="absolute left-4 top-1/2 -translate-y-1/2 h-4.5 w-4.5 text-slate-500 group-focus-within/input:text-blue-600 transition-colors" />
                     <input
                       id="signup-name-input"
                       type="text"
@@ -261,19 +304,17 @@ export default function AuthModal({
                       value={name}
                       onChange={(e) => setName(e.target.value)}
                       dir="auto"
-                      placeholder="Sahil"
-                      className="w-full pl-11 pr-4 py-3 bg-slate-50 dark:bg-slate-50 border-2 border-slate-100 dark:border-slate-200 rounded-2xl text-[13px] font-medium placeholder-slate-400 focus:outline-none focus:ring-4 focus:ring-blue-500/10 focus:border-blue-600 dark:focus:border-blue-400 dark:text-black transition-all"
+                      placeholder="Rachel Adams"
+                      className="w-full bg-slate-50 dark:bg-slate-950 border-2 border-slate-200 dark:border-slate-800 rounded-2xl py-3.5 pl-12 pr-4 text-[13px] font-bold text-slate-950 dark:text-white placeholder-slate-500 focus:outline-none focus:ring-4 focus:ring-blue-500/10 focus:border-blue-600 dark:focus:border-blue-400 transition-all"
                     />
                   </div>
                 </div>
               )}
 
               <div>
-                <label className="block text-[10px] font-black text-slate-500 dark:text-slate-400 mb-2 uppercase tracking-widest select-none px-1">Email Address</label>
-                <div className="relative">
-                  <span className="absolute inset-y-0 left-0 pl-4 flex items-center text-slate-400">
-                    <Mail className="h-4 w-4" />
-                  </span>
+                <label className="block text-[10px] font-black font-mono text-slate-500 dark:text-slate-400 uppercase tracking-widest mb-2 px-1">Professional Email</label>
+                <div className="relative group/input">
+                  <Mail className="absolute left-4 top-1/2 -translate-y-1/2 h-4.5 w-4.5 text-slate-500 group-focus-within/input:text-blue-600 transition-colors" />
                   <input
                     id="auth-email-input"
                     type="email"
@@ -281,18 +322,16 @@ export default function AuthModal({
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
                     dir="auto"
-                    placeholder="name@company.com"
-                    className="w-full pl-11 pr-4 py-3 bg-slate-50 dark:bg-slate-50 border-2 border-slate-100 dark:border-slate-200 rounded-2xl text-[13px] font-medium placeholder-slate-400 focus:outline-none focus:ring-4 focus:ring-blue-500/10 focus:border-blue-600 dark:focus:border-blue-400 dark:text-black transition-all"
+                    placeholder="rachel@startup.com"
+                    className="w-full bg-slate-50 dark:bg-slate-950 border-2 border-slate-200 dark:border-slate-800 rounded-2xl py-3.5 pl-12 pr-4 text-[13px] font-bold text-slate-950 dark:text-white placeholder-slate-500 focus:outline-none focus:ring-4 focus:ring-blue-500/10 focus:border-blue-600 dark:focus:border-blue-400 transition-all"
                   />
                 </div>
               </div>
 
               <div>
-                <label className="block text-[10px] font-black text-slate-500 dark:text-slate-400 mb-2 uppercase tracking-widest select-none px-1">Password</label>
-                <div className="relative">
-                  <span className="absolute inset-y-0 left-0 pl-4 flex items-center text-slate-400">
-                    <Lock className="h-4 w-4" />
-                  </span>
+                <label className="block text-[10px] font-black font-mono text-slate-500 dark:text-slate-400 uppercase tracking-widest mb-2 px-1">Security Password</label>
+                <div className="relative group/input">
+                  <Lock className="absolute left-4 top-1/2 -translate-y-1/2 h-4.5 w-4.5 text-slate-500 group-focus-within/input:text-blue-600 transition-colors" />
                   <input
                     id="auth-password-input"
                     type="password"
@@ -300,7 +339,7 @@ export default function AuthModal({
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
                     placeholder="••••••••"
-                    className="w-full pl-11 pr-4 py-3 bg-slate-50 dark:bg-slate-50 border-2 border-slate-100 dark:border-slate-200 rounded-2xl text-[13px] font-bold placeholder-slate-400 focus:outline-none focus:ring-4 focus:ring-blue-500/10 focus:border-blue-600 dark:focus:border-blue-400 dark:text-black transition-all"
+                    className="w-full bg-slate-50 dark:bg-slate-950 border-2 border-slate-200 dark:border-slate-800 rounded-2xl py-3.5 pl-12 pr-4 text-[13px] font-bold text-slate-950 dark:text-white placeholder-slate-500 focus:outline-none focus:ring-4 focus:ring-blue-500/10 focus:border-blue-600 dark:focus:border-blue-400 transition-all"
                   />
                 </div>
               </div>
@@ -310,25 +349,25 @@ export default function AuthModal({
               id="auth-submit-btn"
               type="submit"
               disabled={isLoading}
-              className="w-full py-4 bg-slate-950 dark:bg-white text-white dark:text-slate-950 rounded-2xl text-xs font-black transition-all shadow-xl hover:shadow-slate-500/20 dark:hover:shadow-white/10 cursor-pointer disabled:opacity-50 select-none flex items-center justify-center space-x-2 active:scale-[0.98] uppercase tracking-widest border-0"
+              className="w-full py-4.5 bg-slate-950 dark:bg-white text-white dark:text-slate-950 rounded-2xl text-[11px] font-black uppercase tracking-[0.2em] transition-all shadow-2xl shadow-slate-950/20 dark:shadow-none hover:scale-[1.02] active:scale-[0.98] cursor-pointer disabled:opacity-50 select-none flex items-center justify-center space-x-3 border-0"
             >
               {isLoading ? (
                 <>
-                  <svg className="animate-spin h-4 w-4 text-current" fill="none" viewBox="0 0 24 24">
-                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
-                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
-                  </svg>
-                  <span>{isSignUp ? 'Creating Account...' : 'Signing In...'}</span>
+                  <Sparkles className="animate-spin h-4 w-4" />
+                  <span>{isSignUp ? 'Creating Founder ID...' : 'Verifying Session...'}</span>
                 </>
               ) : (
-                <span>{isSignUp ? 'Sign Up with Email' : 'Sign In to Dashboard'}</span>
+                <>
+                  <span>{isSignUp ? 'Join the Network' : 'Enter Dashboard'}</span>
+                  <ArrowRight className="h-4 w-4" />
+                </>
               )}
             </button>
           </form>
 
           {/* Footnotes */}
-          <div className="mt-8 pt-6 border-t border-slate-100 dark:border-slate-900 text-center select-none">
-            <p className="text-[9px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-[0.2em]">
+          <div className="mt-10 pt-8 border-t border-slate-100 dark:border-slate-800 text-center select-none">
+            <p className="text-[9px] font-black text-slate-500 dark:text-slate-400 uppercase tracking-[0.25em] opacity-60">
               Secured by VisionBoard Auth System v2.0
             </p>
           </div>
