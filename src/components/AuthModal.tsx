@@ -110,19 +110,20 @@ export default function AuthModal({
       if (isSignUp) {
         console.log('Attempting sign up for:', email);
         
-        // Manual check for email existence to provide better feedback
-        const { data: existingUser } = await supabase
+        // 1. Strict pre-check: Check if email exists in public.profiles
+        const { data: existingProfile, error: profileError } = await supabase
           .from('profiles')
           .select('email')
           .eq('email', email)
           .maybeSingle();
 
-        if (existingUser) {
-          setError('This email is already registered. Please Sign In instead.');
+        if (existingProfile) {
+          setError('Account already exists. Please login.');
           setIsLoading(false);
           return;
         }
 
+        // 2. Attempt Supabase Auth Sign Up
         const { data, error: signUpError } = await supabase.auth.signUp({
           email,
           password,
@@ -138,22 +139,28 @@ export default function AuthModal({
 
         if (signUpError) {
           console.error('Supabase Sign Up Error:', signUpError);
-          if (signUpError.message?.toLowerCase().includes('already registered')) {
-            setError('This email is already registered. Please Sign In instead.');
+          // Standard Supabase error for existing user
+          if (signUpError.message?.toLowerCase().includes('already registered') || 
+              signUpError.message?.toLowerCase().includes('already exists') ||
+              signUpError.status === 422) {
+            setError('Account already exists. Please login.');
             return;
           }
           throw signUpError;
         }
         
         if (data?.user) {
+          // In some Supabase configs, signUp returns a user but identities is empty if user exists
+          if (data.user.identities && data.user.identities.length === 0) {
+            setError('Account already exists. Please login.');
+            return;
+          }
+
           console.log('Sign up successful, user ID:', data.user.id);
-          // For many configurations, auto-confirm is off. We check if a session exists.
           if (data.session) {
-            console.log('Session detected, redirecting to success...');
             onAuthSuccess();
             onClose();
           } else {
-            console.log('No session detected, email confirmation likely required.');
             setError('Account created! Please check your email to confirm your account before signing in.');
           }
         }
