@@ -107,26 +107,26 @@ export default function AuthModal({
     setError('');
     
     try {
+      const sanitizedEmail = email.trim().toLowerCase();
+      
       if (isSignUp) {
-        console.log('Attempting sign up for:', email);
+        console.log('Attempting secure production sign up for:', sanitizedEmail);
         
-        // 1. Strict Production Pre-check: Check if email exists in public.profiles
-        // This is crucial for providing immediate feedback before Supabase Auth is triggered
-        const { data: existingProfile, error: profileError } = await supabase
-          .from('profiles')
-          .select('email')
-          .eq('email', email.trim().toLowerCase())
-          .maybeSingle();
+        // 1. Strict Multi-table Pre-check for email existence
+        const [{ data: inProfiles }, { data: inUsers }] = await Promise.all([
+          supabase.from('profiles').select('email').eq('email', sanitizedEmail).maybeSingle(),
+          supabase.from('users').select('email').eq('email', sanitizedEmail).maybeSingle()
+        ]);
 
-        if (existingProfile) {
+        if (inProfiles || inUsers) {
           setError('This email is already registered. Please login.');
           setIsLoading(false);
           return;
         }
 
-        // 2. Secure Supabase Auth Sign Up
+        // 2. Production-level Supabase Auth Sign Up
         const { data, error: signUpError } = await supabase.auth.signUp({
-          email: email.trim().toLowerCase(),
+          email: sanitizedEmail,
           password,
           options: {
             data: {
@@ -134,13 +134,12 @@ export default function AuthModal({
               is_new_user: true,
               user_role: 'founder_hub'
             },
-            emailRedirectTo: `${window.location.origin}`
+            emailRedirectTo: window.location.origin
           }
         });
 
         if (signUpError) {
           console.error('Supabase Sign Up Error:', signUpError);
-          // Handle standard Supabase duplicate user error codes
           if (signUpError.message?.toLowerCase().includes('already registered') || 
               signUpError.message?.toLowerCase().includes('already exists') ||
               signUpError.status === 422) {
@@ -151,8 +150,7 @@ export default function AuthModal({
         }
         
         if (data?.user) {
-          // If auto-confirm is enabled, session will exist. Otherwise, check identities.
-          // If identities is empty, it means the user exists but hasn't confirmed email (Supabase behavior)
+          // Extra security check for unconfirmed existing identities
           if (data.user.identities && data.user.identities.length === 0) {
             setError('This email is already registered. Please login.');
             return;
@@ -167,9 +165,9 @@ export default function AuthModal({
           }
         }
       } else {
-        console.log('Attempting sign in for:', email);
+        console.log('Attempting secure sign in for:', sanitizedEmail);
         const { data, error: signInError } = await supabase.auth.signInWithPassword({
-          email: email.trim().toLowerCase(),
+          email: sanitizedEmail,
           password
         });
 
@@ -197,7 +195,9 @@ export default function AuthModal({
       const msg = err.message || 'Authentication failed. Please try again.';
       if (msg.toLowerCase().includes('rate limit') || err.status === 429) {
         setError('Too many attempts. Please try again in a minute.');
-      } else if (msg.toLowerCase().includes('already registered') || msg.toLowerCase().includes('unique constraint')) {
+      } else if (msg.toLowerCase().includes('already registered') || 
+                 msg.toLowerCase().includes('unique constraint') ||
+                 msg.toLowerCase().includes('already exists')) {
         setError('This email is already registered. Please login.');
       } else {
         setError(msg);
