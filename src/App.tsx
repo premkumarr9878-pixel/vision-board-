@@ -13,7 +13,7 @@ import ProfileSetup from './components/ProfileSetup';
 import { CardSkeleton, TableRowSkeleton } from './components/Skeleton';
 import { getLocalStorageState, saveLocalStorageState, DEFAULT_PROFILE, safeParse } from './data';
 import { StartupIdea, FounderProfile, CollaborationRequest, FundingRequest, Suggestion, RequestStatus } from './types';
-import { Star, Sparkles, Send, Flame, Lightbulb, Users, Globe, ExternalLink } from 'lucide-react';
+import { Star, Sparkles, Send, Flame, Lightbulb, Users, Globe, ExternalLink, Search } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import { supabase } from './supabase';
 
@@ -670,40 +670,31 @@ export default function App() {
         {currentView === 'explore' ? (
           
           /* EXPLORE HOMEPAGE DECK (TrustMRR spacing style) */
-          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 space-y-6" id="explore-view">
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-0 space-y-2" id="explore-view">
             
             {/* Geometric Centered Headline Callout */}
-            <div className="text-center max-w-4xl mx-auto space-y-3 select-none mb-8 pt-0" id="hero-centered-headline">
-              {/* Optional verification alert */}
-              <div className="inline-flex items-center space-x-2 px-4 py-2 bg-blue-500/5 dark:bg-blue-400/10 text-blue-700 dark:text-blue-400 text-[10px] font-black font-mono uppercase tracking-wider rounded-full border-2 border-blue-500/15 shadow-sm">
-                <Sparkles className="h-4 w-4 text-blue-500 shrink-0 fill-current animate-pulse" />
-                <span>Sandbox Version 2.0 Live</span>
+            <div className="text-center max-w-4xl mx-auto space-y-1 select-none mb-1 pt-0" id="hero-centered-headline">
+              
+              <div className="p-2 sm:p-3 bg-white/98 dark:bg-slate-900/98 backdrop-blur-sm rounded-3xl border-2 border-slate-200 dark:border-slate-800 shadow-sm">
+                <h2 className="font-display font-black text-3xl sm:text-5xl md:text-[58px] text-slate-950 dark:text-white tracking-tighter leading-[0.95]" id="main-visionboard-headline">
+                  The database of <span className="bg-gradient-to-r from-blue-600 via-indigo-600 to-purple-600 dark:from-blue-400 dark:via-indigo-400 dark:to-purple-400 bg-clip-text text-transparent block sm:inline">future startup ideas</span>
+                </h2>
               </div>
-              
-              <h2 className="font-display font-black text-5xl sm:text-7xl md:text-[72px] text-slate-950 dark:text-white tracking-tighter leading-[0.95]" id="main-visionboard-headline">
-                The database of <span className="bg-gradient-to-r from-blue-600 via-indigo-550 to-purple-600 dark:from-blue-400 dark:via-indigo-400 dark:to-purple-400 bg-clip-text text-transparent block sm:inline">future startup ideas</span>
-              </h2>
-              
-              <p className="text-lg text-slate-700 dark:text-slate-300 max-w-2xl mx-auto font-bold leading-relaxed px-4">
-                Publish ideas, find collaborators, attract funding, and build your startup validation boards alongside a network of peers.
-              </p>
 
               {/* Home Add Idea trigger and Search Bar alignment */}
-              <div className="flex flex-col sm:flex-row items-center justify-center gap-4 max-w-2xl mx-auto pt-1">
-                <button
-                  id="get-started-hero-btn"
-                  onClick={() => {
-                    if (!currentUser) {
-                      setOnboardingSource('get-started');
-                      setCurrentView('onboarding');
-                    } else {
-                      setCurrentView('dashboard');
-                    }
-                  }}
-                  className="px-10 py-4 bg-slate-950 dark:bg-white text-white dark:text-slate-950 text-sm font-black rounded-2xl hover:scale-[1.03] active:scale-[0.98] transition-all select-none cursor-pointer text-center duration-200 shadow-xl"
-                >
-                  Get Started Now
-                </button>
+              <div className="flex flex-col sm:flex-row items-center justify-center gap-2 max-w-4xl mx-auto pt-1">
+                {/* HERO SEARCH BAR */}
+                <div className="flex-1 w-full max-w-md relative group">
+                  <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-600 group-focus-within:text-blue-600 transition-colors" />
+                  <input
+                    type="text"
+                    placeholder="Search ideas, founders, categories..."
+                    value={searchQuery}
+                    onChange={(e) => setSearchQuery(e.target.value)}
+                    className="w-full pl-11 pr-4 py-3.5 bg-white dark:bg-slate-900 border-2 border-slate-200 dark:border-slate-800 focus:border-blue-600 dark:focus:border-blue-400 focus:bg-white dark:focus:bg-white rounded-2xl text-xs font-bold transition-all outline-none dark:text-white placeholder-slate-400 shadow-sm"
+                  />
+                </div>
+
                 <button
                   id="add-idea-hero-btn"
                   onClick={() => {
@@ -714,7 +705,7 @@ export default function App() {
                       setShowAddIdeaModal(true);
                     }
                   }}
-                  className="px-10 py-4 bg-white dark:bg-slate-900 text-slate-900 dark:text-white border-2 border-slate-200 dark:border-slate-800 text-sm font-black rounded-2xl hover:scale-[1.03] active:scale-[0.98] transition-all select-none cursor-pointer text-center duration-200"
+                  className="w-full sm:w-auto px-9 py-3.5 bg-slate-950 dark:bg-white text-white dark:text-slate-950 border-2 border-slate-950 dark:border-white text-sm font-black rounded-2xl hover:scale-[1.02] active:scale-[0.98] transition-all select-none cursor-pointer text-center duration-200 shadow-xl"
                 >
                   + Add Your Startup Idea
                 </button>
@@ -722,21 +713,23 @@ export default function App() {
             </div>
 
             {/* Stats Summary Panel */}
-            <div className="flex flex-col md:flex-row items-center justify-center gap-6 md:gap-12" id="hero-stats-panel">
-              <div className="text-center group select-none">
-                <span className="block text-[10px] font-black font-mono text-slate-500 dark:text-slate-400 uppercase tracking-widest mb-1 group-hover:text-blue-600 transition-colors">Total Ideas Shared</span>
-                <span className="text-4xl font-display font-black text-slate-950 dark:text-white tracking-tighter" id="total-ideas-count">
-                  {state.ideas.length.toLocaleString()}
-                </span>
-                <div className="h-1 w-8 bg-blue-600 mx-auto mt-2 rounded-full transform group-hover:scale-x-150 transition-transform" />
+            <div className="flex flex-col md:flex-row items-center justify-center gap-2 md:gap-6 p-2.5 bg-white dark:bg-slate-900/95 backdrop-blur-sm rounded-3xl border-2 border-slate-200 dark:border-slate-800 shadow-xs" id="hero-stats-panel">
+              <div className="text-center group select-none flex items-center space-x-5">
+                <div>
+                  <span className="block text-[10px] font-black font-mono text-slate-500 dark:text-slate-400 uppercase tracking-widest mb-0.5 group-hover:text-blue-600 transition-colors">Total Ideas Shared</span>
+                  <span className="text-2xl font-display font-black text-slate-950 dark:text-white tracking-tighter" id="total-ideas-count">
+                    {state.ideas.length.toLocaleString()}
+                  </span>
+                </div>
+                <div className="h-8 w-1 bg-blue-600 rounded-full transform group-hover:scale-y-125 transition-transform" />
               </div>
 
-              <div className="hidden md:block w-px h-12 bg-slate-200 dark:bg-slate-800" />
+              <div className="hidden md:block w-px h-8 bg-slate-200 dark:bg-slate-800" />
 
               {/* Home Filter Toggle Tabs (Time range) */}
-              <div className="flex flex-col space-y-2 select-none" id="time-filter-tabs">
-                <span className="text-[10px] font-black font-mono text-slate-500 dark:text-slate-400 uppercase tracking-widest text-center md:text-left mb-1">Filter by Release Day</span>
-                <div className="flex items-center p-1.5 bg-white dark:bg-slate-900 border-2 border-slate-200 dark:border-slate-800 rounded-2xl shadow-sm">
+              <div className="flex flex-col space-y-0.5 select-none" id="time-filter-tabs">
+                <span className="text-[10px] font-black font-mono text-slate-500 dark:text-slate-400 uppercase tracking-widest text-center md:text-left">Filter by Release Day</span>
+                <div className="flex items-center p-1 bg-white dark:bg-slate-900 border-2 border-slate-200 dark:border-slate-800 rounded-2xl shadow-sm">
                   {[
                     { id: 'all', label: 'All Time' },
                     { id: 'day', label: 'Today' },

@@ -54,29 +54,25 @@ export default function Header({
     onClick, 
     active, 
     icon: Icon, 
-    label,
-    primary = false 
+    label
   }: { 
     onClick: () => void; 
     active?: boolean; 
     icon: any; 
     label: string;
-    primary?: boolean;
   }) => (
     <button
       onClick={() => {
         onClick();
         setIsMobileMenuOpen(false);
       }}
-      className={`flex items-center space-x-2 px-4 py-2 rounded-xl text-xs font-black transition-all cursor-pointer ${
-        primary
-          ? 'bg-blue-600 hover:bg-blue-700 text-white shadow-lg shadow-blue-500/20 active:scale-95'
-          : active
-            ? 'bg-slate-100 dark:bg-slate-800 text-blue-600'
-            : 'text-slate-600 dark:text-slate-400 hover:text-slate-950 dark:hover:text-white hover:bg-slate-50 dark:hover:bg-slate-900'
+      className={`flex items-center space-x-3 px-7 py-3.5 rounded-2xl text-[13px] font-black transition-all cursor-pointer border-2 ${
+        active
+          ? 'bg-slate-100/95 dark:bg-slate-800/95 text-blue-600 border-blue-600/30 shadow-md scale-[1.02]'
+          : 'bg-white/80 dark:bg-slate-900/80 text-slate-600 dark:text-slate-400 hover:text-slate-950 dark:hover:text-white border-slate-200 dark:border-slate-800 hover:border-slate-300 dark:hover:border-slate-700 hover:bg-white/95 dark:hover:bg-slate-900/95'
       }`}
     >
-      <Icon className={`h-4 w-4 ${primary ? 'animate-pulse' : ''}`} />
+      <Icon className="h-5 w-5" />
       <span>{label}</span>
     </button>
   );
@@ -85,8 +81,8 @@ export default function Header({
     <header 
       className={`sticky top-0 z-50 transition-all duration-300 ${
         isScrolled 
-          ? 'py-3 bg-white/80 dark:bg-slate-950/80 backdrop-blur-xl border-b border-slate-200/50 dark:border-slate-800/50 shadow-sm' 
-          : 'py-5 bg-transparent'
+          ? 'py-1.5 bg-white/98 dark:bg-slate-950/98 backdrop-blur-md border-b-2 border-slate-200 dark:border-slate-800 shadow-sm' 
+          : 'py-2 bg-transparent'
       }`}
     >
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -97,34 +93,28 @@ export default function Header({
             onClick={onExploreClick}
             className="flex items-center cursor-pointer group shrink-0 select-none relative"
           >
-            <div className="relative flex items-center h-10 sm:h-12 transition-all duration-500 ease-out group-hover:scale-[1.03] group-active:scale-95">
-              <img 
-                src="/logo.png" 
-                alt="VisionBoard" 
-                className="h-full w-auto object-contain brightness-110 dark:brightness-125 contrast-110 drop-shadow-sm group-hover:drop-shadow-md transition-all duration-300"
-                style={{ imageRendering: 'high-quality' }}
-              />
+            <div className="flex items-center space-x-3 transition-all duration-500 ease-out group-hover:scale-[1.02] group-active:scale-95">
+              <div className="w-10 h-10 sm:w-11 sm:h-11 bg-gradient-to-br from-blue-600 via-indigo-600 to-purple-600 rounded-2xl flex items-center justify-center shadow-xl shadow-blue-500/10 border-2 border-white/20 relative overflow-hidden">
+                <div className="absolute inset-0 bg-white/10 opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
+                <Rocket className="h-6 w-6 text-white transform rotate-45 group-hover:translate-x-0.5 group-hover:-translate-y-0.5 transition-transform duration-500" />
+              </div>
+              <div className="flex items-baseline tracking-tighter">
+                <span className="text-xl sm:text-2xl font-black text-slate-950 dark:text-white">Vision</span>
+                <span className="text-xl sm:text-2xl font-black bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent">Board</span>
+              </div>
               {/* Premium Glow Effect on Hover */}
-              <div className="absolute inset-0 bg-blue-500/0 group-hover:bg-blue-500/5 blur-2xl rounded-full transition-all duration-500 -z-10" />
+              <div className="absolute -inset-2 bg-blue-600/0 group-hover:bg-blue-600/5 blur-2xl rounded-full transition-all duration-500 -z-10" />
             </div>
           </div>
 
-          {/* SEARCH BAR (Desktop) */}
-          {currentView === 'explore' && (
-            <div className="hidden md:flex flex-1 max-w-md relative group">
-              <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400 group-focus-within:text-blue-600 transition-colors" />
-              <input
-                type="text"
-                placeholder="Search ideas, founders, categories..."
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                className="w-full pl-11 pr-4 py-2.5 bg-slate-100 dark:bg-slate-50 border-2 border-transparent focus:border-blue-600/20 dark:focus:border-blue-400/20 focus:bg-white dark:focus:bg-white rounded-2xl text-xs font-bold transition-all outline-none dark:text-black placeholder-slate-400"
-              />
-            </div>
-          )}
+          {/* SEARCH BAR (Desktop) - REMOVED AS REQUESTED IN PREVIOUS STEPS AND REDUNDANT NOW */}
 
           {/* NAVIGATION (Desktop) */}
-          <nav className="hidden lg:flex items-center space-x-2">
+          <nav className="hidden lg:flex items-center space-x-3">
+            <div className="flex items-center space-x-2.5 px-5 py-2.5 bg-blue-500/20 dark:bg-blue-400/20 text-blue-700 dark:text-blue-400 text-[13px] font-black font-mono uppercase tracking-widest rounded-2xl border-2 border-blue-500/40 shadow-md select-none group">
+              <Rocket className="h-5 w-5 text-blue-600 dark:text-blue-400 shrink-0 fill-current animate-pulse group-hover:scale-110 transition-transform" />
+              <span>Sandbox 2.0 Live</span>
+            </div>
             <NavButton 
               onClick={onExploreClick} 
               active={currentView === 'explore'} 
@@ -137,21 +127,14 @@ export default function Header({
               icon={LayoutDashboard} 
               label="Founder Hub" 
             />
-            <div className="w-px h-6 bg-slate-200 dark:bg-slate-800 mx-2" />
-            <NavButton 
-              onClick={onAddIdeaClick} 
-              primary 
-              icon={Plus} 
-              label="Add Idea" 
-            />
           </nav>
 
           {/* RIGHT ACTIONS */}
-          <div className="flex items-center space-x-2 sm:space-x-3">
+          <div className="flex items-center space-x-3">
             {/* Theme Toggle */}
             <button
               onClick={toggleTheme}
-              className="p-2.5 rounded-xl bg-slate-100 dark:bg-slate-900 text-slate-600 dark:text-slate-400 hover:text-blue-600 dark:hover:text-blue-400 transition-all cursor-pointer border border-transparent hover:border-blue-600/10"
+              className="p-3 rounded-2xl bg-white/40 dark:bg-slate-900/40 text-slate-600 dark:text-slate-400 hover:text-blue-600 dark:hover:text-blue-400 transition-all cursor-pointer border-2 border-slate-200 dark:border-slate-800 hover:border-blue-600/20 shadow-xs"
               aria-label="Toggle theme"
             >
               {theme === 'dark' ? <Sun className="h-4.5 w-4.5" /> : <Moon className="h-4.5 w-4.5" />}
@@ -159,7 +142,7 @@ export default function Header({
 
             {/* User Profile / Auth */}
             <div className="hidden sm:block">
-              {currentUser ? (
+              {currentUser && (
                 <div className="flex items-center space-x-3 pl-2">
                   <div className="text-right hidden xl:block select-none">
                     <p className="text-[10px] font-black text-slate-900 dark:text-white uppercase tracking-tight" dir="auto">{currentUser.name}</p>
@@ -171,8 +154,8 @@ export default function Header({
                         e.stopPropagation();
                         setIsProfileOpen(!isProfileOpen);
                       }}
-                      className={`h-10 w-10 rounded-2xl border-2 overflow-hidden cursor-pointer transition-all ${
-                        isProfileOpen ? 'border-blue-600 ring-4 ring-blue-500/10' : 'border-slate-100 dark:border-slate-800 hover:border-blue-600'
+                      className={`h-11 w-11 rounded-2xl border-2 overflow-hidden cursor-pointer transition-all shadow-sm ${
+                        isProfileOpen ? 'border-blue-600 ring-4 ring-blue-500/10' : 'border-slate-200 dark:border-slate-800 hover:border-blue-600'
                       }`}
                     >
                       <img src={currentUser.avatar} alt="Profile" className="h-full w-full object-cover" />
@@ -185,9 +168,9 @@ export default function Header({
                           initial={{ opacity: 0, y: 10, scale: 0.95 }}
                           animate={{ opacity: 1, y: 0, scale: 1 }}
                           exit={{ opacity: 0, y: 10, scale: 0.95 }}
-                          className="absolute right-0 top-full mt-2 w-48 bg-white dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-2xl shadow-2xl p-2 z-[60]"
+                          className="absolute right-0 top-full mt-2 w-48 bg-white dark:bg-slate-950 border-2 border-slate-200 dark:border-slate-800 rounded-2xl shadow-2xl p-2 z-[60]"
                         >
-                          <div className="px-3 py-2 border-b border-slate-100 dark:border-slate-900 mb-1 xl:hidden">
+                          <div className="px-3 py-2 border-b-2 border-slate-100 dark:border-slate-900 mb-1 xl:hidden">
                             <p className="text-[10px] font-black text-slate-900 dark:text-white uppercase tracking-tight truncate">{currentUser.name}</p>
                             <p className="text-[8px] font-bold text-slate-400 uppercase tracking-widest">Active Founder</p>
                           </div>
@@ -207,20 +190,13 @@ export default function Header({
                     </AnimatePresence>
                   </div>
                 </div>
-              ) : (
-                <button
-                  onClick={onAuthClick}
-                  className="px-6 py-2.5 bg-slate-950 dark:bg-white text-white dark:text-slate-950 text-xs font-black rounded-xl hover:opacity-90 transition-all cursor-pointer shadow-lg shadow-slate-900/10"
-                >
-                  Join VisionBoard
-                </button>
               )}
             </div>
 
             {/* Mobile Menu Toggle */}
             <button
               onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-              className="lg:hidden p-2.5 rounded-xl bg-slate-100 dark:bg-slate-900 text-slate-600 dark:text-slate-400 transition-all cursor-pointer"
+              className="lg:hidden p-3 rounded-2xl bg-white/40 dark:bg-slate-900/40 text-slate-600 dark:text-slate-400 border-2 border-slate-200 dark:border-slate-800 transition-all cursor-pointer"
             >
               {isMobileMenuOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
             </button>
@@ -254,7 +230,7 @@ export default function Header({
                   </button>
                 </div>
 
-                <div className="space-y-2 flex-1">
+                <div className="space-y-3 flex-1">
                   <NavButton 
                     onClick={onExploreClick} 
                     active={currentView === 'explore'} 
@@ -267,10 +243,9 @@ export default function Header({
                     icon={LayoutDashboard} 
                     label="Founder Hub" 
                   />
-                  <div className="h-px bg-slate-100 dark:bg-slate-800 my-4" />
+                  <div className="h-px bg-slate-100 dark:bg-slate-800 my-6" />
                   <NavButton 
                     onClick={onAddIdeaClick} 
-                    primary 
                     icon={Plus} 
                     label="Publish Idea" 
                   />
