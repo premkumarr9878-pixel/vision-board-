@@ -53,17 +53,27 @@ export default function DashboardView({
   const [ideasSubFilter, setIdeasSubFilter] = useState<'all' | 'public' | 'private' | 'draft'>('all');
 
   // Edit Profile States
-  const [editName, setEditName] = useState(profile.name);
-  const [editBio, setEditBio] = useState(profile.bio);
-  const [editBuildingDesc, setEditBuildingDesc] = useState(profile.buildingDesc || '');
-  const [editAvatar, setEditAvatar] = useState(profile.avatar || '');
-  const [editStartupLogo, setEditStartupLogo] = useState(profile.startupLogo || '');
-  const [editGithub, setEditGithub] = useState(profile.github || '');
-  const [editTwitter, setEditTwitter] = useState(profile.twitter || '');
-  const [editLinkedin, setEditLinkedin] = useState(profile.linkedin || '');
-  const [editRole, setEditRole] = useState<'founder_hub' | 'vision_board'>(profile.userRole || 'vision_board');
+  const [editName, setEditName] = useState(profile?.name || '');
+  const [editBio, setEditBio] = useState(profile?.bio || '');
+  const [editBuildingDesc, setEditBuildingDesc] = useState(profile?.buildingDesc || '');
+  const [editAvatar, setEditAvatar] = useState(profile?.avatar || '');
+  const [editStartupLogo, setEditStartupLogo] = useState(profile?.startupLogo || '');
+  const [editGithub, setEditGithub] = useState(profile?.github || '');
+  const [editTwitter, setEditTwitter] = useState(profile?.twitter || '');
+  const [editLinkedin, setEditLinkedin] = useState(profile?.linkedin || '');
+  const [editRole, setEditRole] = useState<'founder_hub' | 'vision_board'>(profile?.userRole || 'vision_board');
   const [isSavingProfile, setIsSavingProfile] = useState(false);
   const [profileSaveSuccess, setProfileSaveSuccess] = useState(false);
+
+  // Add null check for profile
+  if (!profile) {
+    return (
+      <div className="max-w-7xl mx-auto px-4 py-20 text-center">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
+        <p className="text-slate-600 dark:text-slate-400 font-bold">Loading Founder Hub...</p>
+      </div>
+    );
+  }
 
   const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>, setter: (val: string) => void) => {
     const file = e.target.files?.[0];
@@ -122,14 +132,14 @@ export default function DashboardView({
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12" id="dashboard-main-view">
       
       {/* Header Banner */}
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-8 mb-12 select-none bg-white dark:bg-slate-950 p-8 rounded-3xl border-2 border-slate-200 dark:border-slate-800 shadow-xl" id="dashboard-header-block">
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-8 mb-12 select-none bg-white dark:bg-slate-900 p-8 rounded-3xl border-2 border-slate-200 dark:border-slate-800 shadow-xl" id="dashboard-header-block">
         <div className="flex items-center space-x-6">
           <div className="flex -space-x-4 items-center">
-            <div className="w-20 h-20 rounded-2xl overflow-hidden border-4 border-white dark:border-slate-900 shadow-2xl shrink-0 z-10 relative">
+            <div className="w-20 h-20 rounded-2xl overflow-hidden border-4 border-white dark:border-slate-800 shadow-2xl shrink-0 z-10 relative">
               <img src={profile.avatar} alt={profile.name} className="w-full h-full object-cover" referrerPolicy="no-referrer" />
             </div>
             {profile.startupLogo && (
-              <div className="w-20 h-20 rounded-2xl overflow-hidden border-4 border-white dark:border-slate-900 shadow-2xl shrink-0 z-0 relative bg-slate-50 dark:bg-slate-900 flex items-center justify-center p-2">
+              <div className="w-20 h-20 rounded-2xl overflow-hidden border-4 border-white dark:border-slate-800 shadow-2xl shrink-0 z-0 relative bg-slate-50 dark:bg-slate-950 flex items-center justify-center p-2">
                 <img src={profile.startupLogo} alt="Startup Logo" className="w-full h-full object-contain" referrerPolicy="no-referrer" />
               </div>
             )}
@@ -138,7 +148,7 @@ export default function DashboardView({
             <h1 className="font-display font-black text-3xl text-slate-950 dark:text-white tracking-tighter flex items-center space-x-3" dir="auto">
               <span>{profile.name}&apos;s Founder Hub</span>
             </h1>
-            <p className="text-sm font-bold text-slate-600 dark:text-slate-400 mt-1 max-w-lg leading-relaxed" dir="auto">
+            <p className="text-sm font-bold text-slate-700 dark:text-slate-300 mt-1 max-w-lg leading-relaxed" dir="auto">
               {profile.bio || 'Manage ideas, screen co-founders pitches, and check fundraising letters.'}
             </p>
           </div>
@@ -155,7 +165,7 @@ export default function DashboardView({
       </div>
 
       {/* Dashboard Sub-navigation Tabs */}
-      <div className="sticky top-[64px] z-30 bg-white/80 dark:bg-slate-950/80 backdrop-blur-md border-b border-slate-200 dark:border-slate-900 overflow-x-auto select-none no-scrollbar -mx-4 px-4 sm:-mx-6 sm:px-6 lg:-mx-8 lg:px-8 mb-10" id="dashboard-tabs">
+      <div className="sticky top-[64px] z-30 bg-white dark:bg-slate-950 border-b-2 border-slate-200 dark:border-slate-800 overflow-x-auto select-none no-scrollbar -mx-4 px-4 sm:-mx-6 sm:px-6 lg:-mx-8 lg:px-8 mb-10 shadow-sm" id="dashboard-tabs">
         <div className="flex max-w-7xl mx-auto py-5 items-center gap-2.5">
           {[
             { id: 'overview', label: 'Overview Statistics', icon: <LayoutDashboard className="w-3.5 h-3.5" /> },
@@ -174,7 +184,7 @@ export default function DashboardView({
                 className={`relative flex items-center gap-2 px-4 py-2 rounded-xl text-[10px] font-black uppercase tracking-wider transition-all duration-300 cursor-pointer whitespace-nowrap border-2 ${
                   isActive 
                     ? 'bg-slate-950 border-slate-950 text-white shadow-lg shadow-slate-950/20 dark:bg-white dark:border-white dark:text-slate-950 dark:shadow-white/10' 
-                    : 'bg-white border-slate-150 text-slate-500 hover:border-slate-300 hover:text-slate-900 dark:bg-slate-900/40 dark:border-slate-800/60 dark:text-slate-400 dark:hover:border-slate-700 dark:hover:text-white'
+                    : 'bg-white border-slate-200 text-slate-700 hover:border-slate-400 hover:text-slate-950 dark:bg-slate-900 dark:border-slate-800 dark:text-slate-300 dark:hover:border-slate-600 dark:hover:text-white'
                 }`}
               >
                 <span className={`transition-transform duration-300 ${isActive ? 'scale-110' : 'group-hover:scale-110 opacity-70'}`}>
@@ -200,10 +210,10 @@ export default function DashboardView({
         <div className={activeTab === 'overview' ? 'block animate-in fade-in slide-in-from-bottom-2 duration-300' : 'hidden'} id="overview-tab-content">
           <div className="space-y-12">
             {/* Main Idea Management Stats Header Banner */}
-            <div className="bg-slate-50 dark:bg-slate-900/50 border-2 border-slate-200 dark:border-slate-800 p-8 rounded-3xl select-none shadow-sm" id="founderhub-ideas-update">
-              <span className="block text-[11px] font-black font-mono uppercase tracking-widest text-slate-500 dark:text-slate-400 mb-2">FOUNDER HUB — IDEA MANAGEMENT SYSTEM</span>
+            <div className="bg-white dark:bg-slate-900 border-2 border-slate-200 dark:border-slate-800 p-8 rounded-3xl select-none shadow-md" id="founderhub-ideas-update">
+              <span className="block text-[11px] font-black font-mono uppercase tracking-widest text-slate-600 dark:text-slate-400 mb-2">FOUNDER HUB — IDEA MANAGEMENT SYSTEM</span>
               <h3 className="font-display font-black text-2xl text-slate-950 dark:text-white tracking-tight">Secure Idea Inventory Summary</h3>
-              <p className="text-sm font-bold text-slate-600 dark:text-slate-400 mt-2">Check your visibility coverage, private drafts, and public campaign matrices instantly without page refresh.</p>
+              <p className="text-sm font-bold text-slate-700 dark:text-slate-300 mt-2">Check your visibility coverage, private drafts, and public campaign matrices instantly without page refresh.</p>
             </div>
 
           {/* Row 1: Idea visibility dashboard */}
@@ -212,70 +222,70 @@ export default function DashboardView({
             {/* Total Ideas */}
             <div 
               onClick={() => { setActiveTab('ideas'); setIdeasSubFilter('all'); }}
-              className="bg-white dark:bg-slate-950 border-2 border-slate-200 dark:border-slate-800 rounded-3xl p-6 shadow-lg flex flex-col justify-between cursor-pointer hover:border-blue-600 hover:shadow-xl transition-all select-none group"
+              className="bg-white dark:bg-slate-950 border border-slate-900/10 dark:border-slate-800 rounded-3xl p-6 shadow-[0_8px_24px_rgba(0,0,0,0.06)] flex flex-col justify-between cursor-pointer hover:border-blue-600 dark:hover:border-blue-500 hover:shadow-[0_12px_32px_rgba(0,0,0,0.1)] transition-all select-none group"
             >
-              <div className="flex items-center justify-between text-slate-500 dark:text-slate-400 mb-6">
+              <div className="flex items-center justify-between text-slate-600 dark:text-slate-400 mb-6">
                 <span className="text-[10px] font-black font-mono uppercase tracking-widest">Total Ideas</span>
-                <div className="p-2 rounded-xl bg-blue-50 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 group-hover:scale-110 transition-transform shadow-sm">
+                <div className="p-2 rounded-xl bg-blue-100 dark:bg-blue-900/40 text-blue-700 dark:text-blue-400 group-hover:scale-110 transition-transform shadow-sm">
                   <Lightbulb className="h-5 w-5" />
                 </div>
               </div>
               <div>
                 <span className="text-4xl font-black font-display text-slate-950 dark:text-white block tracking-tighter">{userIdeas.length}</span>
-                <span className="text-[11px] font-bold text-slate-500 dark:text-slate-400 mt-1 block">In your personal database</span>
+                <span className="text-[11px] font-black text-slate-600 dark:text-slate-400 mt-1 block">In your personal database</span>
               </div>
             </div>
 
             {/* Public Ideas */}
             <div 
               onClick={() => { setActiveTab('ideas'); setIdeasSubFilter('public'); }}
-              className="bg-white dark:bg-slate-950 border-2 border-slate-200 dark:border-slate-800 rounded-3xl p-6 shadow-lg flex flex-col justify-between cursor-pointer hover:border-emerald-600 hover:shadow-xl transition-all select-none group"
+              className="bg-white dark:bg-slate-950 border border-slate-900/10 dark:border-slate-800 rounded-3xl p-6 shadow-[0_8px_24px_rgba(0,0,0,0.06)] flex flex-col justify-between cursor-pointer hover:border-emerald-600 dark:hover:border-emerald-500 hover:shadow-[0_12px_32px_rgba(0,0,0,0.1)] transition-all select-none group"
             >
-              <div className="flex items-center justify-between text-slate-500 dark:text-slate-400 mb-6">
+              <div className="flex items-center justify-between text-slate-600 dark:text-slate-400 mb-6">
                 <span className="text-[10px] font-black font-mono uppercase tracking-widest">Public Ideas</span>
-                <div className="p-2 rounded-xl bg-emerald-50 dark:bg-emerald-900/30 text-emerald-600 dark:text-emerald-400 group-hover:scale-110 transition-transform shadow-sm">
+                <div className="p-2 rounded-xl bg-emerald-100 dark:bg-emerald-900/40 text-emerald-700 dark:text-emerald-400 group-hover:scale-110 transition-transform shadow-sm">
                   <Globe className="h-5 w-5" />
                 </div>
               </div>
               <div>
-                <span className="text-4xl font-black font-display text-emerald-600 dark:text-emerald-400 block tracking-tighter">{publicIdeasCount}</span>
-                <span className="text-[11px] font-bold text-slate-500 dark:text-slate-400 mt-1 block">Featured on the explore feed</span>
+                <span className="text-4xl font-black font-display text-emerald-700 dark:text-emerald-400 block tracking-tighter">{publicIdeasCount}</span>
+                <span className="text-[11px] font-black text-slate-600 dark:text-slate-400 mt-1 block">Featured on the explore feed</span>
               </div>
             </div>
 
             {/* Private Ideas */}
             <div 
               onClick={() => { setActiveTab('ideas'); setIdeasSubFilter('private'); }}
-              className="bg-white dark:bg-slate-950 border-2 border-slate-200 dark:border-slate-800 rounded-3xl p-6 shadow-lg flex flex-col justify-between cursor-pointer hover:border-amber-600 hover:shadow-xl transition-all select-none group"
+              className="bg-white dark:bg-slate-950 border border-slate-900/10 dark:border-slate-800 rounded-3xl p-6 shadow-[0_8px_24px_rgba(0,0,0,0.06)] flex flex-col justify-between cursor-pointer hover:border-amber-600 dark:hover:border-amber-500 hover:shadow-[0_12px_32px_rgba(0,0,0,0.1)] transition-all select-none group"
             >
-              <div className="flex items-center justify-between text-slate-500 dark:text-slate-400 mb-6">
+              <div className="flex items-center justify-between text-slate-600 dark:text-slate-400 mb-6">
                 <span className="text-[10px] font-black font-mono uppercase tracking-widest">Private Ideas</span>
-                <div className="p-2 rounded-xl bg-amber-50 dark:bg-amber-900/30 text-amber-600 dark:text-amber-400 group-hover:scale-110 transition-transform shadow-sm">
+                <div className="p-2 rounded-xl bg-amber-100 dark:bg-amber-900/40 text-amber-700 dark:text-amber-400 group-hover:scale-110 transition-transform shadow-sm">
                   <Lock className="h-5 w-5" />
                 </div>
               </div>
               <div>
-                <span className="text-4xl font-black font-display text-amber-600 dark:text-amber-400 block tracking-tighter">{privateIdeasCount}</span>
-                <span className="text-[11px] font-bold text-slate-500 dark:text-slate-400 mt-1 block">Hidden safely as personal drafts</span>
+                <span className="text-4xl font-black font-display text-amber-700 dark:text-amber-400 block tracking-tighter">{privateIdeasCount}</span>
+                <span className="text-[11px] font-black text-slate-600 dark:text-slate-400 mt-1 block">Hidden safely as personal drafts</span>
               </div>
             </div>
 
             {/* Draft Ideas */}
             <div 
               onClick={() => { setActiveTab('ideas'); setIdeasSubFilter('draft'); }}
-              className="bg-white dark:bg-slate-950 border-2 border-slate-200 dark:border-slate-800 rounded-3xl p-6 shadow-lg flex flex-col justify-between cursor-pointer hover:border-indigo-600 hover:shadow-xl transition-all select-none group"
+              className="bg-white dark:bg-slate-950 border border-slate-900/10 dark:border-slate-800 rounded-3xl p-6 shadow-[0_8px_24px_rgba(0,0,0,0.06)] flex flex-col justify-between cursor-pointer hover:border-indigo-600 dark:hover:border-indigo-500 hover:shadow-[0_12px_32_rgba(0,0,0,0.1)] transition-all select-none group"
             >
-              <div className="flex items-center justify-between text-slate-500 dark:text-slate-400 mb-6">
+              <div className="flex items-center justify-between text-slate-600 dark:text-slate-400 mb-6">
                 <span className="text-[10px] font-black font-mono uppercase tracking-widest">Draft Ideas</span>
-                <div className="p-2 rounded-xl bg-indigo-50 dark:bg-indigo-900/30 text-indigo-600 dark:text-indigo-400 group-hover:scale-110 transition-transform shadow-sm">
+                <div className="p-2 rounded-xl bg-indigo-100 dark:bg-indigo-900/40 text-indigo-700 dark:text-indigo-400 group-hover:scale-110 transition-transform shadow-sm">
                   <Clipboard className="h-5 w-5" />
                 </div>
               </div>
               <div>
-                <span className="text-4xl font-black font-display text-indigo-600 dark:text-indigo-400 block tracking-tighter">
+                <span className="text-4xl font-black font-display text-indigo-700 dark:text-indigo-400 block tracking-tighter">
                   {draftIdeasCount}
                 </span>
-                <span className="text-[11px] font-bold text-slate-500 dark:text-slate-400 mt-1 block">Under ideation stages</span>
+                <span className="text-[11px] font-black text-slate-600 dark:text-slate-400 mt-1 block">Under ideation stages</span>
               </div>
             </div>
 
@@ -283,63 +293,63 @@ export default function DashboardView({
 
           {/* Peer Engagement statistics */}
           <div className="border-t-2 border-slate-100 dark:border-slate-900 pt-10" id="peer-engagement-row">
-            <span className="block text-[11px] font-black font-mono tracking-widest uppercase text-slate-500 dark:text-slate-400 mb-6 select-none">Peer Interest & Feed Engagement</span>
+            <span className="block text-[11px] font-black font-mono tracking-widest uppercase text-slate-600 dark:text-slate-400 mb-6 select-none">Peer Interest & Feed Engagement</span>
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6" id="engagement-stats-deck">
               
               <div 
                 onClick={() => setActiveTab('collabs')}
-                className="bg-white dark:bg-slate-950 border-2 border-slate-200 dark:border-slate-800 rounded-3xl p-6 shadow-lg flex flex-col justify-between cursor-pointer hover:border-emerald-600 hover:shadow-xl transition-all select-none group"
+                className="bg-white dark:bg-slate-950 border border-slate-900/10 dark:border-slate-800 rounded-3xl p-6 shadow-[0_8px_24px_rgba(0,0,0,0.06)] flex flex-col justify-between cursor-pointer hover:border-emerald-600 dark:hover:border-emerald-500 hover:shadow-[0_12px_32px_rgba(0,0,0,0.1)] transition-all select-none group"
               >
-                <div className="flex items-center justify-between text-slate-500 dark:text-slate-400 mb-4">
+                <div className="flex items-center justify-between text-slate-600 dark:text-slate-400 mb-4">
                   <span className="text-[10px] font-black font-mono uppercase tracking-widest">Partners Pitching</span>
-                  <div className="p-2 rounded-xl bg-emerald-50 dark:bg-emerald-900/30 text-emerald-600 dark:text-emerald-400 shadow-sm group-hover:scale-110 transition-transform">
+                  <div className="p-2 rounded-xl bg-emerald-100 dark:bg-emerald-900/40 text-emerald-700 dark:text-emerald-400 shadow-sm group-hover:scale-110 transition-transform">
                     <Users className="h-5 w-5" />
                   </div>
                 </div>
                 <span className="text-3xl font-black font-display text-slate-950 dark:text-white block tracking-tighter">{userCollabs.length}</span>
-                <span className="text-[10px] font-bold text-slate-500 dark:text-slate-400 mt-1 uppercase tracking-tight">Active vetting requests</span>
+                <span className="text-[10px] font-black text-slate-600 dark:text-slate-400 mt-1 uppercase tracking-tight">Active vetting requests</span>
               </div>
 
               <div 
                 onClick={() => setActiveTab('funding')}
-                className="bg-white dark:bg-slate-950 border-2 border-slate-200 dark:border-slate-800 rounded-3xl p-6 shadow-lg flex flex-col justify-between cursor-pointer hover:border-orange-600 hover:shadow-xl transition-all select-none group"
+                className="bg-white dark:bg-slate-950 border border-slate-900/10 dark:border-slate-800 rounded-3xl p-6 shadow-[0_8px_24px_rgba(0,0,0,0.06)] flex flex-col justify-between cursor-pointer hover:border-orange-600 dark:hover:border-orange-500 hover:shadow-[0_12px_32px_rgba(0,0,0,0.1)] transition-all select-none group"
               >
-                <div className="flex items-center justify-between text-slate-500 dark:text-slate-400 mb-4">
+                <div className="flex items-center justify-between text-slate-600 dark:text-slate-400 mb-4">
                   <span className="text-[10px] font-black font-mono uppercase tracking-widest">Funders Inbox</span>
-                  <div className="p-2 rounded-xl bg-orange-50 dark:bg-orange-900/30 text-orange-600 dark:text-orange-400 shadow-sm group-hover:scale-110 transition-transform">
+                  <div className="p-2 rounded-xl bg-orange-100 dark:bg-orange-900/40 text-orange-700 dark:text-orange-400 shadow-sm group-hover:scale-110 transition-transform">
                     <CircleDollarSign className="h-5 w-5" />
                   </div>
                 </div>
                 <span className="text-3xl font-black font-display text-slate-950 dark:text-white block tracking-tighter">{userFundings.length}</span>
-                <span className="text-[10px] font-bold text-slate-500 dark:text-slate-400 mt-1 uppercase tracking-tight">Inquiries from investors</span>
+                <span className="text-[10px] font-black text-slate-600 dark:text-slate-400 mt-1 uppercase tracking-tight">Inquiries from investors</span>
               </div>
 
               <div 
                 onClick={() => { setActiveTab('ideas'); setIdeasSubFilter('all'); }}
-                className="bg-white dark:bg-slate-950 border-2 border-slate-200 dark:border-slate-800 rounded-3xl p-6 shadow-lg flex flex-col justify-between cursor-pointer hover:border-red-600 hover:shadow-xl transition-all select-none group"
+                className="bg-white dark:bg-slate-950 border border-slate-900/10 dark:border-slate-800 rounded-3xl p-6 shadow-[0_8px_24px_rgba(0,0,0,0.06)] flex flex-col justify-between cursor-pointer hover:border-red-600 dark:hover:border-red-500 hover:shadow-[0_12px_32px_rgba(0,0,0,0.1)] transition-all select-none group"
               >
-                <div className="flex items-center justify-between text-slate-500 dark:text-slate-400 mb-4">
+                <div className="flex items-center justify-between text-slate-600 dark:text-slate-400 mb-4">
                   <span className="text-[10px] font-black font-mono uppercase tracking-widest">Net Upvotes</span>
-                  <div className="p-2 rounded-xl bg-red-50 dark:bg-red-900/30 text-red-600 dark:text-red-400 shadow-sm group-hover:scale-110 transition-transform">
+                  <div className="p-2 rounded-xl bg-red-100 dark:bg-red-900/40 text-red-700 dark:text-red-400 shadow-sm group-hover:scale-110 transition-transform">
                     <Heart className="h-5 w-5" />
                   </div>
                 </div>
                 <span className="text-3xl font-black font-display text-slate-950 dark:text-white block tracking-tighter">{totalLikes}</span>
-                <span className="text-[10px] font-bold text-slate-500 dark:text-slate-400 mt-1 uppercase tracking-tight">Aggregate idea likes</span>
+                <span className="text-[10px] font-black text-slate-600 dark:text-slate-400 mt-1 uppercase tracking-tight">Aggregate idea likes</span>
               </div>
 
               <div 
                 onClick={() => setActiveTab('suggestions')}
-                className="bg-white dark:bg-slate-950 border-2 border-slate-200 dark:border-slate-800 rounded-3xl p-6 shadow-lg flex flex-col justify-between cursor-pointer hover:border-purple-600 hover:shadow-xl transition-all select-none group"
+                className="bg-white dark:bg-slate-950 border border-slate-900/10 dark:border-slate-800 rounded-3xl p-6 shadow-[0_8px_24px_rgba(0,0,0,0.06)] flex flex-col justify-between cursor-pointer hover:border-purple-600 dark:hover:border-purple-500 hover:shadow-[0_12px_32px_rgba(0,0,0,0.1)] transition-all select-none group"
               >
-                <div className="flex items-center justify-between text-slate-500 dark:text-slate-400 mb-4">
+                <div className="flex items-center justify-between text-slate-600 dark:text-slate-400 mb-4">
                   <span className="text-[10px] font-black font-mono uppercase tracking-widest">Suggestions Received</span>
-                  <div className="p-2 rounded-xl bg-purple-50 dark:bg-purple-900/30 text-purple-600 dark:text-purple-400 shadow-sm group-hover:scale-110 transition-transform">
+                  <div className="p-2 rounded-xl bg-purple-100 dark:bg-purple-900/40 text-purple-700 dark:text-purple-400 shadow-sm group-hover:scale-110 transition-transform">
                     <MessageSquare className="h-5 w-5" />
                   </div>
                 </div>
                 <span className="text-3xl font-black font-display text-slate-950 dark:text-white block tracking-tighter">{totalSuggestions}</span>
-                <span className="text-[10px] font-bold text-slate-500 dark:text-slate-400 mt-1 uppercase tracking-tight">Constructive peer feedback</span>
+                <span className="text-[10px] font-black text-slate-600 dark:text-slate-400 mt-1 uppercase tracking-tight">Constructive peer feedback</span>
               </div>
 
             </div>
@@ -349,39 +359,39 @@ export default function DashboardView({
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6" id="dashboard-lower-overview">
             
             {/* Recent Inbox Summary */}
-            <div className="p-6 bg-white dark:bg-slate-900/40 border border-slate-200/50 dark:border-slate-800/40 rounded-2xl select-none">
-              <h2 className="font-display font-semibold text-sm text-slate-900 dark:text-white border-b border-slate-50 dark:border-slate-800/40 pb-3 mb-4">Inbox Snapshots</h2>
+            <div className="p-6 bg-white dark:bg-slate-900 border-2 border-slate-200 dark:border-slate-800 rounded-2xl select-none shadow-sm">
+              <h2 className="font-display font-black text-sm text-slate-950 dark:text-white border-b-2 border-slate-100 dark:border-slate-800 pb-3 mb-4 uppercase tracking-tight">Inbox Snapshots</h2>
               <div className="space-y-3.5">
                 {userCollabs.length === 0 && userFundings.length === 0 ? (
-                  <p className="text-xs text-slate-400 dark:text-slate-500 py-6 text-center leading-relaxed">
+                  <p className="text-xs text-slate-500 dark:text-slate-400 py-6 text-center leading-relaxed font-bold">
                     No active requests. Make your ideas public and detailed to attract collaborators!
                   </p>
                 ) : (
                   <>
                     {userCollabs.slice(0, 2).map(c => (
-                      <div key={c.id} className="flex justify-between items-center text-xs p-3.5 border border-slate-100 dark:border-slate-800/60 rounded-xl bg-slate-50/50 dark:bg-slate-950/20">
+                      <div key={c.id} className="flex justify-between items-center text-xs p-3.5 border-2 border-slate-100 dark:border-slate-800 rounded-xl bg-slate-50 dark:bg-slate-950">
                         <div className="flex items-center gap-3">
                           <StatusBadge status={c.status} />
                           <div>
-                            <span className="font-bold text-slate-900 dark:text-white">{c.name}</span>
-                            <span className="text-slate-500 dark:text-slate-400 ml-1">proposes to join</span>
-                            <span className="font-semibold text-blue-600 dark:text-blue-400 ml-1 italic">“{c.ideaName}”</span>
+                            <span className="font-black text-slate-950 dark:text-white">{c.name}</span>
+                            <span className="text-slate-600 dark:text-slate-400 ml-1">proposes to join</span>
+                            <span className="font-black text-blue-700 dark:text-blue-400 ml-1 italic">“{c.ideaName}”</span>
                           </div>
                         </div>
-                        <button onClick={() => setActiveTab('collabs')} className="text-blue-600 dark:text-blue-400 font-bold hover:underline cursor-pointer">View</button>
+                        <button onClick={() => setActiveTab('collabs')} className="text-blue-700 dark:text-blue-400 font-black hover:underline cursor-pointer">View</button>
                       </div>
                     ))}
                     {userFundings.slice(0, 2).map(f => (
-                      <div key={f.id} className="flex justify-between items-center text-xs p-3.5 border border-amber-100/40 dark:border-amber-900/30 rounded-xl bg-amber-50/10 dark:bg-amber-900/10">
+                      <div key={f.id} className="flex justify-between items-center text-xs p-3.5 border-2 border-amber-100 dark:border-amber-900/40 rounded-xl bg-amber-50 dark:bg-amber-950/20">
                         <div className="flex items-center gap-3">
                           <StatusBadge status={f.status} />
                           <div>
-                            <span className="font-bold text-slate-900 dark:text-white">{f.name}</span>
-                            <span className="text-slate-500 dark:text-slate-400 ml-1">submitted funding for</span>
-                            <span className="font-semibold text-blue-600 dark:text-blue-400 ml-1 italic">“{f.ideaName}”</span>
+                            <span className="font-black text-slate-950 dark:text-white">{f.name}</span>
+                            <span className="text-slate-600 dark:text-slate-400 ml-1">submitted funding for</span>
+                            <span className="font-black text-blue-700 dark:text-blue-400 ml-1 italic">“{f.ideaName}”</span>
                           </div>
                         </div>
-                        <button onClick={() => setActiveTab('funding')} className="text-blue-600 dark:text-blue-400 font-bold hover:underline cursor-pointer">View</button>
+                        <button onClick={() => setActiveTab('funding')} className="text-blue-700 dark:text-blue-400 font-black hover:underline cursor-pointer">View</button>
                       </div>
                     ))}
                   </>
@@ -390,24 +400,24 @@ export default function DashboardView({
             </div>
 
             {/* Quick Profile Snapshot */}
-            <div className="p-6 bg-white dark:bg-slate-900/40 border border-slate-200/50 dark:border-slate-800/40 rounded-2xl bg-gradient-to-br from-white to-slate-50 dark:from-slate-900/40 dark:to-slate-800/20 flex flex-col justify-between">
+            <div className="p-6 bg-white dark:bg-slate-900 border-2 border-slate-200 dark:border-slate-800 rounded-2xl flex flex-col justify-between shadow-sm">
               <div>
-                <h2 className="font-display font-semibold text-sm text-slate-900 dark:text-white pb-3 border-b border-slate-50 dark:border-slate-800/40 select-none">Creator Card Verified</h2>
+                <h2 className="font-display font-black text-sm text-slate-950 dark:text-white pb-3 border-b-2 border-slate-100 dark:border-slate-800 select-none uppercase tracking-tight">Creator Card Verified</h2>
                 <div className="flex flex-wrap gap-1.5 mt-4" id="verified-skills-preview">
                   {profile.skills.map(s => (
-                    <span key={s} className="px-2.5 py-0.5 rounded-md text-[10px] font-semibold bg-blue-50/60 dark:bg-blue-900/20 text-blue-700 dark:text-blue-400 border border-blue-100/50 dark:border-blue-800/50">
+                    <span key={s} className="px-2.5 py-0.5 rounded-md text-[10px] font-black bg-blue-100 dark:bg-blue-900/40 text-blue-800 dark:text-blue-300 border-2 border-blue-200 dark:border-blue-800">
                       {s}
                     </span>
                   ))}
                 </div>
-                <p className="text-slate-500 dark:text-slate-400 text-xs mt-3 leading-relaxed">
+                <p className="text-slate-700 dark:text-slate-300 text-xs mt-3 leading-relaxed font-bold">
                   Before publishing future ideas, maintaining an active founder biography helps collaborators match with you based on matching engineering, design, or business skills.
                 </p>
               </div>
               <button
                 id="edit-profile-overview-btn"
                 onClick={() => setActiveTab('profile')}
-                className="mt-4 text-xs font-semibold text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300 self-start cursor-pointer hover:underline"
+                className="mt-4 text-xs font-black text-blue-700 dark:text-blue-400 hover:text-blue-800 dark:hover:text-blue-300 self-start cursor-pointer hover:underline uppercase tracking-tight"
               >
                 Configure credentials / links →
               </button>
@@ -443,17 +453,17 @@ export default function DashboardView({
                   {userIdeas.filter(i => i.isPublic).map(idea => (
                     <div
                       key={idea.id}
-                      className="bg-white dark:bg-slate-900/40 border border-slate-200/40 dark:border-slate-800/40 hover:border-blue-400/40 rounded-2xl p-6 transition-all shadow-[0_2px_12px_rgba(0,0,0,0.01)] hover:shadow-xl relative flex flex-col justify-between group overflow-hidden"
+                      className="bg-white dark:bg-slate-900 border-2 border-slate-200 dark:border-slate-800 hover:border-blue-500/50 rounded-2xl p-6 transition-all shadow-[0_8px_24px_rgba(0,0,0,0.06)] hover:shadow-xl relative flex flex-col justify-between group overflow-hidden"
                       id={`own-idea-public-${idea.id}`}
                     >
-                      <div className="absolute top-0 left-0 h-1 w-full bg-gradient-to-r from-emerald-500/20 via-blue-500/20 to-transparent" />
+                      <div className="absolute top-0 left-0 h-1.5 w-full bg-gradient-to-r from-emerald-600 to-blue-600" />
                       
                       <div>
                         {/* Header Action Badges and Date */}
-                        <div className="flex justify-between items-center mb-4 text-[10px] font-mono text-slate-400 dark:text-slate-500 select-none">
+                        <div className="flex justify-between items-center mb-4 text-[10px] font-black font-mono text-slate-500 dark:text-slate-400 select-none">
                           <span>PUBLISHED: {new Date(idea.createdAt).toLocaleDateString()}</span>
                           <div className="flex items-center space-x-1.5">
-                            <span className="inline-flex items-center space-x-0.5 px-2 py-0.5 rounded-full bg-emerald-50/50 dark:bg-emerald-900/20 text-emerald-700 dark:text-emerald-400 border border-emerald-100/50 dark:border-emerald-800/50 font-bold">
+                            <span className="inline-flex items-center space-x-0.5 px-2 py-0.5 rounded-full bg-emerald-100 dark:bg-emerald-900/40 text-emerald-800 dark:text-emerald-300 border-2 border-emerald-200 dark:border-emerald-800 font-black uppercase tracking-tight">
                               <Globe className="h-2.5 w-2.5" />
                               <span>Public Pitch</span>
                             </span>
@@ -461,39 +471,39 @@ export default function DashboardView({
                         </div>
 
                         <div className="flex items-start space-x-4 mb-4 select-none">
-                          <div className="w-12 h-12 rounded-2xl bg-slate-50/50 dark:bg-slate-800/40 border border-slate-150/50 dark:border-slate-700/50 flex items-center justify-center text-2xl shadow-2xs group-hover:scale-105 transition-transform shrink-0">
+                          <div className="w-12 h-12 rounded-2xl bg-slate-50 dark:bg-slate-800 border-2 border-slate-200 dark:border-slate-700 flex items-center justify-center text-2xl shadow-sm group-hover:scale-105 transition-transform shrink-0">
                             {idea.logo}
                           </div>
                           <div className="min-w-0 flex-1">
-                            <h4 className="font-display font-black text-slate-900 dark:text-white group-hover:text-blue-600 dark:group-hover:text-blue-400 text-sm truncate uppercase tracking-tight" dir="auto">{idea.name}</h4>
+                            <h4 className="font-display font-black text-slate-950 dark:text-white group-hover:text-blue-700 dark:group-hover:text-blue-400 text-sm truncate uppercase tracking-tight" dir="auto">{idea.name}</h4>
                             <div className="flex flex-wrap gap-1.5 mt-1 select-none">
-                              <span className="inline-block px-2 py-0.5 rounded-md text-[9px] bg-slate-100/50 dark:bg-slate-800/50 border border-slate-150/50 dark:border-slate-700/50 text-slate-700 dark:text-slate-300 font-bold uppercase tracking-wider">{idea.category}</span>
-                              <span className="inline-block px-2 py-0.5 rounded-md text-[9px] bg-zinc-50/50 dark:bg-zinc-900/50 border border-zinc-150/50 dark:border-zinc-800/50 text-zinc-650 dark:text-zinc-400 font-semibold">{idea.progressStage}</span>
+                              <span className="inline-block px-2 py-0.5 rounded-md text-[9px] bg-slate-100 dark:bg-slate-800 border-2 border-slate-200 dark:border-slate-700 text-slate-800 dark:text-slate-200 font-black uppercase tracking-wider">{idea.category}</span>
+                              <span className="inline-block px-2 py-0.5 rounded-md text-[9px] bg-zinc-100 dark:bg-zinc-800 border-2 border-zinc-200 dark:border-zinc-700 text-zinc-800 dark:text-zinc-300 font-black uppercase tracking-tight">{idea.progressStage}</span>
                             </div>
                           </div>
                         </div>
 
-                        <p className="text-slate-650 dark:text-slate-400 text-xs leading-relaxed line-clamp-3 mb-5 pr-2" dir="auto">
+                        <p className="text-slate-700 dark:text-slate-300 text-xs font-bold leading-relaxed line-clamp-3 mb-5 pr-2" dir="auto">
                           {idea.description}
                         </p>
 
                         {/* Idea Metrics Section */}
-                        <div className="grid grid-cols-2 md:grid-cols-4 gap-2 bg-slate-50/30 dark:bg-slate-950/20 border border-slate-100/50 dark:border-slate-800/40 p-2.5 rounded-xl text-center select-none mb-5 font-mono text-[10px] font-bold">
+                        <div className="grid grid-cols-2 md:grid-cols-4 gap-2 bg-slate-50 dark:bg-slate-950 border-2 border-slate-100 dark:border-slate-800 p-2.5 rounded-xl text-center select-none mb-5 font-mono text-[10px] font-black">
                           <div className="p-1">
-                            <span className="block text-[8px] text-slate-400 dark:text-slate-500 uppercase">Upvotes</span>
-                            <span className="text-slate-700 dark:text-slate-300 text-xs">{idea.likes}</span>
+                            <span className="block text-[8px] text-slate-500 dark:text-slate-400 uppercase tracking-tighter">Upvotes</span>
+                            <span className="text-slate-950 dark:text-slate-100 text-xs">{idea.likes}</span>
                           </div>
-                          <div className="p-1 border-l border-slate-200/40 dark:border-slate-800/60">
-                            <span className="block text-[8px] text-slate-400 dark:text-slate-500 uppercase">Suggestions</span>
-                            <span className="text-slate-700 dark:text-slate-300 text-xs">{idea.suggestionsCount}</span>
+                          <div className="p-1 border-l-2 border-slate-100 dark:border-slate-800">
+                            <span className="block text-[8px] text-slate-500 dark:text-slate-400 uppercase tracking-tighter">Suggestions</span>
+                            <span className="text-slate-950 dark:text-slate-100 text-xs">{idea.suggestionsCount}</span>
                           </div>
-                          <div className="p-1 border-l border-slate-200/40 dark:border-slate-800/60">
-                            <span className="block text-[8px] text-slate-400 dark:text-slate-500 uppercase">Partners</span>
-                            <span className="text-slate-700 dark:text-slate-300 text-xs">{idea.collaborationCount}</span>
+                          <div className="p-1 border-l-2 border-slate-100 dark:border-slate-800">
+                            <span className="block text-[8px] text-slate-500 dark:text-slate-400 uppercase tracking-tighter">Partners</span>
+                            <span className="text-slate-950 dark:text-slate-100 text-xs">{idea.collaborationCount}</span>
                           </div>
-                          <div className="p-1 border-l border-slate-200/40 dark:border-slate-800/60">
-                            <span className="block text-[8px] text-slate-400 dark:text-slate-500 uppercase">Funding</span>
-                            <span className="text-emerald-600 dark:text-emerald-400 text-[10px] leading-tight truncate block">{idea.fundingGoal || 'None'}</span>
+                          <div className="p-1 border-l-2 border-slate-100 dark:border-slate-800">
+                            <span className="block text-[8px] text-slate-500 dark:text-slate-400 uppercase tracking-tighter">Funding</span>
+                            <span className="text-emerald-700 dark:text-emerald-400 text-[10px] leading-tight truncate block">{idea.fundingGoal || 'None'}</span>
                           </div>
                         </div>
                       </div>

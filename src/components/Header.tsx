@@ -64,8 +64,8 @@ export default function Header({
       }}
       className={`flex items-center space-x-3 px-7 py-3.5 rounded-2xl text-[13px] font-black transition-all cursor-pointer border-2 ${
         active
-          ? 'bg-slate-100/95 dark:bg-slate-800/95 text-blue-600 border-blue-600/30 shadow-md scale-[1.02]'
-          : 'bg-white/80 dark:bg-slate-900/80 text-slate-600 dark:text-slate-400 hover:text-slate-950 dark:hover:text-white border-slate-200 dark:border-slate-800 hover:border-slate-300 dark:hover:border-slate-700 hover:bg-white/95 dark:hover:bg-slate-900/95'
+          ? 'bg-slate-100 dark:bg-slate-800 text-blue-700 dark:text-blue-400 border-blue-600/40 shadow-md scale-[1.02]'
+          : 'bg-white dark:bg-slate-900 text-slate-700 dark:text-slate-300 hover:text-slate-950 dark:hover:text-white border-slate-200 dark:border-slate-800 hover:border-slate-300 dark:hover:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-800'
       }`}
     >
       <Icon className="h-5 w-5" />
@@ -77,8 +77,8 @@ export default function Header({
     <header 
       className={`sticky top-0 z-50 transition-all duration-300 ${
         isScrolled 
-          ? 'py-1.5 bg-white/98 dark:bg-slate-950/98 backdrop-blur-md border-b-2 border-slate-200 dark:border-slate-800 shadow-sm' 
-          : 'py-2 bg-transparent'
+          ? 'py-1.5 bg-white dark:bg-slate-950 border-b-2 border-slate-200 dark:border-slate-800 shadow-md' 
+          : 'py-2 bg-white/50 dark:bg-slate-950/50 backdrop-blur-sm'
       }`}
     >
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -99,7 +99,7 @@ export default function Header({
                 <span className="text-xl sm:text-2xl font-black bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent">Board</span>
               </div>
               {/* Premium Glow Effect on Hover */}
-              <div className="absolute -inset-2 bg-blue-600/0 group-hover:bg-blue-600/5 blur-2xl rounded-full transition-all duration-500 -z-10" />
+              <div className="absolute -inset-2 bg-blue-600/0 group-hover:bg-blue-600/5 rounded-full transition-all duration-500 -z-10" />
             </div>
           </div>
 
@@ -130,7 +130,7 @@ export default function Header({
             {/* Theme Toggle */}
             <button
               onClick={toggleTheme}
-              className="p-3 rounded-2xl bg-white/40 dark:bg-slate-900/40 text-slate-600 dark:text-slate-400 hover:text-blue-600 dark:hover:text-blue-400 transition-all cursor-pointer border-2 border-slate-200 dark:border-slate-800 hover:border-blue-600/20 shadow-xs"
+              className="p-3 rounded-2xl bg-white dark:bg-slate-900 text-slate-700 dark:text-slate-300 hover:text-blue-700 dark:hover:text-blue-400 transition-all cursor-pointer border-2 border-slate-200 dark:border-slate-800 hover:border-blue-600/30 shadow-sm"
               aria-label="Toggle theme"
             >
               {theme === 'dark' ? <Sun className="h-4.5 w-4.5" /> : <Moon className="h-4.5 w-4.5" />}
@@ -185,7 +185,7 @@ export default function Header({
             {/* Mobile Menu Toggle */}
             <button
               onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-              className="lg:hidden p-3 rounded-2xl bg-white/40 dark:bg-slate-900/40 text-slate-600 dark:text-slate-400 border-2 border-slate-200 dark:border-slate-800 transition-all cursor-pointer"
+              className="lg:hidden p-3 rounded-2xl bg-white dark:bg-slate-900 text-slate-700 dark:text-slate-300 border-2 border-slate-200 dark:border-slate-800 transition-all cursor-pointer shadow-sm"
             >
               {isMobileMenuOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
             </button>

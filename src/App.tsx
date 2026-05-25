@@ -15,7 +15,10 @@ import { motion, AnimatePresence } from 'motion/react';
 import { supabase } from './supabase';
 
 export default function App() {
-  // Load state from localStorage on init
+  const [currentUser, setCurrentUser] = useState<FounderProfile | null>(DEFAULT_PROFILE);
+  const [session, setSession] = useState<any>(null);
+
+  // Load state from Supabase and sync with localStorage
   const [state, setState] = useState(() => {
     try {
       return getLocalStorageState();
@@ -32,11 +35,126 @@ export default function App() {
     }
   });
 
-  const [currentUser, setCurrentUser] = useState<FounderProfile | null>(DEFAULT_PROFILE);
   const [currentView, setCurrentView] = useState<'explore' | 'dashboard'>('explore');
 
-  const fetchProfile = async (userId: string, isNewUser?: boolean) => {
-    // Auth is disabled
+  // Anonymous Authentication & Profile Setup
+  useEffect(() => {
+    const handleAuth = async () => {
+      try {
+        // 1. Get current session or sign in anonymously
+        let { data: { session: currentSession } } = await supabase.auth.getSession();
+        
+        if (!currentSession) {
+          const { data, error } = await supabase.auth.signInAnonymously();
+          
+          if (error) {
+            console.warn('Anonymous sign-in failed, falling back to local guest mode:', error.message);
+            // Fallback: use a consistent local guest ID if Supabase Auth is disabled
+            const guestId = '00000000-0000-0000-0000-000000000000'; 
+            setCurrentUser({
+              ...DEFAULT_PROFILE,
+              id: guestId
+            });
+            return;
+          }
+          currentSession = data.session;
+        }
+        
+        setSession(currentSession);
+        const user = currentSession?.user;
+
+        if (user) {
+          // 2. Ensure profile exists in 'profiles' table
+          const { data: profile, error: profileError } = await supabase
+            .from('profiles')
+            .select('*')
+            .eq('id', user.id)
+            .single();
+
+          if (profileError || !profile) {
+            // Create new default profile for anonymous user
+            const newProfile = {
+              id: user.id,
+              name: `Guest Founder`,
+              email: user.email || `guest_${user.id.slice(0, 8)}@visionboard.local`,
+              bio: 'New founder exploring visions.',
+              skills: [],
+              avatar_url: 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?auto=format&fit=crop&q=80&w=80'
+            };
+
+            const { data: createdProfile, error: createError } = await supabase
+              .from('profiles')
+              .insert([newProfile])
+              .select()
+              .single();
+
+            if (!createError && createdProfile) {
+              setCurrentUser({
+                id: createdProfile.id,
+                name: createdProfile.name,
+                email: createdProfile.email,
+                bio: createdProfile.bio,
+                skills: createdProfile.skills || [],
+                avatar: createdProfile.avatar_url
+              });
+            }
+          } else {
+            setCurrentUser({
+              id: profile.id,
+              name: profile.name,
+              email: profile.email,
+              bio: profile.bio,
+              skills: profile.skills || [],
+              avatar: profile.avatar_url
+            });
+          }
+
+          // 3. Fetch user's liked ideas
+          const { data: userLikes } = await supabase
+            .from('likes')
+            .select('idea_id')
+            .eq('user_id', user.id);
+          
+          if (userLikes) {
+            setLikedIdeaIds(userLikes.map(l => l.idea_id));
+          }
+        }
+      } catch (err) {
+        console.error('Auth handler critical error:', err);
+      }
+    };
+
+    handleAuth();
+
+    // Listen for auth changes
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+      setSession(session);
+    });
+
+    return () => subscription.unsubscribe();
+  }, []);
+
+  const fetchProfile = async (userId: string) => {
+    const { data, error } = await supabase
+      .from('profiles')
+      .select('*')
+      .eq('id', userId)
+      .single();
+    
+    if (!error && data) {
+      const profile: FounderProfile = {
+        id: data.id,
+        name: data.name,
+        email: data.email,
+        bio: data.bio,
+        skills: data.skills || [],
+        avatar: data.avatar_url,
+        github: data.github_url,
+        twitter: data.twitter_url,
+        linkedin: data.linkedin_url
+      };
+      setCurrentUser(profile);
+    }
   };
 
   // Theme support
@@ -102,6 +220,7 @@ export default function App() {
   useEffect(() => {
     const loadData = async () => {
       try {
+        // Fetch ideas (RLS handles visibility: public or owned)
         const { data: ideas, error: ideasError } = await supabase
           .from('ideas')
           .select('*')
@@ -137,7 +256,7 @@ export default function App() {
           createdAt: data.created_at
         }));
 
-        // Fetch collaboration requests
+        // Fetch collaboration requests (RLS handles isolation: owner or requester)
         const { data: collabs, error: collabsError } = await supabase
           .from('collaboration_requests')
           .select('*');
@@ -156,7 +275,7 @@ export default function App() {
           createdAt: c.created_at
         }));
 
-        // Fetch funding requests
+        // Fetch funding requests (RLS handles isolation)
         const { data: fundings, error: fundingsError } = await supabase
           .from('funding_requests')
           .select('*');
@@ -175,10 +294,10 @@ export default function App() {
           createdAt: f.created_at
         }));
 
-        // Fetch suggestions
+        // Fetch suggestions with profile info
         const { data: suggestions, error: suggestionsError } = await supabase
           .from('suggestions')
-          .select('*');
+          .select('*, profiles:requester_id(name, avatar_url)');
 
         const mappedSuggestions: Suggestion[] = (suggestions || []).map(s => ({
           id: s.id,
@@ -186,8 +305,8 @@ export default function App() {
           founderId: s.founder_id,
           content: s.suggestion_text,
           createdAt: s.created_at,
-          authorName: 'Anonymous Founder',
-          authorAvatar: 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?auto=format&fit=crop&q=80&w=80',
+          authorName: (s as any).profiles?.name || 'Anonymous Founder',
+          authorAvatar: (s as any).profiles?.avatar_url || 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?auto=format&fit=crop&q=80&w=80',
           ideaName: mappedIdeas.find(i => i.id === s.idea_id)?.name || 'Unknown Idea'
         }));
 
@@ -205,9 +324,13 @@ export default function App() {
       }
     };
 
-    loadData();
+    if (currentUser) {
+      loadData();
+    } else {
+      setIsLoading(false);
+    }
 
-    // Set up realtime listeners
+    // Set up realtime listeners (scoped to visible data)
     const ideasChannel = supabase.channel('public:ideas')
       .on('postgres_changes', { event: '*', schema: 'public', table: 'ideas' }, () => loadData())
       .subscribe();
@@ -230,7 +353,7 @@ export default function App() {
       supabase.removeChannel(fundingChannel);
       supabase.removeChannel(suggestionsChannel);
     };
-  }, []);
+  }, [currentUser]);
 
   // Sync state changes to global LocalStorage
   useEffect(() => {
@@ -253,7 +376,29 @@ export default function App() {
     setTimeout(() => setToastMessage(null), 3000);
   };
 
-  const handleProfileUpdate = (updated: FounderProfile) => {
+  const handleProfileUpdate = async (updated: FounderProfile) => {
+    if (!currentUser) return;
+
+    const { error } = await supabase
+      .from('profiles')
+      .update({
+        name: updated.name,
+        email: updated.email,
+        bio: updated.bio,
+        skills: updated.skills,
+        avatar_url: updated.avatar,
+        github_url: updated.github,
+        twitter_url: updated.twitter,
+        linkedin_url: updated.linkedin
+      })
+      .eq('id', currentUser.id);
+
+    if (error) {
+      console.error('Error updating profile in Supabase:', error);
+      showToast('Failed to sync profile update to database.');
+      return;
+    }
+
     setCurrentUser(updated);
     setState(prev => ({ ...prev, profile: updated }));
     showToast('Founder Bio updated successfully!');
@@ -261,7 +406,10 @@ export default function App() {
 
   // Add startup idea handler
   const handleAddIdeaSubmit = async (ideaData: Partial<StartupIdea>) => {
-    if (!currentUser) return;
+    if (!currentUser) {
+      showToast('Session initializing. Please try again in a moment.');
+      return;
+    }
 
     const payload = {
       name: ideaData.name || 'Untitled Vision',
@@ -427,46 +575,41 @@ export default function App() {
 
   // Like handler
   const handleLikeToggle = async (ideaId: string) => {
+    if (!currentUser) return;
     const isLiked = likedIdeaIds.includes(ideaId);
-    const idea = state.ideas.find(i => i.id === ideaId);
-    if (!idea) return;
-
-    const newLikes = isLiked ? Math.max(0, idea.likes - 1) : idea.likes + 1;
-
-    const { error } = await supabase
-      .from('ideas')
-      .update({ likes: newLikes })
-      .eq('id', ideaId);
-
-    if (error) {
-      console.error('Error updating likes:', error);
-      showToast('Failed to update likes.');
-      return;
-    }
-
+    
     if (isLiked) {
+      // Unlike: Remove from likes table
+      const { error } = await supabase
+        .from('likes')
+        .delete()
+        .match({ user_id: currentUser.id, idea_id: ideaId });
+
+      if (error) {
+        console.error('Error removing like:', error);
+        showToast('Failed to remove like.');
+        return;
+      }
       setLikedIdeaIds(prev => prev.filter(likedId => likedId !== ideaId));
     } else {
+      // Like: Add to likes table
+      const { error } = await supabase
+        .from('likes')
+        .insert([{ user_id: currentUser.id, idea_id: ideaId }]);
+
+      if (error) {
+        // If it's a unique constraint error, the user already liked it, so we just update local state
+        if (error.code !== '23505') {
+          console.error('Error adding like:', error);
+          showToast('Failed to add like.');
+          return;
+        }
+      }
       setLikedIdeaIds(prev => [...prev, ideaId]);
     }
 
-    setState(prev => ({
-      ...prev,
-      ideas: prev.ideas.map(i => 
-        i.id === ideaId ? { ...i, likes: newLikes } : i
-      )
-    }));
-
-    // Refresh selected modal reference to update state immediately
-    if (selectedIdea && selectedIdea.id === ideaId) {
-      setSelectedIdea(prev => {
-        if (!prev) return null;
-        return {
-          ...prev,
-          likes: newLikes
-        };
-      });
-    }
+    // Local state will be updated by the realtime listener on 'ideas' table 
+    // since the database trigger updates the likes count.
   };
 
   // Peer Suggestions Comment boards
@@ -476,6 +619,7 @@ export default function App() {
     const payload = {
       idea_id: selectedIdea.id,
       founder_id: selectedIdea.founderId,
+      requester_id: currentUser?.id,
       suggestion_text: content,
       created_at: new Date().toISOString()
     };
@@ -534,6 +678,7 @@ export default function App() {
         idea_id: interestTargetIdea.id,
         idea_name: interestTargetIdea.name,
         founder_id: interestTargetIdea.founderId,
+        requester_id: currentUser?.id,
         full_name: formData.name,
         email: formData.email,
         phone: formData.phone,
@@ -584,6 +729,7 @@ export default function App() {
         idea_id: interestTargetIdea.id,
         idea_name: interestTargetIdea.name,
         founder_id: interestTargetIdea.founderId,
+        requester_id: currentUser?.id,
         full_name: formData.name,
         email: formData.email,
         phone: formData.phone,
@@ -869,50 +1015,18 @@ export default function App() {
               </div>
             </section>
 
-            {/* 2. Recently Listed (Chronological) */}
-            <section id="recently-listed-section">
-              <div className="flex items-center justify-between mb-8 px-1">
-                <div className="flex items-center space-x-3 select-none">
-                  <div className="p-2 rounded-xl bg-blue-600 shadow-lg shadow-blue-500/20">
-                    <Sparkles className="h-5 w-5 text-white" />
-                  </div>
-                  <h2 className="text-xl font-display font-black text-slate-950 dark:text-white uppercase tracking-tight">Recently Listed Ideas</h2>
-                </div>
-                <div className="flex items-center space-x-2 text-[10px] font-black font-mono text-blue-600 dark:text-blue-400 uppercase tracking-widest bg-blue-50 dark:bg-blue-950/30 px-3 py-1.5 rounded-lg border border-blue-100 dark:border-blue-900 shadow-sm">
-                  <span className="w-1.5 h-1.5 rounded-full bg-blue-600 animate-pulse" />
-                  <span>Live Stream</span>
-                </div>
-              </div>
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-                {isLoading ? (
-                  Array.from({ length: 3 }).map((_, i) => <CardSkeleton key={i} />)
-                ) : (
-                  recentlyListedIdeas.map(idea => (
-                    <IdeaCard 
-                      key={idea.id} 
-                      idea={idea} 
-                      onCardClick={() => setSelectedIdea(idea)}
-                      onLikeClick={() => handleLikeToggle(idea.id)}
-                      isLikedByUser={likedIdeaIds.includes(idea.id)}
-                      rowStyle="recent"
-                    />
-                  ))
-                )}
-              </div>
-            </section>
-
-            {/* 3. Weekly Best (Staff picks / High Upvotes) */}
+            {/* 2. Weekly Best (Scale stage/high upvotes) */}
             <section id="weekly-best-section">
               <div className="flex items-center justify-between mb-8 px-1">
                 <div className="flex items-center space-x-3 select-none">
-                  <div className="p-2 rounded-xl bg-purple-600 shadow-lg shadow-purple-500/20">
+                  <div className="p-2 rounded-xl bg-blue-500 shadow-lg shadow-blue-500/20">
                     <Star className="h-5 w-5 text-white" />
                   </div>
-                  <h2 className="text-xl font-display font-black text-slate-950 dark:text-white uppercase tracking-tight">Best Ideas This Week</h2>
+                  <h2 className="text-xl font-display font-black text-slate-950 dark:text-white uppercase tracking-tight">Weekly Best</h2>
                 </div>
-                <div className="flex items-center space-x-2 text-[10px] font-black font-mono text-purple-600 dark:text-purple-400 uppercase tracking-widest bg-purple-50 dark:bg-purple-950/30 px-3 py-1.5 rounded-lg border border-purple-100 dark:border-purple-900 shadow-sm">
-                  <span className="w-1.5 h-1.5 rounded-full bg-purple-600 animate-pulse" />
-                  <span>Gold Validated</span>
+                <div className="flex items-center space-x-2 text-[10px] font-black font-mono text-blue-600 dark:text-blue-400 uppercase tracking-widest bg-blue-50 dark:bg-blue-950/30 px-3 py-1.5 rounded-lg border border-blue-100 dark:border-blue-900 shadow-sm">
+                  <span className="w-1.5 h-1.5 rounded-full bg-blue-500 animate-pulse" />
+                  <span>Editor Choice</span>
                 </div>
               </div>
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
@@ -933,17 +1047,46 @@ export default function App() {
               </div>
             </section>
 
-            {/* 4. Visionary Founder Table (Leaderboard) */}
-            <section id="leaderboard-section">
+            {/* 3. Just Listed (Latest entries) */}
+            <section id="just-listed-section">
               <div className="flex items-center justify-between mb-8 px-1">
                 <div className="flex items-center space-x-3 select-none">
-                  <div className="p-2 rounded-xl bg-amber-500 shadow-lg shadow-amber-500/20">
-                    <Users className="h-5 w-5 text-white" />
+                  <div className="p-2 rounded-xl bg-purple-500 shadow-lg shadow-purple-500/20">
+                    <Sparkles className="h-5 w-5 text-white" />
                   </div>
-                  <h2 className="text-xl font-display font-black text-slate-950 dark:text-white uppercase tracking-tight">Visionary Founder Tables</h2>
+                  <h2 className="text-xl font-display font-black text-slate-950 dark:text-white uppercase tracking-tight">Just Listed</h2>
                 </div>
-                <div className="text-[10px] font-black font-mono text-amber-600 dark:text-amber-400 uppercase tracking-widest bg-amber-50 dark:bg-amber-950/30 px-3 py-1.5 rounded-lg border border-amber-100 dark:border-amber-900 shadow-sm">
-                  Updates Realtime
+                <div className="flex items-center space-x-2 text-[10px] font-black font-mono text-purple-600 dark:text-purple-400 uppercase tracking-widest bg-purple-50 dark:bg-purple-950/30 px-3 py-1.5 rounded-lg border border-purple-100 dark:border-purple-900 shadow-sm">
+                  <span className="w-1.5 h-1.5 rounded-full bg-purple-500 animate-pulse" />
+                  <span>Verified Feed</span>
+                </div>
+              </div>
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+                {isLoading ? (
+                  Array.from({ length: 3 }).map((_, i) => <CardSkeleton key={i} />)
+                ) : (
+                  recentlyListedIdeas.map(idea => (
+                    <IdeaCard 
+                      key={idea.id} 
+                      idea={idea} 
+                      onCardClick={() => setSelectedIdea(idea)}
+                      onLikeClick={() => handleLikeToggle(idea.id)}
+                      isLikedByUser={likedIdeaIds.includes(idea.id)}
+                      rowStyle="latest"
+                    />
+                  ))
+                )}
+              </div>
+            </section>
+
+            {/* LEADERBOARD / ALL DIRECTORY TABLE */}
+            <section id="directory-leaderboard-section" className="pb-10">
+              <div className="flex items-center justify-between mb-8 px-1">
+                <div className="flex items-center space-x-3 select-none">
+                  <div className="p-2 rounded-xl bg-slate-950 dark:bg-white shadow-lg shadow-slate-950/10 dark:shadow-white/5">
+                    <Users className="h-5 w-5 text-white dark:text-slate-950" />
+                  </div>
+                  <h2 className="text-xl font-display font-black text-slate-950 dark:text-white uppercase tracking-tight">Startup Leaderboard</h2>
                 </div>
               </div>
               {isLoading ? (
@@ -959,29 +1102,36 @@ export default function App() {
           </div>
         ) : (
           /* DASHBOARD ROW (If view set to user center) */
-          <DashboardView
-            profile={currentUser!}
-            ideas={state.ideas}
-            collabs={state.collaborations}
-            fundings={state.funding}
-            suggestions={state.suggestions}
-            onUpdateProfile={handleProfileUpdate}
-            onAddIdeaClick={() => {
-              setIdeaToEdit(null);
-              setShowAddIdeaModal(true);
-            }}
-            onSelectIdea={(idea) => {
-              setSelectedIdea(idea);
-              setCurrentView('explore');
-            }}
-            onDeleteIdea={handleDeleteIdea}
-            onToggleVisibility={handleToggleIdeaVisibility}
-            onEditIdea={(idea) => {
-              setIdeaToEdit(idea);
-              setShowAddIdeaModal(true);
-            }}
-            onUpdateRequestStatus={handleUpdateRequestStatus}
-          />
+          currentUser ? (
+            <DashboardView
+              profile={currentUser}
+              ideas={state.ideas}
+              collabs={state.collaborations}
+              fundings={state.funding}
+              suggestions={state.suggestions}
+              onUpdateProfile={handleProfileUpdate}
+              onAddIdeaClick={() => {
+                setIdeaToEdit(null);
+                setShowAddIdeaModal(true);
+              }}
+              onSelectIdea={(idea) => {
+                setSelectedIdea(idea);
+                setCurrentView('explore');
+              }}
+              onDeleteIdea={handleDeleteIdea}
+              onToggleVisibility={handleToggleIdeaVisibility}
+              onEditIdea={(idea) => {
+                setIdeaToEdit(idea);
+                setShowAddIdeaModal(true);
+              }}
+              onUpdateRequestStatus={handleUpdateRequestStatus}
+            />
+          ) : (
+            <div className="max-w-7xl mx-auto px-4 py-20 text-center">
+              <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
+              <p className="text-slate-600 dark:text-slate-400 font-bold">Initializing your secure workspace...</p>
+            </div>
+          )
         )}
       </main>
 

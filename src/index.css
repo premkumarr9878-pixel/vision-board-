@@ -47,8 +47,8 @@ textarea, input, .multilingual-text {
 
 /* Placeholder styling for multilingual clarity */
 ::placeholder {
-  opacity: 0.5;
-  font-weight: 400;
+  opacity: 0.7;
+  font-weight: 500;
 }
 
 html.dark body {

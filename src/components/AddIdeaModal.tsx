@@ -60,7 +60,7 @@ const AutoResizeTextarea = ({
       onChange={onChange}
       dir="auto"
       placeholder={placeholder}
-      className={`w-full py-3.5 px-4 border-2 border-slate-200 dark:border-slate-700 rounded-2xl text-[14px] placeholder-slate-400/70 bg-white dark:bg-slate-50 dark:text-black focus:outline-none focus:ring-4 focus:ring-blue-500/10 focus:border-blue-500 transition-all resize-none leading-relaxed font-sans overflow-hidden min-h-[100px] multilingual-text ${className}`}
+      className={`w-full py-3.5 px-4 border-2 border-slate-200 dark:border-slate-800 rounded-2xl placeholder-slate-500 bg-white dark:bg-slate-950 dark:text-white focus:outline-none focus:ring-4 focus:ring-blue-500/10 focus:border-blue-600 dark:focus:border-blue-500 transition-all resize-none leading-relaxed font-sans overflow-hidden min-h-[100px] font-medium multilingual-text ${className}`}
     />
   );
 };
@@ -258,7 +258,7 @@ export default function AddIdeaModal({
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
           onClick={onClose}
-          className="fixed inset-0 bg-slate-950/60 dark:bg-slate-950/80 backdrop-blur-md"
+          className="fixed inset-0 bg-slate-950/70 dark:bg-slate-950/90 backdrop-blur-sm"
           id="add-idea-backdrop"
         />
 
@@ -268,20 +268,20 @@ export default function AddIdeaModal({
           animate={{ opacity: 1, scale: 1, y: 0 }}
           exit={{ opacity: 0, scale: 0.96, y: 25 }}
           transition={{ type: 'spring', damping: 25, stiffness: 185 }}
-          className="relative bg-white/95 dark:bg-slate-900/95 backdrop-blur-xl w-full max-w-2xl rounded-3xl border border-slate-200/50 dark:border-slate-800/80 shadow-[0_24px_50px_-12px_rgba(0,0,0,0.12)] dark:shadow-[0_24px_60px_-12px_rgba(0,0,0,0.6)] flex flex-col max-h-[90vh] overflow-hidden"
+          className="relative bg-white dark:bg-slate-900 w-full max-w-2xl rounded-3xl border-2 border-slate-200 dark:border-slate-800 shadow-[0_24px_50px_-12px_rgba(0,0,0,0.2)] dark:shadow-[0_24px_60px_-12px_rgba(0,0,0,0.8)] flex flex-col max-h-[90vh] overflow-hidden"
           id="add-idea-modal"
         >
           {/* Header */}
-          <div className="px-6 py-5 border-b border-slate-150/40 dark:border-slate-800/60 flex items-center justify-between bg-slate-50/70 dark:bg-slate-950/20 select-none">
+          <div className="px-6 py-5 border-b-2 border-slate-100 dark:border-slate-800 flex items-center justify-between bg-slate-50 dark:bg-slate-950 select-none">
             <div className="flex items-center space-x-3">
-              <div className="p-2 bg-blue-500/10 rounded-xl">
-                <Sparkles className="h-5 w-5 text-blue-600 dark:text-blue-450 animate-pulse" />
+              <div className="p-2 bg-blue-600/10 rounded-xl">
+                <Sparkles className="h-5 w-5 text-blue-700 dark:text-blue-400" />
               </div>
               <div>
-                <h2 className="font-display font-black text-lg text-slate-900 dark:text-white leading-tight">
+                <h2 className="font-display font-black text-lg text-slate-950 dark:text-white leading-tight">
                   {ideaToEdit ? "Edit Your Startup Idea" : "Publish a Future Startup Idea"}
                 </h2>
-                <p className="text-[11px] text-slate-500 dark:text-slate-400 mt-0.5">
+                <p className="text-[11px] text-slate-600 dark:text-slate-400 mt-0.5 font-bold">
                   {ideaToEdit ? "Modify your project settings, status, or design options." : "Draft your vision & connect with looking co-founders."}
                 </p>
               </div>
@@ -289,7 +289,7 @@ export default function AddIdeaModal({
             <button
               id="close-add-idea-btn"
               onClick={onClose}
-              className="p-1.5 text-slate-400 dark:text-slate-500 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800 rounded-xl transition-all shrink-0 cursor-pointer"
+              className="p-1.5 text-slate-500 dark:text-slate-400 hover:text-slate-950 dark:hover:text-white hover:bg-slate-200 dark:hover:bg-slate-800 rounded-xl transition-all shrink-0 cursor-pointer"
             >
               <X className="h-5 w-5" />
             </button>
@@ -311,34 +311,34 @@ export default function AddIdeaModal({
             )}
 
             {/* SECTION 1: Startup Branding */}
-            <div className="bg-slate-50/50 dark:bg-slate-900/40 p-4 sm:p-5 rounded-2xl border border-slate-200/40 dark:border-slate-800/50 space-y-4 hover:shadow-[0_4px_16px_rgba(0,0,0,0.01)] transition-all">
-              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-slate-200/45 dark:border-slate-800/50 pb-3">
+            <div className="bg-slate-50 dark:bg-slate-800/50 p-4 sm:p-5 rounded-2xl border-2 border-slate-200 dark:border-slate-800 space-y-4 hover:shadow-md transition-all">
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b-2 border-slate-100 dark:border-slate-700/50 pb-3">
                 <div className="flex items-center space-x-2">
-                  <div className="w-1.5 h-3 bg-blue-500 rounded-full" />
+                  <div className="w-1.5 h-3 bg-blue-600 rounded-full" />
                   <div>
-                    <span className="block text-[9px] font-bold font-mono text-slate-400 dark:text-slate-500 uppercase tracking-widest leading-none select-none">SECTION 1</span>
-                    <span className="block text-xs font-extrabold text-slate-800 dark:text-slate-200 mt-1 select-none">Startup Branding</span>
+                    <span className="block text-[9px] font-black font-mono text-slate-500 dark:text-slate-400 uppercase tracking-widest leading-none select-none">SECTION 1</span>
+                    <span className="block text-xs font-black text-slate-900 dark:text-slate-100 mt-1 select-none">Startup Branding</span>
                   </div>
                 </div>
-                <div className="flex bg-slate-100 dark:bg-slate-950/60 p-0.5 rounded-lg text-[10px] self-start sm:self-auto" id="logo-type-tabs">
+                <div className="flex bg-slate-100 dark:bg-slate-950 p-0.5 rounded-lg text-[10px] self-start sm:self-auto border border-slate-200 dark:border-slate-800" id="logo-type-tabs">
                   <button
                     type="button"
                     onClick={() => { setLogoType('emoji'); setLogo('🚀'); }}
-                    className={`px-2.5 py-1 rounded-md font-medium transition-all duration-150 cursor-pointer ${logoType === 'emoji' ? 'bg-white dark:bg-slate-800 text-slate-950 dark:text-white shadow-xs font-bold' : 'text-slate-500 hover:text-slate-950 dark:hover:text-slate-300'}`}
+                    className={`px-2.5 py-1 rounded-md font-bold transition-all duration-150 cursor-pointer ${logoType === 'emoji' ? 'bg-white dark:bg-slate-800 text-blue-700 dark:text-blue-400 shadow-sm' : 'text-slate-500 hover:text-slate-950 dark:hover:text-slate-300'}`}
                   >
                     Gallery
                   </button>
                   <button
                     type="button"
                     onClick={() => { setLogoType('upload'); setLogo(''); }}
-                    className={`px-2.5 py-1 rounded-md font-medium transition-all duration-150 cursor-pointer ${logoType === 'upload' ? 'bg-white dark:bg-slate-800 text-slate-950 dark:text-white shadow-xs font-bold' : 'text-slate-500 hover:text-slate-950 dark:hover:text-slate-300'}`}
+                    className={`px-2.5 py-1 rounded-md font-bold transition-all duration-150 cursor-pointer ${logoType === 'upload' ? 'bg-white dark:bg-slate-800 text-blue-700 dark:text-blue-400 shadow-sm' : 'text-slate-500 hover:text-slate-950 dark:hover:text-slate-300'}`}
                   >
                     Desktop Upload
                   </button>
                   <button
                     type="button"
                     onClick={() => { setLogoType('url'); setLogo(''); }}
-                    className={`px-2.5 py-1 rounded-md font-medium transition-all duration-150 cursor-pointer ${logoType === 'url' ? 'bg-white dark:bg-slate-800 text-slate-950 dark:text-white shadow-xs font-bold' : 'text-slate-500 hover:text-slate-950 dark:hover:text-slate-300'}`}
+                    className={`px-2.5 py-1 rounded-md font-bold transition-all duration-150 cursor-pointer ${logoType === 'url' ? 'bg-white dark:bg-slate-800 text-blue-700 dark:text-blue-400 shadow-sm' : 'text-slate-500 hover:text-slate-950 dark:hover:text-slate-300'}`}
                   >
                     Picture URL
                   </button>
@@ -398,8 +398,8 @@ export default function AddIdeaModal({
                 </div>
                 
                 <div className="sm:col-span-3">
-                  <label className="block text-2xs font-extrabold font-mono text-slate-400 dark:text-slate-500 uppercase tracking-widest mb-1.5 select-none text-[9px]">
-                    Startup Project Name <span className="text-red-500">*</span>
+                  <label className="block text-2xs font-black font-mono text-slate-500 dark:text-slate-400 uppercase tracking-widest mb-1.5 select-none text-[9px]">
+                    Startup Project Name <span className="text-red-600">*</span>
                   </label>
                   <input
                     id="idea-name-input"
@@ -409,41 +409,41 @@ export default function AddIdeaModal({
                     onChange={(e) => setName(e.target.value)}
                     dir="auto"
                     placeholder="e.g. Healthflow, ScribeAI, TaskMaster"
-                    className="w-full py-2.5 px-3.5 border border-slate-200 dark:border-slate-800/80 rounded-xl text-xs placeholder-slate-400 focus:outline-none focus:ring-4 focus:ring-blue-500/10 focus:border-blue-500 dark:focus:border-blue-400 transition-all duration-155 bg-white dark:bg-slate-950 dark:text-white font-medium"
+                    className="w-full py-2.5 px-3.5 border-2 border-slate-200 dark:border-slate-800 rounded-xl text-xs placeholder-slate-500 focus:outline-none focus:ring-4 focus:ring-blue-500/10 focus:border-blue-600 dark:focus:border-blue-500 transition-all duration-155 bg-white dark:bg-slate-950 dark:text-white font-bold"
                   />
                 </div>
               </div>
             </div>
 
             {/* SECTION 2: Aesthetic Banner Artwork */}
-            <div className="bg-slate-50/50 dark:bg-slate-900/40 p-4 sm:p-5 rounded-2xl border border-slate-200/40 dark:border-slate-800/50 space-y-4 hover:shadow-[0_4px_16px_rgba(0,0,0,0.01)] transition-all">
-              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-slate-200/45 dark:border-slate-800/50 pb-3">
+            <div className="bg-slate-50 dark:bg-slate-800/50 p-4 sm:p-5 rounded-2xl border-2 border-slate-200 dark:border-slate-800 space-y-4 hover:shadow-md transition-all">
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b-2 border-slate-100 dark:border-slate-700/50 pb-3">
                 <div className="flex items-center space-x-2">
-                  <div className="w-1.5 h-3 bg-purple-500 rounded-full" />
+                  <div className="w-1.5 h-3 bg-purple-600 rounded-full" />
                   <div>
-                    <span className="block text-[9px] font-bold font-mono text-slate-400 dark:text-slate-500 uppercase tracking-widest leading-none select-none">SECTION 2</span>
-                    <span className="block text-xs font-extrabold text-slate-800 dark:text-slate-200 mt-1 select-none">Visual Identity Banner</span>
+                    <span className="block text-[9px] font-black font-mono text-slate-500 dark:text-slate-400 uppercase tracking-widest leading-none select-none">SECTION 2</span>
+                    <span className="block text-xs font-black text-slate-900 dark:text-slate-100 mt-1 select-none">Visual Identity Banner</span>
                   </div>
                 </div>
-                <div className="flex bg-slate-100 dark:bg-slate-950/60 p-0.5 rounded-lg text-xs self-start sm:self-auto" id="banner-type-tabs">
+                <div className="flex bg-slate-100 dark:bg-slate-950 p-0.5 rounded-lg text-xs self-start sm:self-auto border border-slate-200 dark:border-slate-800" id="banner-type-tabs">
                   <button
                     type="button"
                     onClick={() => { setBannerType('preset'); setCustomBannerUrl(''); setSelectedBanner(PRESET_BANNERS[0]); }}
-                    className={`px-3 py-1 rounded-md font-medium transition-all duration-150 cursor-pointer ${bannerType === 'preset' ? 'bg-white dark:bg-slate-800 text-slate-950 dark:text-white shadow-xs font-bold text-[10px]' : 'text-slate-500 hover:text-slate-900 dark:hover:text-white text-[10px]'}`}
+                    className={`px-3 py-1 rounded-md font-bold transition-all duration-150 cursor-pointer ${bannerType === 'preset' ? 'bg-white dark:bg-slate-800 text-blue-700 dark:text-blue-400 shadow-sm text-[10px]' : 'text-slate-500 hover:text-slate-900 dark:hover:text-white text-[10px]'}`}
                   >
                     Preset Art
                   </button>
                   <button
                     type="button"
                     onClick={() => { setBannerType('upload'); setCustomBannerUrl(''); setSelectedBanner(''); }}
-                    className={`px-3 py-1 rounded-md font-medium transition-all duration-150 cursor-pointer ${bannerType === 'upload' ? 'bg-white dark:bg-slate-800 text-slate-950 dark:text-white shadow-xs font-bold text-[10px]' : 'text-slate-500 hover:text-slate-900 dark:hover:text-white text-[10px]'}`}
+                    className={`px-3 py-1 rounded-md font-bold transition-all duration-150 cursor-pointer ${bannerType === 'upload' ? 'bg-white dark:bg-slate-800 text-blue-700 dark:text-blue-400 shadow-sm text-[10px]' : 'text-slate-500 hover:text-slate-900 dark:hover:text-white text-[10px]'}`}
                   >
                     desktop upload
                   </button>
                   <button
                     type="button"
                     onClick={() => { setBannerType('url'); setCustomBannerUrl(''); setSelectedBanner(''); }}
-                    className={`px-3 py-1 rounded-md font-medium transition-all duration-150 cursor-pointer ${bannerType === 'url' ? 'bg-white dark:bg-slate-800 text-slate-950 dark:text-white shadow-xs font-bold text-[10px]' : 'text-slate-500 hover:text-slate-900 dark:hover:text-white text-[10px]'}`}
+                    className={`px-3 py-1 rounded-md font-bold transition-all duration-150 cursor-pointer ${bannerType === 'url' ? 'bg-white dark:bg-slate-800 text-blue-700 dark:text-blue-400 shadow-sm text-[10px]' : 'text-slate-500 hover:text-slate-900 dark:hover:text-white text-[10px]'}`}
                   >
                     Image URL
                   </button>

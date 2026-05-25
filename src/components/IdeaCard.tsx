@@ -100,33 +100,33 @@ export default function IdeaCard({
         </div>
 
         {/* MIDDLE: Description Text */}
-        <p className="text-slate-600 dark:text-slate-400 text-sm font-bold leading-relaxed mb-8 line-clamp-3 select-none multilingual-text" dir="auto">
+        <p className="text-slate-700 dark:text-slate-300 text-sm font-bold leading-relaxed mb-8 line-clamp-3 select-none multilingual-text" dir="auto">
           {idea.description}
         </p>
 
         {/* BOTTOM STATS SECTION */}
-        <div className="mt-auto pt-6 border-t border-slate-100 dark:border-slate-800/60 grid grid-cols-2 gap-4 text-center" id={`card-stats-${idea.id}`}>
-          <div className="flex flex-col justify-center bg-slate-50/50 dark:bg-slate-900/40 p-3 rounded-2xl border border-slate-100 dark:border-slate-800 shadow-sm group-hover:bg-white dark:group-hover:bg-slate-800 transition-colors">
-            <span className="block text-[8px] font-black font-mono uppercase tracking-widest text-slate-400 dark:text-slate-500 mb-1">Status Stage</span>
+        <div className="mt-auto pt-6 border-t border-slate-100 dark:border-slate-800 grid grid-cols-2 gap-4 text-center" id={`card-stats-${idea.id}`}>
+          <div className="flex flex-col justify-center bg-slate-50 dark:bg-slate-800/80 p-3 rounded-2xl border border-slate-200 dark:border-slate-700 shadow-sm group-hover:bg-white dark:group-hover:bg-slate-800 transition-colors">
+            <span className="block text-[8px] font-black font-mono uppercase tracking-widest text-slate-500 dark:text-slate-400 mb-1">Status Stage</span>
             <span className="inline-block text-[10px] font-black text-blue-700 dark:text-blue-400 uppercase tracking-tight truncate">
               {idea.progressStage === 'JUST IDEA NOW' ? 'Just Idea' : idea.progressStage === 'IDEATION' ? 'Ideation' : idea.progressStage === 'MVP BUILDING' ? 'MVP' : idea.progressStage === 'PROTOTYPE' ? 'Prototype' : 'Scale'}
             </span>
           </div>
 
-          <div className="flex flex-col justify-center bg-slate-50/50 dark:bg-slate-900/40 p-3 rounded-2xl border border-slate-100 dark:border-slate-800 shadow-sm group-hover:bg-white dark:group-hover:bg-slate-800 transition-colors">
-            <span className="block text-[8px] font-black font-mono uppercase tracking-widest text-slate-400 dark:text-slate-500 mb-1">Peer Upvotes</span>
+          <div className="flex flex-col justify-center bg-slate-50 dark:bg-slate-800/80 p-3 rounded-2xl border border-slate-200 dark:border-slate-700 shadow-sm group-hover:bg-white dark:group-hover:bg-slate-800 transition-colors">
+            <span className="block text-[8px] font-black font-mono uppercase tracking-widest text-slate-500 dark:text-slate-400 mb-1">Peer Upvotes</span>
             <button
               onClick={(e) => {
                 e.stopPropagation();
                 onLikeClick();
               }}
               className={`mx-auto flex items-center justify-center space-x-1.5 cursor-pointer text-xs font-black border-0 bg-transparent transition-all duration-150 hover:scale-110 active:scale-95 ${
-                isLikedByUser ? 'text-red-600' : 'text-slate-400 hover:text-red-600'
+                isLikedByUser ? 'text-red-600' : 'text-slate-500 hover:text-red-600'
               }`}
               id="like-card-btn-${idea.id}"
             >
               <Heart className={`h-4 w-4 shrink-0 ${isLikedByUser ? 'fill-current' : ''}`} />
-              <span className={`text-[10px] font-black ${isLikedByUser ? 'text-red-600' : 'text-slate-700 dark:text-slate-300'}`}>{idea.likes}</span>
+              <span className={`text-[10px] font-black ${isLikedByUser ? 'text-red-600' : 'text-slate-800 dark:text-slate-200'}`}>{idea.likes}</span>
             </button>
           </div>
         </div>

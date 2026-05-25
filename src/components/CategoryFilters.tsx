@@ -20,7 +20,7 @@ export default function CategoryFilters({
           className={`px-5 py-2.5 rounded-xl text-xs font-black transition-all duration-300 whitespace-nowrap border-2 cursor-pointer select-none shadow-sm ${
             selectedCategory === null
               ? 'bg-blue-600 text-white border-blue-600 shadow-lg shadow-blue-500/20 scale-105'
-              : 'bg-white dark:bg-slate-900 text-slate-950 dark:text-slate-200 border-slate-200 dark:border-slate-800 hover:border-blue-600 dark:hover:border-blue-500 hover:text-blue-600 dark:hover:text-blue-400'
+              : 'bg-white dark:bg-slate-900 text-slate-700 dark:text-slate-300 border-slate-200 dark:border-slate-800 hover:border-blue-600 dark:hover:border-blue-500 hover:text-blue-700 dark:hover:text-blue-400'
           }`}
         >
           All Ideas
@@ -35,7 +35,7 @@ export default function CategoryFilters({
             className={`px-5 py-2.5 rounded-xl text-xs font-black transition-all duration-300 whitespace-nowrap border-2 cursor-pointer select-none shadow-sm ${
               selectedCategory === category
                 ? 'bg-blue-600 text-white border-blue-600 shadow-lg shadow-blue-500/20 scale-105'
-                : 'bg-white dark:bg-slate-900 text-slate-950 dark:text-slate-200 border-slate-200 dark:border-slate-800 hover:border-blue-600 dark:hover:border-blue-500 hover:text-blue-600 dark:hover:text-blue-400'
+                : 'bg-white dark:bg-slate-900 text-slate-700 dark:text-slate-300 border-slate-200 dark:border-slate-800 hover:border-blue-600 dark:hover:border-blue-500 hover:text-blue-700 dark:hover:text-blue-400'
             }`}
           >
             {category}
