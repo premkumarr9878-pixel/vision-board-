@@ -5,11 +5,8 @@ import IdeaCard from './components/IdeaCard';
 import IdeaDetailsModal from './components/IdeaDetailsModal';
 import AddIdeaModal from './components/AddIdeaModal';
 import InterestModal from './components/InterestModal';
-import AuthModal from './components/AuthModal';
 import DashboardView from './components/DashboardView';
 import LeaderboardTable from './components/LeaderboardTable';
-import OnboardingView from './components/OnboardingView';
-import ProfileSetup from './components/ProfileSetup';
 import { CardSkeleton, TableRowSkeleton } from './components/Skeleton';
 import { getLocalStorageState, saveLocalStorageState, DEFAULT_PROFILE, safeParse } from './data';
 import { StartupIdea, FounderProfile, CollaborationRequest, FundingRequest, Suggestion, RequestStatus } from './types';
@@ -35,98 +32,11 @@ export default function App() {
     }
   });
 
-  const [currentUser, setCurrentUser] = useState<FounderProfile | null>(null);
-  const [currentView, setCurrentView] = useState<'explore' | 'dashboard' | 'onboarding' | 'profile-setup'>('explore');
-  const [onboardingSource, setOnboardingSource] = useState<'add-idea' | 'founder-hub' | null>(null);
-
-  // Supabase Auth Listener
-  useEffect(() => {
-    // Check active sessions and sets the user
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      if (session?.user) {
-        fetchProfile(session.user.id, session.user.user_metadata?.is_new_user);
-      }
-    });
-
-    // Listen for changes on auth state (logged in, signed out, etc.)
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
-      if (session?.user) {
-        fetchProfile(session.user.id, session.user.user_metadata?.is_new_user);
-      } else {
-        setCurrentUser(null);
-      }
-    });
-
-    return () => subscription.unsubscribe();
-  }, []);
+  const [currentUser, setCurrentUser] = useState<FounderProfile | null>(DEFAULT_PROFILE);
+  const [currentView, setCurrentView] = useState<'explore' | 'dashboard'>('explore');
 
   const fetchProfile = async (userId: string, isNewUser?: boolean) => {
-    if (!userId) return;
-    console.log(`Fetching profile for user ${userId}, isNewUser: ${isNewUser}`);
-    let attempts = 0;
-    const maxAttempts = 5; // Increased attempts for more reliability
-    
-    while (attempts < maxAttempts) {
-      try {
-        const { data, error } = await supabase
-          .from('profiles')
-          .select('*')
-          .eq('id', userId)
-          .single()
-          .catch(err => ({ data: null, error: err }));
-
-        if (error) {
-          if ((error.code === 'PGRST116' || error.message?.includes('0 rows')) && attempts < maxAttempts - 1) {
-            // Profile not created yet by trigger, wait and retry
-            console.log(`Profile not found yet, retrying... (attempt ${attempts + 1})`);
-            attempts++;
-            await new Promise(r => setTimeout(r, 1000)); // Increased wait time to 1s
-            continue;
-          }
-          console.error('Final profile fetch error:', error);
-          throw error;
-        }
-
-        if (data) {
-          console.log('Profile successfully loaded:', data.name);
-          const profile: FounderProfile = {
-            id: data.id,
-            name: data.name || '',
-            email: data.email || '',
-            bio: data.bio || '',
-            skills: data.skills || [],
-            buildingDesc: data.building_desc || '',
-            avatar: data.avatar_url || '',
-            startupLogo: data.startup_logo_url || undefined,
-            github: data.github_url || '',
-            twitter: data.twitter_url || '',
-            linkedin: data.linkedin_url || '',
-            userRole: data.user_role as 'founder_hub' | 'vision_board'
-          };
-          setCurrentUser(profile);
-
-          // If new user flag is present, redirect to profile setup
-          if (isNewUser) {
-            console.log('New user detected, redirecting to setup...');
-            setCurrentView('profile-setup');
-            // Clear the metadata flag in Supabase so it doesn't redirect again
-            await supabase.auth.updateUser({ data: { is_new_user: false } }).catch(e => console.warn('Metadata update failed:', e));
-          } else if (currentView === 'explore' || currentView === 'onboarding') {
-            // Role-based redirection after login (only if we are on entry screens)
-            if (data.user_role === 'founder_hub') {
-              setCurrentView('dashboard');
-            } else {
-              setCurrentView('explore');
-            }
-          }
-        }
-      } catch (err) {
-        console.warn(`Profile fetch attempt ${attempts + 1} failed:`, err);
-        if (attempts >= maxAttempts - 1) break;
-        attempts++;
-        await new Promise(r => setTimeout(r, 1000));
-      }
-    }
+    // Auth is disabled
   };
 
   // Theme support
@@ -160,16 +70,12 @@ export default function App() {
   // Interactive Filter States
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
-  const [timeFilter, setTimeFilter] = useState<'all' | 'day' | 'week' | 'month'>('all');
+  const [timeFilter, setTimeFilter] = useState<'all' | 'day' | 'week1' | 'week2' | 'week3' | 'month1' | 'month2' | 'month3'>('all');
 
   // Active Modals overlay states
   const [selectedIdea, setSelectedIdea] = useState<StartupIdea | null>(null);
-  const [showAuthModal, setShowAuthModal] = useState(false);
   const [showAddIdeaModal, setShowAddIdeaModal] = useState(false);
   const [ideaToEdit, setIdeaToEdit] = useState<StartupIdea | null>(null);
-  const [authTriggeredByAddIdea, setAuthTriggeredByAddIdea] = useState(false);
-  const [authDefaultIsSignUp, setAuthDefaultIsSignUp] = useState(false);
-  const [authNoticeMessage, setAuthNoticeMessage] = useState<string | undefined>(undefined);
   
   // Expression of Interest states
   const [interestTargetType, setInterestTargetType] = useState<'collaboration' | 'funding' | null>(null);
@@ -194,10 +100,136 @@ export default function App() {
 
   // Simulation of initial data fetch
   useEffect(() => {
-    const timer = setTimeout(() => {
-      setIsLoading(false);
-    }, 1200);
-    return () => clearTimeout(timer);
+    const loadData = async () => {
+      try {
+        const { data: ideas, error: ideasError } = await supabase
+          .from('ideas')
+          .select('*')
+          .order('created_at', { ascending: false });
+
+        if (ideasError) throw ideasError;
+
+        const mappedIdeas: StartupIdea[] = ideas.map(data => ({
+          id: data.id,
+          name: data.name,
+          logo: data.logo,
+          banner: data.banner,
+          description: data.description,
+          whyThisWorks: data.why_this_works,
+          problemSolved: data.problem_solved,
+          targetAudience: data.target_audience,
+          category: data.category,
+          founderId: data.founder_id,
+          founderName: data.founder_name,
+          founderAvatar: data.founder_avatar,
+          collaborationCount: data.collaboration_count,
+          fundingInterestCount: data.funding_interest_count,
+          progressStage: data.progress_stage,
+          likes: data.likes,
+          suggestionsCount: data.suggestions_count,
+          needCollaboration: data.need_collaboration,
+          needFunding: data.need_funding,
+          seeking_collaboration: data.seeking_collaboration,
+          seeking_funding: data.seeking_funding,
+          isPublic: data.is_public,
+          visibility: data.visibility || (data.is_public ? 'public' : 'private'),
+          status: data.status || 'published',
+          createdAt: data.created_at
+        }));
+
+        // Fetch collaboration requests
+        const { data: collabs, error: collabsError } = await supabase
+          .from('collaboration_requests')
+          .select('*');
+
+        const mappedCollabs: CollaborationRequest[] = (collabs || []).map(c => ({
+          id: c.id,
+          ideaId: c.idea_id,
+          ideaName: c.idea_name,
+          founderId: c.founder_id,
+          name: c.full_name,
+          email: c.email,
+          phone: c.phone,
+          role: 'Partner',
+          message: c.about,
+          status: c.status as RequestStatus,
+          createdAt: c.created_at
+        }));
+
+        // Fetch funding requests
+        const { data: fundings, error: fundingsError } = await supabase
+          .from('funding_requests')
+          .select('*');
+
+        const mappedFundings: FundingRequest[] = (fundings || []).map(f => ({
+          id: f.id,
+          ideaId: f.idea_id,
+          ideaName: f.idea_name,
+          founderId: f.founder_id,
+          name: f.full_name,
+          email: f.email,
+          phone: f.phone,
+          investmentAmount: 'Not specified',
+          message: f.about,
+          status: f.status as RequestStatus,
+          createdAt: f.created_at
+        }));
+
+        // Fetch suggestions
+        const { data: suggestions, error: suggestionsError } = await supabase
+          .from('suggestions')
+          .select('*');
+
+        const mappedSuggestions: Suggestion[] = (suggestions || []).map(s => ({
+          id: s.id,
+          ideaId: s.idea_id,
+          founderId: s.founder_id,
+          content: s.suggestion_text,
+          createdAt: s.created_at,
+          authorName: 'Anonymous Founder',
+          authorAvatar: 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?auto=format&fit=crop&q=80&w=80',
+          ideaName: mappedIdeas.find(i => i.id === s.idea_id)?.name || 'Unknown Idea'
+        }));
+
+        setState(prev => ({
+          ...prev,
+          ideas: mappedIdeas,
+          collaborations: mappedCollabs,
+          funding: mappedFundings,
+          suggestions: mappedSuggestions
+        }));
+      } catch (err) {
+        console.error('Error loading data from Supabase:', err);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    loadData();
+
+    // Set up realtime listeners
+    const ideasChannel = supabase.channel('public:ideas')
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'ideas' }, () => loadData())
+      .subscribe();
+
+    const collabsChannel = supabase.channel('public:collaboration_requests')
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'collaboration_requests' }, () => loadData())
+      .subscribe();
+
+    const fundingChannel = supabase.channel('public:funding_requests')
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'funding_requests' }, () => loadData())
+      .subscribe();
+
+    const suggestionsChannel = supabase.channel('public:suggestions')
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'suggestions' }, () => loadData())
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(ideasChannel);
+      supabase.removeChannel(collabsChannel);
+      supabase.removeChannel(fundingChannel);
+      supabase.removeChannel(suggestionsChannel);
+    };
   }, []);
 
   // Sync state changes to global LocalStorage
@@ -216,91 +248,9 @@ export default function App() {
     localStorage.setItem('vb_user_liked_ids', JSON.stringify(likedIdeaIds));
   }, [likedIdeaIds]);
 
-  // Sync current authenticated user session (Save user session after login)
-  useEffect(() => {
-    // Session is handled by Supabase Auth Listener above
-  }, [currentUser]);
-
   const showToast = (msg: string) => {
     setToastMessage(msg);
     setTimeout(() => setToastMessage(null), 3000);
-  };
-
-  // Auth synchronization handlers
-  const handleAuthSuccess = async () => {
-    // Show feedback
-    showToast(`Successfully authenticated!`);
-
-    // Navigate to appropriate view
-    if (onboardingSource === 'add-idea') {
-      setCurrentView('dashboard');
-      setShowAddIdeaModal(true);
-    } else {
-      setCurrentView('dashboard');
-    }
-    setOnboardingSource(null);
-  };
-
-  const handleOnboardingComplete = (
-    name: string,
-    email: string,
-    bio: string,
-    buildingDesc: string,
-    avatar?: string,
-    startupLogo?: string
-  ) => {
-    // Generate a valid Unsplash photo ID based on a small set of curated founder-style images
-    const founderPhotoIds = [
-      '1494790108377-be9c29b29330',
-      '1507003211169-0a1dd7228f2d',
-      '1438761681033-6461ffad8d80',
-      '1500648767791-00dcc994a43e',
-      '1544005313-94ddf0286df2'
-    ];
-    const randomId = founderPhotoIds[Math.floor(Math.random() * founderPhotoIds.length)];
-    const defaultAvatar = `https://images.unsplash.com/photo-${randomId}?auto=format&fit=crop&q=80&w=150`;
-    
-    const freshProfile: FounderProfile = {
-      id: `usr_${Date.now()}`,
-      name,
-      email,
-      bio,
-      skills: ['TypeScript', 'Growth', 'Product Dev'],
-      buildingDesc,
-      avatar: avatar || defaultAvatar,
-      startupLogo: startupLogo || undefined,
-      github: 'https://github.com',
-      twitter: 'https://twitter.com',
-      linkedin: 'https://linkedin.com'
-    };
-    setCurrentUser(freshProfile);
-    setState(prev => ({ ...prev, profile: freshProfile }));
-    showToast(`Welcome ${name}, your founder card is live!`);
-
-    if (onboardingSource === 'add-idea') {
-      setCurrentView('dashboard');
-      setShowAddIdeaModal(true);
-    } else {
-      setCurrentView('dashboard');
-    }
-    setOnboardingSource(null);
-  };
-
-  const handleProfileSetupComplete = (updatedProfile: FounderProfile) => {
-    setCurrentUser(updatedProfile);
-    setCurrentView('dashboard');
-    showToast(`Profile updated! Welcome ${updatedProfile.name}`);
-  };
-
-  const handleLogout = async () => {
-    try {
-      await supabase.auth.signOut();
-      setCurrentUser(null);
-      setCurrentView('explore');
-      showToast('Signed out of developer session safely.');
-    } catch (err) {
-      console.error('Logout failed:', err);
-    }
   };
 
   const handleProfileUpdate = (updated: FounderProfile) => {
@@ -310,36 +260,59 @@ export default function App() {
   };
 
   // Add startup idea handler
-  const handleAddIdeaSubmit = (ideaData: Partial<StartupIdea>) => {
-    if (!currentUser) {
-      setShowAuthModal(true);
-      return;
-    }
+  const handleAddIdeaSubmit = async (ideaData: Partial<StartupIdea>) => {
+    if (!currentUser) return;
+
+    const payload = {
+      name: ideaData.name || 'Untitled Vision',
+      logo: ideaData.logo || '🚀',
+      banner: ideaData.banner,
+      description: ideaData.description || '',
+      why_this_works: ideaData.whyThisWorks || '',
+      problem_solved: ideaData.problemSolved || '',
+      target_audience: ideaData.targetAudience || '',
+      category: ideaData.category || 'AI',
+      founder_id: currentUser.id,
+      founder_name: currentUser.name,
+      founder_avatar: currentUser.avatar,
+      collaboration_count: 0,
+      funding_interest_count: 0,
+      progress_stage: ideaData.progressStage || 'IDEATION',
+      likes: 1,
+      suggestions_count: 0,
+      need_collaboration: ideaData.needCollaboration ?? true,
+      need_funding: ideaData.needFunding ?? false,
+      seeking_collaboration: ideaData.seeking_collaboration ?? false,
+      seeking_funding: ideaData.seeking_funding ?? false,
+      is_public: ideaData.isPublic ?? true,
+      visibility: (ideaData.isPublic ?? true) ? 'public' : 'private',
+      status: ideaData.status || 'published',
+      created_at: new Date().toISOString()
+    };
 
     if (ideaToEdit) {
+      const { error } = await supabase
+        .from('ideas')
+        .update(payload)
+        .eq('id', ideaToEdit.id);
+
+      if (error) {
+        console.error('Error updating idea:', error);
+        showToast('Failed to save changes to database.');
+        return;
+      }
+
       setState(prev => {
         const updatedIdeas = prev.ideas.map(idea => {
           if (idea.id === ideaToEdit.id) {
             return {
               ...idea,
-              name: ideaData.name || 'Untitled Vision',
-              logo: ideaData.logo || '🚀',
-              banner: ideaData.banner,
-              description: ideaData.description || '',
-              whyThisWorks: ideaData.whyThisWorks || '',
-              problemSolved: ideaData.problemSolved || '',
-              targetAudience: ideaData.targetAudience || '',
-              category: ideaData.category || 'AI',
-              needCollaboration: ideaData.needCollaboration ?? true,
-              maxCollaborators: ideaData.maxCollaborators,
-              needFunding: ideaData.needFunding ?? false,
-              fundingGoal: ideaData.fundingGoal,
-              isPublic: ideaData.isPublic ?? true,
-              instagramUrl: ideaData.instagramUrl || '',
-              facebookUrl: ideaData.facebookUrl || '',
-              websiteUrl: ideaData.websiteUrl || '',
-              progressStage: ideaData.progressStage || 'IDEATION'
-            };
+              ...ideaData,
+              id: ideaToEdit.id,
+              founderId: currentUser.id,
+              founderName: currentUser.name,
+              founderAvatar: currentUser.avatar,
+            } as StartupIdea;
           }
           return idea;
         });
@@ -350,33 +323,44 @@ export default function App() {
       return;
     }
 
+    const { data, error } = await supabase
+      .from('ideas')
+      .insert([payload])
+      .select()
+      .single();
+
+    if (error) {
+      console.error('Error creating idea:', error);
+      showToast('Failed to publish to database.');
+      return;
+    }
+
     const newIdeaObj: StartupIdea = {
-      id: `idea_${Date.now()}`,
-      name: ideaData.name || 'Untitled Vision',
-      logo: ideaData.logo || '🚀',
-      banner: ideaData.banner,
-      description: ideaData.description || '',
-      whyThisWorks: ideaData.whyThisWorks || '',
-      problemSolved: ideaData.problemSolved || '',
-      targetAudience: ideaData.targetAudience || '',
-      category: ideaData.category || 'AI',
-      founderId: currentUser.id,
-      founderName: currentUser.name,
-      founderAvatar: currentUser.avatar,
-      collaborationCount: 0,
-      fundingInterestCount: 0,
-      progressStage: ideaData.progressStage || 'IDEATION',
-      likes: 1, // Author defaults with an endorsement like
-      suggestionsCount: 0,
-      needCollaboration: ideaData.needCollaboration ?? true,
-      maxCollaborators: ideaData.maxCollaborators,
-      needFunding: ideaData.needFunding ?? false,
-      fundingGoal: ideaData.fundingGoal,
-      isPublic: ideaData.isPublic ?? true,
-      instagramUrl: ideaData.instagramUrl || '',
-      facebookUrl: ideaData.facebookUrl || '',
-      websiteUrl: ideaData.websiteUrl || '',
-      createdAt: new Date().toISOString()
+      id: data.id,
+      name: data.name,
+      logo: data.logo,
+      banner: data.banner,
+      description: data.description,
+      whyThisWorks: data.why_this_works,
+      problemSolved: data.problem_solved,
+      targetAudience: data.target_audience,
+      category: data.category,
+      founderId: data.founder_id,
+      founderName: data.founder_name,
+      founderAvatar: data.founder_avatar,
+      collaborationCount: data.collaboration_count,
+      fundingInterestCount: data.funding_interest_count,
+      progressStage: data.progress_stage,
+      likes: data.likes,
+      suggestionsCount: data.suggestions_count,
+      needCollaboration: data.need_collaboration,
+      needFunding: data.need_funding,
+      seeking_collaboration: data.seeking_collaboration,
+      seeking_funding: data.seeking_funding,
+      isPublic: data.is_public,
+      visibility: data.visibility || (data.is_public ? 'public' : 'private'),
+      status: data.status || 'published',
+      createdAt: data.created_at
     };
 
     // Prepend new ideas
@@ -391,47 +375,87 @@ export default function App() {
   };
 
   // Deletion helper for owners
-  const handleDeleteIdea = (id: string) => {
+  const handleDeleteIdea = async (id: string) => {
+    const { error } = await supabase
+      .from('ideas')
+      .delete()
+      .eq('id', id);
+
+    if (error) {
+      console.error('Error deleting idea:', error);
+      showToast('Failed to delete idea.');
+      return;
+    }
+
     setState(prev => ({
       ...prev,
       ideas: prev.ideas.filter(idea => idea.id !== id)
     }));
-    showToast('Concept archived from dashboard database.');
+    showToast('Startup Vision removed from database.');
   };
 
-  // Toggle visibility helper for owners (Public / Private)
-  const handleToggleIdeaVisibility = (id: string) => {
-    setState(prev => {
-      const updatedIdeas = prev.ideas.map(idea => {
-        if (idea.id === id) {
-          const nextIsPublic = !idea.isPublic;
-          showToast(`“${idea.name}” is now ${nextIsPublic ? 'PUBLIC and featured on the live feed' : 'PRIVATE and hidden from other peers'}!`);
-          return { ...idea, isPublic: nextIsPublic };
-        }
-        return idea;
-      });
-      return { ...prev, ideas: updatedIdeas };
-    });
+  // Visibility toggle for owners
+  const handleToggleIdeaVisibility = async (id: string) => {
+    const idea = state.ideas.find(i => i.id === id);
+    if (!idea) return;
+
+    const newVisibility = idea.visibility === 'public' ? 'private' : 'public';
+    const newIsPublic = newVisibility === 'public';
+
+    const { error } = await supabase
+      .from('ideas')
+      .update({ 
+        visibility: newVisibility,
+        is_public: newIsPublic
+      })
+      .eq('id', id);
+
+    if (error) {
+      console.error('Error toggling visibility:', error);
+      showToast('Failed to update visibility.');
+      return;
+    }
+
+    setState(prev => ({
+      ...prev,
+      ideas: prev.ideas.map(idea => 
+        idea.id === id ? { ...idea, visibility: newVisibility, isPublic: newIsPublic } : idea
+      )
+    }));
+    showToast(`Vision is now ${newVisibility.toUpperCase()}`);
   };
 
-  // Like endorsement toggle state mechanics
-  const handleLikeToggle = (ideaId: string) => {
+  // Like handler
+  const handleLikeToggle = async (ideaId: string) => {
     const isLiked = likedIdeaIds.includes(ideaId);
-    
-    // Toggle user session list
+    const idea = state.ideas.find(i => i.id === ideaId);
+    if (!idea) return;
+
+    const newLikes = isLiked ? Math.max(0, idea.likes - 1) : idea.likes + 1;
+
+    const { error } = await supabase
+      .from('ideas')
+      .update({ likes: newLikes })
+      .eq('id', ideaId);
+
+    if (error) {
+      console.error('Error updating likes:', error);
+      showToast('Failed to update likes.');
+      return;
+    }
+
     if (isLiked) {
-      setLikedIdeaIds(prev => prev.filter(id => id !== ideaId));
-      setState(prev => ({
-        ...prev,
-        ideas: prev.ideas.map(idea => idea.id === ideaId ? { ...idea, likes: Math.max(0, idea.likes - 1) } : idea)
-      }));
+      setLikedIdeaIds(prev => prev.filter(likedId => likedId !== ideaId));
     } else {
       setLikedIdeaIds(prev => [...prev, ideaId]);
-      setState(prev => ({
-        ...prev,
-        ideas: prev.ideas.map(idea => idea.id === ideaId ? { ...idea, likes: idea.likes + 1 } : idea)
-      }));
     }
+
+    setState(prev => ({
+      ...prev,
+      ideas: prev.ideas.map(i => 
+        i.id === ideaId ? { ...i, likes: newLikes } : i
+      )
+    }));
 
     // Refresh selected modal reference to update state immediately
     if (selectedIdea && selectedIdea.id === ideaId) {
@@ -439,34 +463,44 @@ export default function App() {
         if (!prev) return null;
         return {
           ...prev,
-          likes: isLiked ? Math.max(0, prev.likes - 1) : prev.likes + 1
+          likes: newLikes
         };
       });
     }
   };
 
   // Peer Suggestions Comment boards
-  const handleAddSuggestion = (content: string, guestName?: string) => {
+  const handleAddSuggestion = async (content: string, guestName?: string) => {
     if (!selectedIdea) return;
 
-    let authorName = 'Anonymous Founder';
-    let authorAvatar = 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?auto=format&fit=crop&q=80&w=80';
+    const payload = {
+      idea_id: selectedIdea.id,
+      founder_id: selectedIdea.founderId,
+      suggestion_text: content,
+      created_at: new Date().toISOString()
+    };
 
-    if (currentUser) {
-      authorName = currentUser.name;
-      authorAvatar = currentUser.avatar;
-    } else if (guestName && guestName.trim()) {
-      authorName = guestName.trim();
+    const { data, error } = await supabase
+      .from('suggestions')
+      .insert([payload])
+      .select()
+      .single();
+
+    if (error) {
+      console.error('Error adding suggestion:', error);
+      showToast('Failed to post suggestion.');
+      return;
     }
 
     const brandSuggestion: Suggestion = {
-      id: `sug_${Date.now()}`,
-      ideaId: selectedIdea.id,
-      authorName,
-      authorAvatar,
-      content,
-      createdAt: new Date().toISOString(),
-      likes: 0
+      id: data.id,
+      ideaId: data.idea_id,
+      founderId: data.founder_id,
+      suggestion_text: data.suggestion_text,
+      created_at: data.created_at,
+      authorName: currentUser ? currentUser.name : (guestName || 'Anonymous Founder'),
+      authorAvatar: currentUser ? currentUser.avatar : 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?auto=format&fit=crop&q=80&w=80',
+      ideaName: selectedIdea.name
     };
 
     setState(prev => ({
@@ -492,22 +526,46 @@ export default function App() {
   };
 
   // Expressions of interest submit handlers
-  const handleInterestSubmit = (formData: { name: string; email: string; phone: string; message: string; role?: string; investmentAmount?: string }) => {
+  const handleInterestSubmit = async (formData: { name: string; email: string; phone: string; message: string; role?: string; investmentAmount?: string }) => {
     if (!interestTargetIdea || !interestTargetType) return;
 
     if (interestTargetType === 'collaboration') {
-      const colRequest: CollaborationRequest = {
-        id: `col_${Date.now()}`,
-        ideaId: interestTargetIdea.id,
-        ideaName: interestTargetIdea.name,
-        founderId: interestTargetIdea.founderId,
-        name: formData.name,
+      const colPayload = {
+        idea_id: interestTargetIdea.id,
+        idea_name: interestTargetIdea.name,
+        founder_id: interestTargetIdea.founderId,
+        full_name: formData.name,
         email: formData.email,
         phone: formData.phone,
-        role: formData.role || 'Partner',
-        message: formData.message,
+        about: formData.message,
         status: 'pending',
-        createdAt: new Date().toISOString()
+        created_at: new Date().toISOString()
+      };
+
+      const { data, error } = await supabase
+        .from('collaboration_requests')
+        .insert([colPayload])
+        .select()
+        .single();
+
+      if (error) {
+        console.error('Error sending collaboration request:', error);
+        showToast('Failed to send request to database.');
+        return;
+      }
+
+      const colRequest: CollaborationRequest = {
+        id: data.id,
+        ideaId: data.idea_id,
+        ideaName: data.idea_name,
+        founderId: data.founder_id,
+        name: data.full_name,
+        email: data.email,
+        phone: data.phone,
+        role: formData.role || 'Partner',
+        message: data.about,
+        status: data.status as RequestStatus,
+        createdAt: data.created_at
       };
 
       setState(prev => ({
@@ -515,25 +573,49 @@ export default function App() {
         collaborations: [colRequest, ...prev.collaborations],
         ideas: prev.ideas.map(idea => 
           idea.id === interestTargetIdea.id 
-            ? { ...idea, collaborationCount: idea.collaborationCount + 1 } 
+            ? { ...idea, collaborationCount: (idea.collaborationCount || 0) + 1 } 
             : idea
         )
       }));
 
-      showToast(`Collaboration pitch sent directly to ${interestTargetIdea.founderName}!`);
+      showToast('Your request has been sent to the founder!');
     } else {
-      const fundRequest: FundingRequest = {
-        id: `fun_${Date.now()}`,
-        ideaId: interestTargetIdea.id,
-        ideaName: interestTargetIdea.name,
-        founderId: interestTargetIdea.founderId,
-        name: formData.name,
+      const fundPayload = {
+        idea_id: interestTargetIdea.id,
+        idea_name: interestTargetIdea.name,
+        founder_id: interestTargetIdea.founderId,
+        full_name: formData.name,
         email: formData.email,
         phone: formData.phone,
-        investmentAmount: formData.investmentAmount || 'Not specified',
-        message: formData.message,
+        about: formData.message,
         status: 'pending',
-        createdAt: new Date().toISOString()
+        created_at: new Date().toISOString()
+      };
+
+      const { data, error } = await supabase
+        .from('funding_requests')
+        .insert([fundPayload])
+        .select()
+        .single();
+
+      if (error) {
+        console.error('Error sending funding request:', error);
+        showToast('Failed to send request to database.');
+        return;
+      }
+
+      const fundRequest: FundingRequest = {
+        id: data.id,
+        ideaId: data.idea_id,
+        ideaName: data.idea_name,
+        founderId: data.founder_id,
+        name: data.full_name,
+        email: data.email,
+        phone: data.phone,
+        investmentAmount: formData.investmentAmount || 'Not specified',
+        message: data.about,
+        status: data.status as RequestStatus,
+        createdAt: data.created_at
       };
 
       setState(prev => ({
@@ -541,42 +623,49 @@ export default function App() {
         funding: [fundRequest, ...prev.funding],
         ideas: prev.ideas.map(idea => 
           idea.id === interestTargetIdea.id 
-            ? { ...idea, fundingInterestCount: idea.fundingInterestCount + 1 } 
+            ? { ...idea, fundingInterestCount: (idea.fundingInterestCount || 0) + 1 } 
             : idea
         )
       }));
 
-      showToast(`Funding credentials sent directly to ${interestTargetIdea.founderName}!`);
+      showToast('Your request has been sent to the founder!');
     }
 
     setInterestTargetIdea(null);
     setInterestTargetType(null);
   };
 
-  const handleUpdateRequestStatus = (type: 'collaboration' | 'funding', requestId: string, newStatus: RequestStatus) => {
-    setState(prev => {
-      if (type === 'collaboration') {
-        return {
-          ...prev,
-          collaborations: prev.collaborations.map(c => c.id === requestId ? { ...c, status: newStatus } : c)
-        };
-      } else {
-        return {
-          ...prev,
-          funding: prev.funding.map(f => f.id === requestId ? { ...f, status: newStatus } : f)
-        };
-      }
-    });
+  const handleUpdateRequestStatus = async (type: 'collaboration' | 'funding', id: string, status: RequestStatus) => {
+    const table = type === 'collaboration' ? 'collaboration_requests' : 'funding_requests';
     
-    const statusMsg = newStatus === 'accepted' ? 'Request accepted!' : 
-                     newStatus === 'rejected' ? 'Request declined.' : 
-                     'Marked as contacted.';
-    showToast(statusMsg);
+    const { error } = await supabase
+      .from(table)
+      .update({ status })
+      .eq('id', id);
+
+    if (error) {
+      console.error('Error updating status:', error);
+      showToast('Failed to update request status.');
+      return;
+    }
+
+    if (type === 'collaboration') {
+      setState(prev => ({
+        ...prev,
+        collaborations: prev.collaborations.map(c => c.id === id ? { ...c, status } : c)
+      }));
+    } else {
+      setState(prev => ({
+        ...prev,
+        funding: prev.funding.map(f => f.id === id ? { ...f, status } : f)
+      }));
+    }
+    showToast(`Pitch updated to ${status.toUpperCase()} status.`);
   };
 
   // Filter ideas logic: query search, category pills & timeFilter
   const filteredPublicIdeas = state.ideas.filter(idea => {
-    if (!idea.isPublic) return false;
+    if (!idea.isPublic || idea.status !== 'published') return false;
     
     const matchesSearch = 
       idea.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -593,10 +682,18 @@ export default function App() {
     let matchesTime = true;
     if (timeFilter === 'day') {
       matchesTime = now - ideaTime <= 24 * 60 * 60 * 1000;
-    } else if (timeFilter === 'week') {
+    } else if (timeFilter === 'week1') {
       matchesTime = now - ideaTime <= 7 * 24 * 60 * 60 * 1000;
-    } else if (timeFilter === 'month') {
+    } else if (timeFilter === 'week2') {
+      matchesTime = now - ideaTime <= 14 * 24 * 60 * 60 * 1000;
+    } else if (timeFilter === 'week3') {
+      matchesTime = now - ideaTime <= 21 * 24 * 60 * 60 * 1000;
+    } else if (timeFilter === 'month1') {
       matchesTime = now - ideaTime <= 30 * 24 * 60 * 60 * 1000;
+    } else if (timeFilter === 'month2') {
+      matchesTime = now - ideaTime <= 60 * 24 * 60 * 60 * 1000;
+    } else if (timeFilter === 'month3') {
+      matchesTime = now - ideaTime <= 90 * 24 * 60 * 60 * 1000;
     }
 
     return matchesSearch && matchesCategory && matchesTime;
@@ -605,18 +702,15 @@ export default function App() {
   // Segregate filtered lists into TrustMRR structured grid blocks
   // 1. Trending: Sorted by upvotes & collaborations count
   const trendingIdeas = [...filteredPublicIdeas]
-    .sort((a, b) => (b.likes + b.collaborationCount * 2) - (a.likes + a.collaborationCount * 2))
-    .slice(0, 3);
+    .sort((a, b) => (b.likes + b.collaborationCount * 2) - (a.likes + a.collaborationCount * 2));
 
   // 2. Weekly Best: Ideas with scale stage, high interest rate
   const weeklyBestIdeas = [...filteredPublicIdeas]
-    .filter(idea => idea.likes > 60 || idea.progressStage === 'SCALE' || idea.progressStage === 'PROTOTYPE')
-    .slice(0, 3);
+    .filter(idea => idea.likes > 60 || idea.progressStage === 'SCALE' || idea.progressStage === 'PROTOTYPE');
 
   // 3. Recently Listed: Chronologically sorted
   const recentlyListedIdeas = [...filteredPublicIdeas]
-    .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
-    .slice(0, 3);
+    .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
 
   // Active suggestions list addressed to the clicked idea details modal
   const activeSuggestions = state.suggestions.filter(s => selectedIdea && s.ideaId === selectedIdea.id);
@@ -633,32 +727,12 @@ export default function App() {
         searchQuery={searchQuery}
         setSearchQuery={setSearchQuery}
         onAddIdeaClick={() => {
-          if (!currentUser) {
-            setOnboardingSource('add-idea');
-            setCurrentView('onboarding');
-          } else {
-            setShowAddIdeaModal(true);
-          }
+          setIdeaToEdit(null);
+          setShowAddIdeaModal(true);
         }}
-        onDashboardClick={() => {
-          if (!currentUser) {
-            setOnboardingSource('founder-hub');
-            setCurrentView('onboarding');
-          } else {
-            setCurrentView('dashboard');
-          }
-        }}
-        onExploreClick={() => {
-          setCurrentView('explore');
-          setSelectedCategory(null);
-          setSearchQuery('');
-        }}
-        onAuthClick={() => {
-          setOnboardingSource('get-started');
-          setCurrentView('onboarding');
-        }}
+        onDashboardClick={() => setCurrentView('dashboard')}
+        onExploreClick={() => setCurrentView('explore')}
         currentUser={currentUser}
-        onLogout={handleLogout}
         currentView={currentView}
         theme={theme}
         toggleTheme={toggleTheme}
@@ -697,14 +771,7 @@ export default function App() {
 
                 <button
                   id="add-idea-hero-btn"
-                  onClick={() => {
-                    if (!currentUser) {
-                      setOnboardingSource('add-idea');
-                      setCurrentView('onboarding');
-                    } else {
-                      setShowAddIdeaModal(true);
-                    }
-                  }}
+                  onClick={() => setShowAddIdeaModal(true)}
                   className="w-full sm:w-auto px-9 py-3.5 bg-slate-950 dark:bg-white text-white dark:text-slate-950 border-2 border-slate-950 dark:border-white text-sm font-black rounded-2xl hover:scale-[1.02] active:scale-[0.98] transition-all select-none cursor-pointer text-center duration-200 shadow-xl"
                 >
                   + Add Your Startup Idea
@@ -718,7 +785,7 @@ export default function App() {
                 <div>
                   <span className="block text-[10px] font-black font-mono text-slate-500 dark:text-slate-400 uppercase tracking-widest mb-0.5 group-hover:text-blue-600 transition-colors">Total Ideas Shared</span>
                   <span className="text-2xl font-display font-black text-slate-950 dark:text-white tracking-tighter" id="total-ideas-count">
-                    {state.ideas.length.toLocaleString()}
+                    {filteredPublicIdeas.length.toLocaleString()}
                   </span>
                 </div>
                 <div className="h-8 w-1 bg-blue-600 rounded-full transform group-hover:scale-y-125 transition-transform" />
@@ -729,18 +796,22 @@ export default function App() {
               {/* Home Filter Toggle Tabs (Time range) */}
               <div className="flex flex-col space-y-0.5 select-none" id="time-filter-tabs">
                 <span className="text-[10px] font-black font-mono text-slate-500 dark:text-slate-400 uppercase tracking-widest text-center md:text-left">Filter by Release Day</span>
-                <div className="flex items-center p-1 bg-white dark:bg-slate-900 border-2 border-slate-200 dark:border-slate-800 rounded-2xl shadow-sm">
+                <div className="flex items-center p-1 bg-white dark:bg-slate-900 border-2 border-slate-200 dark:border-slate-800 rounded-2xl shadow-sm overflow-x-auto no-scrollbar">
                   {[
                     { id: 'all', label: 'All Time' },
                     { id: 'day', label: 'Today' },
-                    { id: 'week', label: 'Weekly' },
-                    { id: 'month', label: 'Monthly' }
+                    { id: 'week1', label: '1 Week' },
+                    { id: 'week2', label: '2 Week' },
+                    { id: 'week3', label: '3 Week' },
+                    { id: 'month1', label: '1 Month' },
+                    { id: 'month2', label: '2 Month' },
+                    { id: 'month3', label: '3 Month' }
                   ].map((f) => (
                     <button
                       key={f.id}
                       id={`time-filter-${f.id}`}
                       onClick={() => setTimeFilter(f.id as any)}
-                      className={`px-4 py-2 rounded-xl text-xs font-black transition-all cursor-pointer ${
+                      className={`px-4 py-2 rounded-xl text-xs font-black transition-all cursor-pointer whitespace-nowrap ${
                         timeFilter === f.id
                           ? 'bg-slate-950 dark:bg-slate-100 text-white dark:text-slate-950 shadow-md scale-105'
                           : 'text-slate-600 dark:text-slate-400 hover:text-slate-950 dark:hover:text-white'
@@ -886,53 +957,32 @@ export default function App() {
           </div>
 
           </div>
-        ) : currentView === 'onboarding' ? (
-          <OnboardingView
-            source={onboardingSource}
-            onComplete={handleOnboardingComplete}
-            onCancel={() => {
-              setCurrentView('explore');
-              setOnboardingSource(null);
-            }}
-          />
-        ) : currentView === 'profile-setup' && currentUser ? (
-          <ProfileSetup 
-            profile={currentUser}
-            onComplete={handleProfileSetupComplete}
-          />
         ) : (
           /* DASHBOARD ROW (If view set to user center) */
-          currentUser ? (
-            <DashboardView
-              profile={currentUser}
-              ideas={state.ideas}
-              collabs={state.collaborations}
-              fundings={state.funding}
-              suggestions={state.suggestions}
-              onUpdateProfile={handleProfileUpdate}
-              onAddIdeaClick={() => {
-                setIdeaToEdit(null);
-                setShowAddIdeaModal(true);
-              }}
-              onSelectIdea={(idea) => {
-                setSelectedIdea(idea);
-                setCurrentView('explore');
-              }}
-              onDeleteIdea={handleDeleteIdea}
-              onToggleVisibility={handleToggleIdeaVisibility}
-              onEditIdea={(idea) => {
-                setIdeaToEdit(idea);
-                setShowAddIdeaModal(true);
-              }}
-              onUpdateRequestStatus={handleUpdateRequestStatus}
-            />
-          ) : (
-            <div className="py-20 text-center text-xs text-gray-400 select-none">
-              Please sign up or log in to view the dashboard contents.
-            </div>
-          )
+          <DashboardView
+            profile={currentUser!}
+            ideas={state.ideas}
+            collabs={state.collaborations}
+            fundings={state.funding}
+            suggestions={state.suggestions}
+            onUpdateProfile={handleProfileUpdate}
+            onAddIdeaClick={() => {
+              setIdeaToEdit(null);
+              setShowAddIdeaModal(true);
+            }}
+            onSelectIdea={(idea) => {
+              setSelectedIdea(idea);
+              setCurrentView('explore');
+            }}
+            onDeleteIdea={handleDeleteIdea}
+            onToggleVisibility={handleToggleIdeaVisibility}
+            onEditIdea={(idea) => {
+              setIdeaToEdit(idea);
+              setShowAddIdeaModal(true);
+            }}
+            onUpdateRequestStatus={handleUpdateRequestStatus}
+          />
         )}
-
       </main>
 
       {/* FOOTER METRICS SUMMARY */}
@@ -955,15 +1005,6 @@ export default function App() {
 
       {/* OVERLAY FLOW MODALS AND DIALOGS */}
       
-      {/* 1. Login/Signup Modal (Mock authentication) */}
-      <AuthModal
-        isOpen={showAuthModal}
-        onClose={() => setShowAuthModal(false)}
-        onAuthSuccess={handleAuthSuccess}
-        defaultIsSignUp={authDefaultIsSignUp}
-        signupNoticeMessage={authNoticeMessage}
-      />
-
       {/* 2. Detailed View Modal (Interactive suggestion boxes + trigger collaborations) */}
       {selectedIdea && (
         <IdeaDetailsModal
@@ -983,8 +1024,8 @@ export default function App() {
             setInterestTargetIdea(selectedIdea);
           }}
           currentUser={currentUser}
-            isCollaborationRequested={state.collaborations.some(c => c.ideaId === selectedIdea.id && (currentUser ? c.email === currentUser.email : false))}
-          />
+          isCollaborationRequested={state.collaborations.some(c => c.ideaId === selectedIdea.id && (currentUser ? c.email === currentUser.email : false))}
+        />
       )}
 
       {/* 3. Add Startup Idea Form Popup */}

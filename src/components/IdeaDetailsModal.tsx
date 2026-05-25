@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { X, Heart, MessageSquare, Users, CircleDollarSign, ArrowRight, Share2, ClipboardList, BrainCircuit, Globe, Calendar, Check, Instagram, Facebook } from 'lucide-react';
+import { X, Heart, MessageSquare, Users, CircleDollarSign, ArrowRight, Share2, ClipboardList, BrainCircuit, Globe, Calendar, Check, Instagram, Facebook, Handshake, Coins, UserCircle, Lightbulb } from 'lucide-react';
 import { StartupIdea, Suggestion, FounderProfile } from '../types';
 import { motion, AnimatePresence } from 'motion/react';
 
@@ -156,9 +156,43 @@ export default function IdeaDetailsModal({
                   <span className="px-4 py-1.5 rounded-xl text-xs font-black bg-blue-600 text-white shadow-md">
                     {idea.category}
                   </span>
-                  <span className="px-4 py-1.5 rounded-xl text-xs font-black bg-slate-100 dark:bg-slate-900 text-slate-950 dark:text-slate-100 uppercase tracking-widest font-mono border-2 border-slate-200 dark:border-slate-800 shadow-sm">
-                    STAGE: {idea.progressStage === 'JUST IDEA NOW' || idea.progressStage === 'IDEATION' ? 'Ideation' : idea.progressStage}
-                  </span>
+                  
+                  {/* Professional Stage Badge */}
+                  {(() => {
+                    let stageLabel = '';
+                    let stageClass = '';
+                    
+                    switch (idea.progressStage) {
+                      case 'JUST IDEA NOW':
+                      case 'IDEATION':
+                        stageLabel = 'Ideation';
+                        stageClass = 'bg-blue-50 text-blue-700 border-blue-100 dark:bg-blue-500/10 dark:text-blue-300 dark:border-blue-500/20';
+                        break;
+                      case 'RESEARCH':
+                        stageLabel = 'Research';
+                        stageClass = 'bg-purple-50 text-purple-700 border-purple-100 dark:bg-purple-500/10 dark:text-purple-300 dark:border-purple-500/20';
+                        break;
+                      case 'MVP BUILDING':
+                      case 'PROTOTYPE':
+                        stageLabel = 'Prototype / MVP';
+                        stageClass = 'bg-orange-50 text-orange-700 border-orange-100 dark:bg-orange-500/10 dark:text-orange-300 dark:border-orange-500/20';
+                        break;
+                      case 'SCALE':
+                        stageLabel = 'Growth / Scale';
+                        stageClass = 'bg-emerald-50 text-emerald-700 border-emerald-100 dark:bg-emerald-500/10 dark:text-emerald-300 dark:border-emerald-500/20';
+                        break;
+                      default:
+                        stageLabel = idea.progressStage;
+                        stageClass = 'bg-slate-50 text-slate-700 border-slate-100 dark:bg-slate-500/10 dark:text-slate-300 dark:border-slate-500/20';
+                    }
+                    
+                    return (
+                      <span className={`px-3 py-1.5 rounded-lg text-[10px] font-black uppercase tracking-wider border shadow-sm ${stageClass}`}>
+                        {stageLabel}
+                      </span>
+                    );
+                  })()}
+
                   {idea.isPublic ? (
                     <span className="px-4 py-1.5 rounded-xl text-xs font-black bg-emerald-100 dark:bg-emerald-950/50 text-emerald-900 dark:text-emerald-400 border-2 border-emerald-200 dark:border-emerald-900 uppercase tracking-widest font-mono flex items-center space-x-2 shadow-sm">
                       <Globe className="h-4 w-4" />
@@ -187,61 +221,6 @@ export default function IdeaDetailsModal({
                   <Heart className={`h-5 w-5 ${isLikedByUser ? 'fill-current' : ''}`} />
                   <span>{idea.likes} Likes</span>
                 </button>
-              </div>
-            </div>
-
-            {/* ADVANCED MATURITY STEPPER (Answers 'Kaisa idea hai, kis level pe hai!') */}
-            <div className="mb-12 bg-slate-50 dark:bg-slate-900/50 border-2 border-slate-200 dark:border-slate-800 p-8 rounded-3xl select-none shadow-sm" id="details-stage-stepper">
-              <div className="flex items-center justify-between mb-6">
-                <span className="block text-xs font-black font-mono tracking-widest uppercase text-slate-600 dark:text-slate-400">
-                  Concept Maturity Roadmap
-                </span>
-                <span className="text-xs font-black font-mono text-blue-800 dark:text-blue-400 bg-blue-100 dark:bg-blue-900/50 border-2 border-blue-200 dark:border-blue-800 rounded-lg px-3 py-1.5 uppercase shadow-sm">
-                  Active Phase
-                </span>
-              </div>
-              
-              <div className="grid grid-cols-4 gap-4 relative mt-2">
-                {[
-                  { key: 'IDEATION', label: '1. Ideation', desc: 'Concept logged' },
-                  { key: 'RESEARCH', label: '2. Research', desc: 'Market analysis' },
-                  { key: 'PROTOTYPE', label: '3. Prototype', desc: 'MVP active build' },
-                  { key: 'SCALE', label: '4. Growth / Scale', desc: 'User acquisition' }
-                ].map((st, idx) => {
-                  // Normalize keys to support both formats dynamically
-                  const currentNorm = (idea.progressStage === 'JUST IDEA NOW' || idea.progressStage === 'IDEATION') ? 'IDEATION' : (idea.progressStage === 'MVP BUILDING' ? 'PROTOTYPE' : idea.progressStage);
-                  const isCurrent = currentNorm === st.key;
-                  const stages = ['IDEATION', 'RESEARCH', 'PROTOTYPE', 'SCALE'];
-                  const currentIdx = stages.indexOf(currentNorm);
-                  const isPassed = currentIdx > idx;
-
-                  return (
-                    <div key={st.key} className="flex flex-col items-center sm:items-start text-center sm:text-left">
-                      <div className="flex items-center w-full">
-                        <div className={`h-10 w-10 rounded-full flex items-center justify-center text-sm font-black shrink-0 shadow-lg border-2 transition-all ${
-                          isCurrent 
-                            ? 'bg-blue-600 text-white border-blue-600 ring-4 ring-blue-500/20 scale-110' 
-                            : isPassed 
-                              ? 'bg-emerald-600 text-white border-emerald-600' 
-                              : 'bg-white dark:bg-slate-800 text-slate-400 border-slate-300 dark:border-slate-700'
-                        }`}>
-                          {isPassed ? '✓' : idx + 1}
-                        </div>
-                        {idx < 3 && (
-                          <div className={`hidden sm:block flex-1 h-1.5 mx-3 rounded-full ${
-                            isPassed ? 'bg-emerald-600' : 'bg-slate-200 dark:bg-slate-800'
-                          }`} />
-                        )}
-                      </div>
-                      <span className={`text-[13px] font-black mt-4 leading-tight uppercase tracking-tight ${
-                        isCurrent ? 'text-blue-800 dark:text-blue-400' : isPassed ? 'text-emerald-800 dark:text-emerald-400' : 'text-slate-600 dark:text-slate-500'
-                      }`}>
-                        {st.label}
-                      </span>
-                      <span className="hidden sm:block text-[11px] font-bold text-slate-600 dark:text-slate-500 mt-1.5 leading-tight">{st.desc}</span>
-                    </div>
-                  );
-                })}
               </div>
             </div>
 
@@ -443,34 +422,36 @@ export default function IdeaDetailsModal({
                       </span>
                     </div>
                   </div>
-                </div>
 
-                  {/* Actions Sidebar Buttons */}
-                <div className="space-y-4">
-                  {idea.needCollaboration && (
-                    <button
-                      id="collaboration-action-btn"
-                      onClick={onCollaborationClick}
-                      className={`w-full py-4 px-5 rounded-2xl text-sm font-black tracking-wide transition-all shadow-xl hover:-translate-y-0.5 select-none cursor-pointer flex items-center justify-center space-x-2 border-0 ${
-                        isCollaborationRequested 
-                          ? 'bg-emerald-600 text-white hover:bg-emerald-700' 
-                          : 'bg-slate-950 dark:bg-white text-white dark:text-slate-950 hover:bg-slate-800 dark:hover:bg-slate-100'
-                      }`}
-                    >
-                      <Users className={`h-5 w-5 ${isCollaborationRequested ? 'text-white' : ''}`} />
-                      <span>{isCollaborationRequested ? 'Collaboration Requested' : 'Request Collaboration'}</span>
-                    </button>
-                  )}
+                  {/* Actions Sidebar Buttons (Inside Profile Card) */}
+                  {currentUser?.id !== idea.founderId && (
+                    <div className="space-y-3 pt-4 border-t border-slate-100 dark:border-slate-800">
+                      {idea.seeking_collaboration && (
+                        <button
+                          id="collaboration-action-btn"
+                          onClick={onCollaborationClick}
+                          className={`w-full py-3.5 px-5 rounded-xl text-[11px] font-black uppercase tracking-widest transition-all select-none cursor-pointer flex items-center justify-center space-x-2 border-2 ${
+                            isCollaborationRequested 
+                              ? 'bg-emerald-600 border-emerald-600 text-white hover:bg-emerald-700' 
+                              : 'bg-transparent border-emerald-600/30 text-emerald-600 hover:bg-emerald-50 dark:hover:bg-emerald-950/20'
+                          }`}
+                        >
+                          <Handshake className="h-4 w-4" />
+                          <span>{isCollaborationRequested ? 'Request Sent' : 'Request Collaboration'}</span>
+                        </button>
+                      )}
 
-                  {idea.needFunding && (
-                    <button
-                      id="funding-action-btn"
-                      onClick={onFundingClick}
-                      className="w-full py-4 px-5 bg-blue-600 hover:bg-blue-700 text-white rounded-2xl text-sm font-black tracking-wide transition-all shadow-xl hover:-translate-y-0.5 select-none cursor-pointer flex items-center justify-center space-x-2 border-0"
-                    >
-                      <CircleDollarSign className="h-5 w-5" />
-                      <span>Express Funding Interest</span>
-                    </button>
+                      {idea.seeking_funding && (
+                        <button
+                          id="funding-action-btn"
+                          onClick={onFundingClick}
+                          className="w-full py-3.5 px-5 bg-transparent border-2 border-orange-600/30 text-orange-600 hover:bg-orange-50 dark:hover:bg-orange-950/20 rounded-xl text-[11px] font-black uppercase tracking-widest transition-all select-none cursor-pointer flex items-center justify-center space-x-2"
+                        >
+                          <Coins className="h-4 w-4" />
+                          <span>Express Funding Interest</span>
+                        </button>
+                      )}
+                    </div>
                   )}
                 </div>
 
@@ -478,8 +459,8 @@ export default function IdeaDetailsModal({
             </div>
 
             {/* SUGGESTION / COMMENT SYSTEM FORUM */}
-            <div className="border-t border-slate-100 dark:border-slate-800/60 pt-6" id="details-suggestions-section">
-              <div className="flex items-center justify-between mb-4 px-1 select-none">
+            <div className="border-t border-slate-100 dark:border-slate-800/60 pt-5" id="details-suggestions-section">
+              <div className="flex items-center justify-between mb-3 px-1 select-none">
                 <div className="flex items-center space-x-2">
                   <div className="p-1.5 rounded-lg bg-blue-600/10 dark:bg-blue-400/10">
                     <MessageSquare className="h-4 w-4 text-blue-600 dark:text-blue-400" />
@@ -494,48 +475,39 @@ export default function IdeaDetailsModal({
               </div>
 
               {/* Suggestions List */}
-              <div className="space-y-3 max-h-[400px] overflow-y-auto pr-2 mb-6 no-scrollbar custom-scrollbar" id="suggestions-list-container">
+              <div className="space-y-3 max-h-[400px] overflow-y-auto pr-2 mb-4 no-scrollbar custom-scrollbar" id="suggestions-list-container">
                 {suggestions.length === 0 ? (
-                  <div className="py-10 text-center bg-slate-50/30 dark:bg-slate-900/20 rounded-3xl border-2 border-dashed border-slate-200/60 dark:border-slate-800/40 select-none">
-                    <MessageSquare className="mx-auto h-8 w-8 text-slate-300 dark:text-slate-700 mb-3" />
-                    <p className="text-[11px] text-slate-400 dark:text-slate-500 font-black uppercase tracking-widest">No suggestions yet. Be the first to help the founder!</p>
+                  <div className="py-8 text-center bg-blue-50/30 dark:bg-blue-900/10 rounded-2xl border-2 border-dashed border-blue-100/50 dark:border-blue-800/40 select-none">
+                    <div className="w-12 h-12 bg-white dark:bg-slate-800 rounded-xl flex items-center justify-center mx-auto mb-2.5 shadow-sm border border-slate-100 dark:border-slate-700">
+                      <Lightbulb className="h-7 w-7 text-blue-500 animate-pulse" />
+                    </div>
+                    <p className="text-[11px] font-black text-slate-900 dark:text-white uppercase tracking-tight">No suggestions yet</p>
+                    <p className="text-[9px] text-slate-500 dark:text-slate-400 font-bold mt-0.5">Be the first to help the founder refine this vision!</p>
                   </div>
                 ) : (
                   suggestions.map((s) => (
-                    <div key={s.id} className="flex items-start space-x-3 group relative pl-4 animate-in fade-in slide-in-from-bottom-2 duration-300" id={`suggestion-${s.id}`}>
-                      {/* Black highlight sliding side indicator */}
-                      <div className="absolute left-0 top-1 bottom-1 w-1.5 bg-slate-950 dark:bg-white rounded-full opacity-0 group-hover:opacity-100 transition-all duration-300 scale-y-0 group-hover:scale-y-100 origin-center" />
+                    <div key={s.id} className="flex items-start space-x-4 group relative pl-4 animate-in fade-in slide-in-from-bottom-2 duration-300" id={`suggestion-${s.id}`}>
+                      {/* Interaction marker */}
+                      <div className="absolute left-0 top-2 bottom-2 w-1 bg-blue-600 rounded-full opacity-0 group-hover:opacity-100 transition-all duration-300 scale-y-0 group-hover:scale-y-100" />
                       
-                      <div className="w-10 h-10 rounded-2xl border-2 border-slate-100 dark:border-slate-800 overflow-hidden shrink-0 shadow-sm select-none mt-1 group-hover:scale-105 transition-transform">
+                      <div className="w-10 h-10 rounded-xl border-2 border-slate-100 dark:border-slate-800 overflow-hidden shrink-0 shadow-sm select-none mt-1">
                         <img src={s.authorAvatar} alt={s.authorName} className="w-full h-full object-cover" />
                       </div>
                       
-                      <div className="flex-1 min-w-0 bg-white dark:bg-slate-900/40 border-2 border-slate-100/60 dark:border-slate-800/60 p-4 rounded-2xl group-hover:border-slate-200 dark:group-hover:border-slate-700 group-hover:bg-slate-50/50 dark:group-hover:bg-slate-900/60 transition-all shadow-[0_2px_10px_rgba(0,0,0,0.02)]">
+                      <div className="flex-1 min-w-0 bg-white dark:bg-slate-900/40 border border-slate-200/60 dark:border-slate-800/80 p-4 rounded-xl group-hover:border-blue-200 dark:group-hover:border-blue-900/50 transition-all shadow-[0_4px_20px_rgba(0,0,0,0.02)]">
                         <div className="flex items-center justify-between mb-2">
                           <div className="flex items-center space-x-2">
-                            <span className="text-xs font-black text-slate-950 dark:text-white truncate uppercase tracking-tight" dir="auto">{s.authorName}</span>
+                            <span className="text-xs font-black text-slate-950 dark:text-white uppercase tracking-tight">{s.authorName}</span>
                             {s.authorName === idea.founderName && (
                               <span className="px-2 py-0.5 rounded-lg bg-blue-600 text-white text-[8px] font-black uppercase tracking-widest shadow-sm">Founder</span>
                             )}
-                            <span className="px-2 py-0.5 rounded-lg bg-slate-100 dark:bg-slate-800 text-slate-500 dark:text-slate-400 text-[8px] font-black uppercase tracking-widest">Builder</span>
                           </div>
                           <span className="text-[9px] text-slate-400 dark:text-slate-500 font-bold font-mono">{new Date(s.createdAt).toLocaleDateString()}</span>
                         </div>
                         
-                        <p className="text-xs text-slate-700 dark:text-slate-300 leading-relaxed font-bold whitespace-pre-wrap mb-3" dir="auto">
+                        <p className="text-xs text-slate-700 dark:text-slate-300 leading-relaxed font-medium whitespace-pre-wrap" dir="auto">
                           {s.content}
                         </p>
-                        
-                        <div className="flex items-center space-x-5 pt-3 border-t border-slate-100/60 dark:border-slate-800/40">
-                          <button className="flex items-center space-x-1.5 text-[10px] font-black text-slate-400 hover:text-red-600 dark:hover:text-red-400 transition-colors cursor-pointer group/upvote active:scale-90">
-                            <Heart className={`h-3.5 w-3.5 ${s.likes > 0 ? 'fill-red-600 text-red-600' : 'group-hover/upvote:scale-110'}`} />
-                            <span>{s.likes || 0} Upvotes</span>
-                          </button>
-                          <button className="flex items-center space-x-1.5 text-[10px] font-black text-slate-400 hover:text-slate-950 dark:hover:text-white transition-colors cursor-pointer active:scale-90">
-                            <MessageSquare className="h-3.5 w-3.5" />
-                            <span>Reply</span>
-                          </button>
-                        </div>
                       </div>
                     </div>
                   ))
@@ -543,55 +515,55 @@ export default function IdeaDetailsModal({
               </div>
 
               {/* Add Suggestion Input */}
-              <form onSubmit={handleSuggestionSubmit} className="mt-4 pt-6 border-t-2 border-slate-100 dark:border-slate-800/60" id="suggestion-input-box">
-                <div className="mb-4 pl-1 text-center sm:text-left">
-                  <h4 className="text-[11px] font-black text-slate-900 dark:text-white tracking-tight uppercase bg-slate-100 dark:bg-slate-800 inline-block px-3 py-1 rounded-lg">
+              <form onSubmit={handleSuggestionSubmit} className="mt-2 pt-4 border-t border-slate-100 dark:border-slate-800/40" id="suggestion-input-box">
+                <div className="mb-2.5 pl-1 text-center sm:text-left">
+                  <h4 className="text-[10px] font-black text-slate-500 dark:text-slate-400 tracking-tight uppercase bg-slate-50 dark:bg-slate-800 inline-block px-2.5 py-1 rounded-lg border border-slate-100 dark:border-slate-700">
                     Type your suggestion about this startup idea and help the founder improve it.
                   </h4>
                 </div>
 
-                <div className="flex space-x-4">
-                  <div className="w-11 h-11 rounded-2xl border-2 border-slate-200 dark:border-slate-800 overflow-hidden shrink-0 bg-slate-100 dark:bg-slate-800 flex items-center justify-center shadow-md select-none hidden sm:flex">
+                <div className="flex space-x-3">
+                  <div className="w-10 h-10 rounded-xl border-2 border-slate-100 dark:border-slate-800 overflow-hidden shrink-0 bg-slate-100 dark:bg-slate-800 flex items-center justify-center shadow-sm select-none hidden sm:flex">
                     <img 
                       src={currentUser ? currentUser.avatar : "https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?auto=format&fit=crop&q=80&w=80"} 
                       alt={currentUser ? currentUser.name : "Guest Avatar"} 
                       className="w-full h-full object-cover" 
                     />
                   </div>
-                  <div className="flex-1 space-y-4">
+                  <div className="flex-1 space-y-3">
                     <div className="relative group">
                       <textarea
                         id="suggestion-textarea"
-                        rows={3}
+                        rows={2}
                         value={newSuggestion}
                         onChange={(e) => setNewSuggestion(e.target.value)}
                         dir="auto"
                         placeholder={currentUser ? "Drop a constructive suggestion or feature idea..." : "Share feedback or suggestions instantly..."}
-                        className="w-full py-4 px-6 bg-slate-50/50 dark:bg-slate-900/50 border-2 border-slate-100 dark:border-slate-800/80 rounded-[1.5rem] text-xs font-bold focus:outline-none focus:ring-4 focus:ring-blue-500/10 focus:border-blue-600 dark:focus:border-blue-400 dark:text-white transition-all resize-none placeholder-slate-400 leading-relaxed shadow-inner hover:border-slate-300 dark:hover:border-slate-700"
+                        className="w-full py-3 px-4 bg-slate-50/50 dark:bg-slate-900/50 border border-slate-200 dark:border-slate-800 rounded-2xl text-xs font-bold focus:outline-none focus:ring-4 focus:ring-blue-500/5 focus:border-blue-600 dark:focus:border-blue-400 dark:text-white transition-all resize-none placeholder-slate-400 leading-relaxed shadow-sm hover:border-slate-300 dark:hover:border-slate-700"
                       />
-                      <div className="absolute bottom-3 right-4 flex items-center space-x-2">
-                        <span className="text-[9px] font-black text-slate-400 uppercase tracking-widest">{newSuggestion.length} chars</span>
+                      <div className="absolute bottom-2.5 right-3.5 flex items-center space-x-2">
+                        <span className="text-[8px] font-black text-slate-400 uppercase tracking-widest">{newSuggestion.length} chars</span>
                       </div>
                     </div>
                     
-                    <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+                    <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
                       {!currentUser ? (
-                        <div className="flex items-center space-x-3 select-none">
-                          <span className="text-[10px] font-black font-mono text-slate-400 dark:text-slate-500 uppercase tracking-wider">Commenting as:</span>
+                        <div className="flex items-center space-x-2.5 select-none">
+                          <span className="text-[9px] font-black font-mono text-slate-400 dark:text-slate-500 uppercase tracking-wider">Commenting as:</span>
                           <input
                             type="text"
                             placeholder="Your Name (Optional)"
                             value={guestName}
                             onChange={(e) => setGuestName(e.target.value)}
                             dir="auto"
-                            className="py-2 px-4 border-2 border-slate-100 dark:border-slate-800 bg-white dark:bg-slate-950 rounded-xl text-[10px] font-bold text-slate-700 dark:text-slate-300 placeholder-slate-400 focus:outline-none focus:ring-4 focus:ring-blue-500/5 focus:border-blue-500/50 max-w-[160px] transition-all shadow-sm"
+                            className="py-1.5 px-3.5 border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-950 rounded-lg text-[10px] font-bold text-slate-700 dark:text-slate-300 placeholder-slate-400 focus:outline-none focus:ring-4 focus:ring-blue-500/5 focus:border-blue-600 max-w-[150px] transition-all"
                             id="guest-name-suggestion-input"
                           />
                         </div>
                       ) : (
-                        <div className="flex items-center space-x-2.5 select-none bg-emerald-50/50 dark:bg-emerald-950/30 px-3 py-1.5 rounded-xl border border-emerald-100 dark:border-emerald-900/50">
-                          <div className="w-2 h-2 rounded-full bg-emerald-500 shadow-[0_0_10px_rgba(16,185,129,0.5)] animate-pulse" />
-                          <span className="text-[10px] font-black text-slate-500 dark:text-slate-400 uppercase tracking-tight">Logged in: <strong className="text-emerald-700 dark:text-emerald-400 ml-1">{currentUser.name}</strong></span>
+                        <div className="flex items-center space-x-2 select-none bg-emerald-50 dark:bg-emerald-500/10 px-3 py-1.5 rounded-full border border-emerald-100 dark:border-emerald-500/20 shadow-sm">
+                          <div className="w-1.5 h-1.5 rounded-full bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.5)] animate-pulse" />
+                          <span className="text-[9px] font-black text-emerald-800 dark:text-emerald-400 uppercase tracking-tight">Logged in: <strong className="ml-1">{currentUser.name}</strong></span>
                         </div>
                       )}
 
@@ -599,7 +571,7 @@ export default function IdeaDetailsModal({
                         id="submit-suggestion-btn"
                         type="submit"
                         disabled={!newSuggestion.trim()}
-                        className="inline-flex items-center justify-center px-8 py-3.5 bg-slate-950 dark:bg-white text-white dark:text-slate-950 rounded-2xl text-[11px] font-black transition-all disabled:opacity-30 disabled:cursor-not-allowed select-none cursor-pointer shadow-xl hover:shadow-slate-500/20 dark:hover:shadow-white/10 active:scale-95 uppercase tracking-widest border-0"
+                        className="inline-flex items-center justify-center px-8 py-2.5 bg-slate-950 dark:bg-white text-white dark:text-slate-950 rounded-xl text-[10px] font-black transition-all disabled:opacity-30 disabled:cursor-not-allowed select-none cursor-pointer shadow-lg hover:shadow-slate-500/20 dark:hover:shadow-white/10 active:scale-95 uppercase tracking-widest border-0"
                       >
                         Publish Suggestion
                       </button>

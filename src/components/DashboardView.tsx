@@ -83,40 +83,23 @@ export default function DashboardView({
 
   // Filter inbox submissions addressed to the currentUser's ideas
   const userIdeasIds = userIdeas.map(ui => ui.id);
-  const userCollabs = collabs.filter(c => userIdeasIds.includes(c.ideaId));
-  const userFundings = fundings.filter(f => userIdeasIds.includes(f.ideaId));
-  const userSuggestions = (suggestions || []).filter(s => userIdeasIds.includes(s.ideaId));
+  const userCollabs = collabs.filter(c => c.founderId === profile.id);
+  const userFundings = fundings.filter(f => f.founderId === profile.id);
+  const userSuggestions = (suggestions || []).filter(s => s.founderId === profile.id);
 
   // Compute calculated statistics
   const totalLikes = userIdeas.reduce((acc, curr) => acc + curr.likes, 0);
   const totalSuggestions = userSuggestions.length;
-  const publicIdeasCount = userIdeas.filter(i => i.isPublic).length;
-  const privateIdeasCount = userIdeas.filter(i => !i.isPublic).length;
-  const draftIdeasCount = userIdeas.filter(i => i.progressStage === 'JUST IDEA NOW' || i.progressStage === 'IDEATION').length;
+  const publicIdeasCount = userIdeas.filter(i => i.visibility === 'public').length;
+  const privateIdeasCount = userIdeas.filter(i => i.visibility === 'private').length;
+  const draftIdeasCount = userIdeas.filter(i => i.status === 'draft').length;
 
   const handleProfileSave = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsSavingProfile(true);
     
-    try {
-      const { error } = await supabase
-        .from('profiles')
-        .update({
-          name: editName,
-          bio: editBio,
-          building_desc: editBuildingDesc,
-          avatar_url: editAvatar,
-          startup_logo_url: editStartupLogo,
-          github_url: editGithub,
-          twitter_url: editTwitter,
-          linkedin_url: editLinkedin,
-          user_role: editRole,
-          updated_at: new Date().toISOString()
-        })
-        .eq('id', profile.id);
-
-      if (error) throw error;
-
+    // Simulate save without Supabase
+    setTimeout(() => {
       onUpdateProfile({
         ...profile,
         name: editName,
@@ -129,13 +112,10 @@ export default function DashboardView({
         linkedin: editLinkedin,
         userRole: editRole
       });
+      setIsSavingProfile(false);
       setProfileSaveSuccess(true);
       setTimeout(() => setProfileSaveSuccess(false), 2000);
-    } catch (err) {
-      console.error('Error updating profile:', err);
-    } finally {
-      setIsSavingProfile(false);
-    }
+    }, 800);
   };
 
   return (
@@ -439,180 +419,253 @@ export default function DashboardView({
 
         {/* 2. MY IDEAS GRID */}
         <div className={activeTab === 'ideas' ? 'block animate-in fade-in slide-in-from-bottom-2 duration-300' : 'hidden'} id="ideas-tab-content">
-          <div className="space-y-6">
-            {userIdeas.length > 0 && (
-              <div className="flex flex-wrap items-center gap-2 select-none bg-slate-50/50 dark:bg-slate-900/40 border border-slate-150/50 dark:border-slate-800/40 p-1.5 rounded-2xl max-w-2xl mb-6" id="ideas-sub-filter-row">
-                <span className="text-[10px] font-bold font-mono text-slate-400 dark:text-slate-500 uppercase tracking-wider px-3">Filter Ideas:</span>
-                {[
-                  { id: 'all', label: `All (${userIdeas.length})` },
-                  { id: 'public', label: `Public (${publicIdeasCount})` },
-                  { id: 'private', label: `Private (${privateIdeasCount})` },
-                  { id: 'draft', label: `Ideation (${draftIdeasCount})` }
-                ].map(pill => (
-                  <button
-                    key={pill.id}
-                    onClick={() => setIdeasSubFilter(pill.id as any)}
-                    className={`px-3 py-1 text-xs font-semibold rounded-xl transition-all cursor-pointer ${
-                      ideasSubFilter === pill.id
-                        ? 'bg-blue-600 text-white shadow-xs'
-                        : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800'
-                    }`}
-                  >
-                    {pill.label}
-                  </button>
-                ))}
+          <div className="space-y-12">
+            
+            {/* Public Ideas Section */}
+            <section id="public-ideas-section">
+              <div className="flex items-center justify-between mb-6 px-1">
+                <div className="flex items-center space-x-3">
+                  <div className="p-2 bg-emerald-500/10 rounded-xl">
+                    <Globe className="h-5 w-5 text-emerald-600" />
+                  </div>
+                  <h3 className="font-display font-black text-xl text-slate-900 dark:text-white uppercase tracking-tight">
+                    Public Ideas ({publicIdeasCount})
+                  </h3>
+                </div>
               </div>
-            )}
 
-            {userIdeas.filter(idea => {
-              if (ideasSubFilter === 'public') return idea.isPublic;
-              if (ideasSubFilter === 'private') return !idea.isPublic;
-              if (ideasSubFilter === 'draft') return idea.progressStage === 'JUST IDEA NOW' || idea.progressStage === 'IDEATION';
-              return true;
-            }).length === 0 ? (
-              <div className="bg-white dark:bg-slate-900/40 border border-slate-200/50 dark:border-slate-800/40 rounded-2xl p-12 text-center select-none" id="my-ideas-empty">
-                <Lightbulb className="mx-auto h-10 w-10 text-slate-300 dark:text-slate-700 mb-3" />
-                <h3 className="font-display font-bold text-base text-slate-950 dark:text-white">
-                  {userIdeas.length === 0 
-                    ? "You haven't added any startup ideas yet" 
-                    : "No ideas match this category"}
-                </h3>
-                <p className="text-xs text-slate-500 dark:text-slate-400 mt-1 max-w-sm mx-auto leading-relaxed">
-                  {userIdeas.length === 0 
-                    ? "Publish a modern rectangular startup idea card to gather comments, collaboration offers, and funding views!"
-                    : "Try checking a different filter category above to view your ideas."}
-                </p>
-                {userIdeas.length === 0 && (
-                  <button
-                    id="empty-state-publish-btn"
-                    onClick={onAddIdeaClick}
-                    className="mt-4 inline-flex items-center space-x-1.5 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-xl text-xs font-semibold cursor-pointer shadow-sm select-none"
-                  >
-                    <Plus className="h-3.5 w-3.5" />
-                    <span>Launch First Concept</span>
-                  </button>
-                )}
-              </div>
-            ) : (
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6 animate-slide-up" id="ideas-tab-grid">
-                {userIdeas.filter(idea => {
-                  if (ideasSubFilter === 'public') return idea.isPublic;
-                  if (ideasSubFilter === 'private') return !idea.isPublic;
-                  if (ideasSubFilter === 'draft') return idea.progressStage === 'JUST IDEA NOW' || idea.progressStage === 'IDEATION';
-                  return true;
-                }).map(idea => (
-                  <div
-                    key={idea.id}
-                    className="bg-white dark:bg-slate-900/40 border border-slate-200/40 dark:border-slate-800/40 hover:border-blue-400/40 rounded-2xl p-6 transition-all shadow-[0_2px_12px_rgba(0,0,0,0.01)] hover:shadow-xl relative flex flex-col justify-between group overflow-hidden"
-                    id={`own-idea-${idea.id}`}
-                  >
-                    <div className="absolute top-0 left-0 h-1 w-full bg-gradient-to-r from-blue-500/20 via-indigo-500/20 to-transparent" />
-                    
-                    <div>
-                      {/* Header Action Badges and Date */}
-                      <div className="flex justify-between items-center mb-4 text-[10px] font-mono text-slate-400 dark:text-slate-500 select-none">
-                        <span>PUBLISHED: {new Date(idea.createdAt).toLocaleDateString()}</span>
-                        <div className="flex items-center space-x-1.5">
-                          {idea.isPublic ? (
+              {userIdeas.filter(i => i.isPublic).length === 0 ? (
+                <div className="bg-slate-50 dark:bg-slate-900/40 border-2 border-dashed border-slate-200 dark:border-slate-800 rounded-3xl p-10 text-center">
+                  <p className="text-sm text-slate-500 dark:text-slate-400 font-bold">No public ideas yet. Publish your vision to the world!</p>
+                </div>
+              ) : (
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6" id="public-ideas-grid">
+                  {userIdeas.filter(i => i.isPublic).map(idea => (
+                    <div
+                      key={idea.id}
+                      className="bg-white dark:bg-slate-900/40 border border-slate-200/40 dark:border-slate-800/40 hover:border-blue-400/40 rounded-2xl p-6 transition-all shadow-[0_2px_12px_rgba(0,0,0,0.01)] hover:shadow-xl relative flex flex-col justify-between group overflow-hidden"
+                      id={`own-idea-public-${idea.id}`}
+                    >
+                      <div className="absolute top-0 left-0 h-1 w-full bg-gradient-to-r from-emerald-500/20 via-blue-500/20 to-transparent" />
+                      
+                      <div>
+                        {/* Header Action Badges and Date */}
+                        <div className="flex justify-between items-center mb-4 text-[10px] font-mono text-slate-400 dark:text-slate-500 select-none">
+                          <span>PUBLISHED: {new Date(idea.createdAt).toLocaleDateString()}</span>
+                          <div className="flex items-center space-x-1.5">
                             <span className="inline-flex items-center space-x-0.5 px-2 py-0.5 rounded-full bg-emerald-50/50 dark:bg-emerald-900/20 text-emerald-700 dark:text-emerald-400 border border-emerald-100/50 dark:border-emerald-800/50 font-bold">
                               <Globe className="h-2.5 w-2.5" />
                               <span>Public Pitch</span>
                             </span>
-                          ) : (
-                            <span className="inline-flex items-center space-x-0.5 px-2 py-0.5 rounded-full bg-amber-50/50 dark:bg-amber-900/20 text-amber-700 dark:text-amber-400 border border-amber-100/50 dark:border-amber-800/50 font-bold">
-                              <Lock className="h-2.5 w-2.5" />
-                              <span>Private Draft</span>
-                            </span>
-                          )}
+                          </div>
                         </div>
-                      </div>
 
-                      <div className="flex items-start space-x-4 mb-4 select-none">
-                        <div className="w-12 h-12 rounded-2xl bg-slate-50/50 dark:bg-slate-800/40 border border-slate-150/50 dark:border-slate-700/50 flex items-center justify-center text-2xl shadow-2xs group-hover:scale-105 transition-transform shrink-0">
-                          {idea.logo}
+                        <div className="flex items-start space-x-4 mb-4 select-none">
+                          <div className="w-12 h-12 rounded-2xl bg-slate-50/50 dark:bg-slate-800/40 border border-slate-150/50 dark:border-slate-700/50 flex items-center justify-center text-2xl shadow-2xs group-hover:scale-105 transition-transform shrink-0">
+                            {idea.logo}
+                          </div>
+                          <div className="min-w-0 flex-1">
+                            <h4 className="font-display font-black text-slate-900 dark:text-white group-hover:text-blue-600 dark:group-hover:text-blue-400 text-sm truncate uppercase tracking-tight" dir="auto">{idea.name}</h4>
+                            <div className="flex flex-wrap gap-1.5 mt-1 select-none">
+                              <span className="inline-block px-2 py-0.5 rounded-md text-[9px] bg-slate-100/50 dark:bg-slate-800/50 border border-slate-150/50 dark:border-slate-700/50 text-slate-700 dark:text-slate-300 font-bold uppercase tracking-wider">{idea.category}</span>
+                              <span className="inline-block px-2 py-0.5 rounded-md text-[9px] bg-zinc-50/50 dark:bg-zinc-900/50 border border-zinc-150/50 dark:border-zinc-800/50 text-zinc-650 dark:text-zinc-400 font-semibold">{idea.progressStage}</span>
+                            </div>
+                          </div>
                         </div>
-                        <div className="min-w-0 flex-1">
-                          <h4 className="font-display font-black text-slate-900 dark:text-white group-hover:text-blue-600 dark:group-hover:text-blue-400 text-sm truncate uppercase tracking-tight" dir="auto">{idea.name}</h4>
-                          <div className="flex flex-wrap gap-1.5 mt-1 select-none">
-                            <span className="inline-block px-2 py-0.5 rounded-md text-[9px] bg-slate-100/50 dark:bg-slate-800/50 border border-slate-150/50 dark:border-slate-700/50 text-slate-700 dark:text-slate-300 font-bold uppercase tracking-wider">{idea.category}</span>
-                            <span className="inline-block px-2 py-0.5 rounded-md text-[9px] bg-zinc-50/50 dark:bg-zinc-900/50 border border-zinc-150/50 dark:border-zinc-800/50 text-zinc-650 dark:text-zinc-400 font-semibold">{idea.progressStage}</span>
+
+                        <p className="text-slate-650 dark:text-slate-400 text-xs leading-relaxed line-clamp-3 mb-5 pr-2" dir="auto">
+                          {idea.description}
+                        </p>
+
+                        {/* Idea Metrics Section */}
+                        <div className="grid grid-cols-2 md:grid-cols-4 gap-2 bg-slate-50/30 dark:bg-slate-950/20 border border-slate-100/50 dark:border-slate-800/40 p-2.5 rounded-xl text-center select-none mb-5 font-mono text-[10px] font-bold">
+                          <div className="p-1">
+                            <span className="block text-[8px] text-slate-400 dark:text-slate-500 uppercase">Upvotes</span>
+                            <span className="text-slate-700 dark:text-slate-300 text-xs">{idea.likes}</span>
+                          </div>
+                          <div className="p-1 border-l border-slate-200/40 dark:border-slate-800/60">
+                            <span className="block text-[8px] text-slate-400 dark:text-slate-500 uppercase">Suggestions</span>
+                            <span className="text-slate-700 dark:text-slate-300 text-xs">{idea.suggestionsCount}</span>
+                          </div>
+                          <div className="p-1 border-l border-slate-200/40 dark:border-slate-800/60">
+                            <span className="block text-[8px] text-slate-400 dark:text-slate-500 uppercase">Partners</span>
+                            <span className="text-slate-700 dark:text-slate-300 text-xs">{idea.collaborationCount}</span>
+                          </div>
+                          <div className="p-1 border-l border-slate-200/40 dark:border-slate-800/60">
+                            <span className="block text-[8px] text-slate-400 dark:text-slate-500 uppercase">Funding</span>
+                            <span className="text-emerald-600 dark:text-emerald-400 text-[10px] leading-tight truncate block">{idea.fundingGoal || 'None'}</span>
                           </div>
                         </div>
                       </div>
 
-                      <p className="text-slate-650 dark:text-slate-400 text-xs leading-relaxed line-clamp-3 mb-5 pr-2" dir="auto">
-                        {idea.description}
-                      </p>
+                      {/* Actions footer wrapper */}
+                      <div className="border-t border-slate-100/60 dark:border-slate-800/40 pt-4" id={`own-idea-footer-${idea.id}`}>
+                        <div className="grid grid-cols-2 sm:flex sm:items-center sm:justify-between gap-2.5">
+                          <div className="flex flex-wrap items-center gap-1.5 col-span-2 sm:col-span-1">
+                            <button
+                              onClick={() => onToggleVisibility?.(idea.id)}
+                              className="inline-flex items-center justify-center space-x-1 px-3 py-1.5 rounded-xl border text-[11px] font-bold transition-all cursor-pointer bg-amber-50/50 hover:bg-amber-100/50 border-amber-200/50 text-amber-800 dark:text-amber-400"
+                            >
+                              <Lock className="h-3 w-3" />
+                              <span>Go Private</span>
+                            </button>
 
-                      {/* Idea Metrics Section */}
-                      <div className="grid grid-cols-2 md:grid-cols-4 gap-2 bg-slate-50/30 dark:bg-slate-950/20 border border-slate-100/50 dark:border-slate-800/40 p-2.5 rounded-xl text-center select-none mb-5 font-mono text-[10px] font-bold">
-                        <div className="p-1">
-                          <span className="block text-[8px] text-slate-400 dark:text-slate-500 uppercase">Upvotes</span>
-                          <span className="text-slate-700 dark:text-slate-300 text-xs">{idea.likes}</span>
-                        </div>
-                        <div className="p-1 border-l border-slate-200/40 dark:border-slate-800/60">
-                          <span className="block text-[8px] text-slate-400 dark:text-slate-500 uppercase">Suggestions</span>
-                          <span className="text-slate-700 dark:text-slate-300 text-xs">{idea.suggestionsCount}</span>
-                        </div>
-                        <div className="p-1 border-l border-slate-200/40 dark:border-slate-800/60">
-                          <span className="block text-[8px] text-slate-400 dark:text-slate-500 uppercase">Partners</span>
-                          <span className="text-slate-700 dark:text-slate-300 text-xs">{idea.collaborationCount}</span>
-                        </div>
-                        <div className="p-1 border-l border-slate-200/40 dark:border-slate-800/60">
-                          <span className="block text-[8px] text-slate-400 dark:text-slate-500 uppercase">Funding</span>
-                          <span className="text-emerald-600 dark:text-emerald-400 text-[10px] leading-tight truncate block">{idea.fundingGoal || 'None'}</span>
+                            <button
+                              onClick={() => onEditIdea?.(idea)}
+                              className="inline-flex items-center justify-center space-x-1 px-3 py-1.5 bg-slate-100/50 hover:bg-slate-200/50 dark:bg-slate-800/50 dark:hover:bg-slate-700/50 border border-slate-200/50 dark:border-slate-700/50 text-slate-700 dark:text-slate-300 rounded-xl text-[11px] font-bold transition-all cursor-pointer"
+                            >
+                              <Edit3 className="h-3 w-3" />
+                              <span>Edit</span>
+                            </button>
+
+                            <button
+                              onClick={() => {
+                                if (window.confirm(`Are you sure?`)) onDeleteIdea(idea.id);
+                              }}
+                              className="inline-flex items-center justify-center space-x-1 px-3 py-1.5 bg-red-50/50 hover:bg-red-100/50 dark:bg-red-900/20 dark:hover:bg-red-900/40 border border-red-200/50 dark:border-red-800/50 text-red-600 dark:text-red-400 rounded-xl text-[11px] font-bold transition-all cursor-pointer"
+                            >
+                              <Trash2 className="h-3 w-3" />
+                              <span>Delete</span>
+                            </button>
+                          </div>
+
+                          <button
+                            onClick={() => onSelectIdea(idea)}
+                            className="col-span-2 sm:col-span-1 py-1.5 px-3.5 bg-slate-900 dark:bg-slate-100 hover:bg-black dark:hover:bg-white text-white dark:text-slate-900 rounded-xl text-xs font-extrabold flex items-center justify-center space-x-1.5 shadow-sm transition-all cursor-pointer"
+                          >
+                            <span>View Board</span>
+                            <ExternalLink className="h-3.5 w-3.5" />
+                          </button>
                         </div>
                       </div>
                     </div>
+                  ))}
+                </div>
+              )}
+            </section>
 
-                    {/* Actions footer wrapper */}
-                    <div className="border-t border-slate-100/60 dark:border-slate-800/40 pt-4" id={`own-idea-footer-${idea.id}`}>
-                      <div className="grid grid-cols-2 sm:flex sm:items-center sm:justify-between gap-2.5">
-                        <div className="flex flex-wrap items-center gap-1.5 col-span-2 sm:col-span-1">
-                          <button
-                            onClick={() => onToggleVisibility?.(idea.id)}
-                            className={`inline-flex items-center justify-center space-x-1 px-3 py-1.5 rounded-xl border text-[11px] font-bold transition-all cursor-pointer ${
-                              idea.isPublic 
-                                ? 'bg-amber-50/50 hover:bg-amber-100/50 border-amber-200/50 text-amber-800 dark:text-amber-400' 
-                                : 'bg-emerald-50/50 hover:bg-emerald-100/50 border-emerald-200/50 text-emerald-800 dark:text-emerald-400'
-                            }`}
-                          >
-                            {idea.isPublic ? <Lock className="h-3 w-3" /> : <Globe className="h-3 w-3" />}
-                            <span>{idea.isPublic ? 'Go Private' : 'Go Public'}</span>
-                          </button>
-
-                          <button
-                            onClick={() => onEditIdea?.(idea)}
-                            className="inline-flex items-center justify-center space-x-1 px-3 py-1.5 bg-slate-100/50 hover:bg-slate-200/50 dark:bg-slate-800/50 dark:hover:bg-slate-700/50 border border-slate-200/50 dark:border-slate-700/50 text-slate-700 dark:text-slate-300 rounded-xl text-[11px] font-bold transition-all cursor-pointer"
-                          >
-                            <Edit3 className="h-3 w-3" />
-                            <span>Edit</span>
-                          </button>
-
-                          <button
-                            onClick={() => {
-                              if (window.confirm(`Are you sure?`)) onDeleteIdea(idea.id);
-                            }}
-                            className="inline-flex items-center justify-center space-x-1 px-3 py-1.5 bg-red-50/50 hover:bg-red-100/50 dark:bg-red-900/20 dark:hover:bg-red-900/40 border border-red-200/50 dark:border-red-800/50 text-red-600 dark:text-red-400 rounded-xl text-[11px] font-bold transition-all cursor-pointer"
-                          >
-                            <Trash2 className="h-3 w-3" />
-                            <span>Delete</span>
-                          </button>
-                        </div>
-
-                        <button
-                          onClick={() => onSelectIdea(idea)}
-                          className="col-span-2 sm:col-span-1 py-1.5 px-3.5 bg-slate-900 dark:bg-slate-100 hover:bg-black dark:hover:bg-white text-white dark:text-slate-900 rounded-xl text-xs font-extrabold flex items-center justify-center space-x-1.5 shadow-sm transition-all cursor-pointer"
-                        >
-                          <span>View Board</span>
-                          <ExternalLink className="h-3.5 w-3.5" />
-                        </button>
-                      </div>
-                    </div>
+            {/* Private Ideas Section */}
+            <section id="private-ideas-section">
+              <div className="flex items-center justify-between mb-6 px-1">
+                <div className="flex items-center space-x-3">
+                  <div className="p-2 bg-amber-500/10 rounded-xl">
+                    <Lock className="h-5 w-5 text-amber-600" />
                   </div>
-                ))}
+                  <h3 className="font-display font-black text-xl text-slate-900 dark:text-white uppercase tracking-tight">
+                    Private Ideas ({privateIdeasCount})
+                  </h3>
+                </div>
               </div>
-            )}
+
+              {userIdeas.filter(i => !i.isPublic).length === 0 ? (
+                <div className="bg-slate-50 dark:bg-slate-900/40 border-2 border-dashed border-slate-200 dark:border-slate-800 rounded-3xl p-10 text-center">
+                  <p className="text-sm text-slate-500 dark:text-slate-400 font-bold">No private drafts yet. Save ideas securely for later.</p>
+                </div>
+              ) : (
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6" id="private-ideas-grid">
+                  {userIdeas.filter(i => !i.isPublic).map(idea => (
+                    <div
+                      key={idea.id}
+                      className="bg-white dark:bg-slate-900/40 border border-slate-200/40 dark:border-slate-800/40 hover:border-blue-400/40 rounded-2xl p-6 transition-all shadow-[0_2px_12px_rgba(0,0,0,0.01)] hover:shadow-xl relative flex flex-col justify-between group overflow-hidden"
+                      id={`own-idea-private-${idea.id}`}
+                    >
+                      <div className="absolute top-0 left-0 h-1 w-full bg-gradient-to-r from-amber-500/20 via-blue-500/20 to-transparent" />
+                      
+                      <div>
+                        {/* Header Action Badges and Date */}
+                        <div className="flex justify-between items-center mb-4 text-[10px] font-mono text-slate-400 dark:text-slate-500 select-none">
+                          <span>PUBLISHED: {new Date(idea.createdAt).toLocaleDateString()}</span>
+                          <div className="flex items-center space-x-1.5">
+                            <span className="inline-flex items-center space-x-0.5 px-2 py-0.5 rounded-full bg-amber-50/50 dark:bg-amber-900/20 text-amber-700 dark:text-amber-400 border border-amber-100/50 dark:border-amber-800/50 font-bold">
+                              <Lock className="h-2.5 w-2.5" />
+                              <span>Private Draft</span>
+                            </span>
+                          </div>
+                        </div>
+
+                        <div className="flex items-start space-x-4 mb-4 select-none">
+                          <div className="w-12 h-12 rounded-2xl bg-slate-50/50 dark:bg-slate-800/40 border border-slate-150/50 dark:border-slate-700/50 flex items-center justify-center text-2xl shadow-2xs group-hover:scale-105 transition-transform shrink-0">
+                            {idea.logo}
+                          </div>
+                          <div className="min-w-0 flex-1">
+                            <h4 className="font-display font-black text-slate-900 dark:text-white group-hover:text-blue-600 dark:group-hover:text-blue-400 text-sm truncate uppercase tracking-tight" dir="auto">{idea.name}</h4>
+                            <div className="flex flex-wrap gap-1.5 mt-1 select-none">
+                              <span className="inline-block px-2 py-0.5 rounded-md text-[9px] bg-slate-100/50 dark:bg-slate-800/50 border border-slate-150/50 dark:border-slate-700/50 text-slate-700 dark:text-slate-300 font-bold uppercase tracking-wider">{idea.category}</span>
+                              <span className="inline-block px-2 py-0.5 rounded-md text-[9px] bg-zinc-50/50 dark:bg-zinc-900/50 border border-zinc-150/50 dark:border-zinc-800/50 text-zinc-650 dark:text-zinc-400 font-semibold">{idea.progressStage}</span>
+                            </div>
+                          </div>
+                        </div>
+
+                        <p className="text-slate-650 dark:text-slate-400 text-xs leading-relaxed line-clamp-3 mb-5 pr-2" dir="auto">
+                          {idea.description}
+                        </p>
+
+                        {/* Idea Metrics Section */}
+                        <div className="grid grid-cols-2 md:grid-cols-4 gap-2 bg-slate-50/30 dark:bg-slate-950/20 border border-slate-100/50 dark:border-slate-800/40 p-2.5 rounded-xl text-center select-none mb-5 font-mono text-[10px] font-bold">
+                          <div className="p-1">
+                            <span className="block text-[8px] text-slate-400 dark:text-slate-500 uppercase">Upvotes</span>
+                            <span className="text-slate-700 dark:text-slate-300 text-xs">{idea.likes}</span>
+                          </div>
+                          <div className="p-1 border-l border-slate-200/40 dark:border-slate-800/60">
+                            <span className="block text-[8px] text-slate-400 dark:text-slate-500 uppercase">Suggestions</span>
+                            <span className="text-slate-700 dark:text-slate-300 text-xs">{idea.suggestionsCount}</span>
+                          </div>
+                          <div className="p-1 border-l border-slate-200/40 dark:border-slate-800/60">
+                            <span className="block text-[8px] text-slate-400 dark:text-slate-500 uppercase">Partners</span>
+                            <span className="text-slate-700 dark:text-slate-300 text-xs">{idea.collaborationCount}</span>
+                          </div>
+                          <div className="p-1 border-l border-slate-200/40 dark:border-slate-800/60">
+                            <span className="block text-[8px] text-slate-400 dark:text-slate-500 uppercase">Funding</span>
+                            <span className="text-emerald-600 dark:text-emerald-400 text-[10px] leading-tight truncate block">{idea.fundingGoal || 'None'}</span>
+                          </div>
+                        </div>
+                      </div>
+
+                      {/* Actions footer wrapper */}
+                      <div className="border-t border-slate-100/60 dark:border-slate-800/40 pt-4" id={`own-idea-footer-${idea.id}`}>
+                        <div className="grid grid-cols-2 sm:flex sm:items-center sm:justify-between gap-2.5">
+                          <div className="flex flex-wrap items-center gap-1.5 col-span-2 sm:col-span-1">
+                            <button
+                              onClick={() => onToggleVisibility?.(idea.id)}
+                              className="inline-flex items-center justify-center space-x-1 px-3 py-1.5 rounded-xl border text-[11px] font-bold transition-all cursor-pointer bg-emerald-50/50 hover:bg-emerald-100/50 border-emerald-200/50 text-emerald-800 dark:text-emerald-400"
+                            >
+                              <Globe className="h-3 w-3" />
+                              <span>Go Public</span>
+                            </button>
+
+                            <button
+                              onClick={() => onEditIdea?.(idea)}
+                              className="inline-flex items-center justify-center space-x-1 px-3 py-1.5 bg-slate-100/50 hover:bg-slate-200/50 dark:bg-slate-800/50 dark:hover:bg-slate-700/50 border border-slate-200/50 dark:border-slate-700/50 text-slate-700 dark:text-slate-300 rounded-xl text-[11px] font-bold transition-all cursor-pointer"
+                            >
+                              <Edit3 className="h-3 w-3" />
+                              <span>Edit</span>
+                            </button>
+
+                            <button
+                              onClick={() => {
+                                if (window.confirm(`Are you sure?`)) onDeleteIdea(idea.id);
+                              }}
+                              className="inline-flex items-center justify-center space-x-1 px-3 py-1.5 bg-red-50/50 hover:bg-red-100/50 dark:bg-red-900/20 dark:hover:bg-red-900/40 border border-red-200/50 dark:border-red-800/50 text-red-600 dark:text-red-400 rounded-xl text-[11px] font-bold transition-all cursor-pointer"
+                            >
+                              <Trash2 className="h-3 w-3" />
+                              <span>Delete</span>
+                            </button>
+                          </div>
+
+                          <button
+                            onClick={() => onSelectIdea(idea)}
+                            className="col-span-2 sm:col-span-1 py-1.5 px-3.5 bg-slate-900 dark:bg-slate-100 hover:bg-black dark:hover:bg-white text-white dark:text-slate-900 rounded-xl text-xs font-extrabold flex items-center justify-center space-x-1.5 shadow-sm transition-all cursor-pointer"
+                          >
+                            <span>View Board</span>
+                            <ExternalLink className="h-3.5 w-3.5" />
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </section>
           </div>
         </div>
 

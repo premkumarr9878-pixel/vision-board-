@@ -19,14 +19,14 @@ export const CATEGORIES = [
 ];
 
 export const DEFAULT_PROFILE: FounderProfile = {
-  id: 'current_user',
-  name: 'Alex Rivera',
-  email: 'alex@example.com',
-  bio: 'Fullstack builder, passionate about developer tools & automation. Seeking a non-technical co-founder to scale a B2B SaaS startup.',
+  id: '5c463bb2-1742-4f70-9874-9c610ea4a229',
+  name: 'sahil kumar',
+  email: 'arjunk067860@gmail.com',
+  bio: 'Founder exploring new visions.',
   skills: ['React', 'TypeScript', 'Node.js', 'Solidity', 'TailwindCSS', 'Product Design'],
-  github: 'https://github.com/alexrivera_dev',
-  twitter: 'https://twitter.com/alex_builds',
-  linkedin: 'https://linkedin.com/in/alexrivera-build',
+  github: 'https://github.com/sahil_dev',
+  twitter: 'https://twitter.com/sahil_builds',
+  linkedin: 'https://linkedin.com/in/sahil-build',
   avatar: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&q=80&w=200'
 };
 

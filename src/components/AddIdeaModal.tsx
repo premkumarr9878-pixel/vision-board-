@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { X, HelpCircle, Eye, Rocket, Send, Sparkles, Upload, Link, Info, Image as ImageIcon } from 'lucide-react';
+import { X, HelpCircle, Eye, Rocket, Send, Sparkles, Upload, Link, Info, Image as ImageIcon, Users, CircleDollarSign, Handshake, Coins, Globe, Lock } from 'lucide-react';
 import { StartupIdea, FounderProfile } from '../types';
 import { CATEGORIES } from '../data';
 import { motion, AnimatePresence } from 'motion/react';
@@ -91,6 +91,8 @@ export default function AddIdeaModal({
   const [fundingAmount, setFundingAmount] = useState('$50,000');
   const [progressStage, setProgressStage] = useState<'JUST IDEA NOW' | 'IDEATION' | 'MVP BUILDING' | 'PROTOTYPE' | 'SCALE'>('JUST IDEA NOW');
   const [isPublic, setIsPublic] = useState(true);
+  const [seekingCollaboration, setSeekingCollaboration] = useState(false);
+  const [seekingFunding, setSeekingFunding] = useState(false);
 
   // Social link inputs State
   const [instagramUrl, setInstagramUrl] = useState('');
@@ -124,6 +126,8 @@ export default function AddIdeaModal({
       setFundingAmount(ideaToEdit.fundingGoal || '$50,000');
       setProgressStage(ideaToEdit.progressStage || 'JUST IDEA NOW');
       setIsPublic(ideaToEdit.isPublic ?? true);
+      setSeekingCollaboration(ideaToEdit.seeking_collaboration ?? false);
+      setSeekingFunding(ideaToEdit.seeking_funding ?? false);
       setInstagramUrl(ideaToEdit.instagramUrl || '');
       setFacebookUrl(ideaToEdit.facebookUrl || '');
       setWebsiteUrl(ideaToEdit.websiteUrl || '');
@@ -144,6 +148,8 @@ export default function AddIdeaModal({
       setFundingAmount('$50,000');
       setProgressStage('JUST IDEA NOW');
       setIsPublic(true);
+      setSeekingCollaboration(false);
+      setSeekingFunding(false);
       setInstagramUrl('');
       setFacebookUrl('');
       setWebsiteUrl('');
@@ -219,6 +225,8 @@ export default function AddIdeaModal({
       maxCollaborators: collaborationLimit,
       needFunding,
       fundingGoal: needFunding ? fundingAmount : undefined,
+      seeking_collaboration: seekingCollaboration,
+      seeking_funding: seekingFunding,
       progressStage,
       isPublic,
       instagramUrl,
@@ -555,15 +563,15 @@ export default function AddIdeaModal({
                       <span>Describe Your Idea</span>
                       <span className="text-red-500 ml-0.5">*</span>
                     </label>
-                    <span className={`text-[10px] font-mono font-bold ${description.length > 1800 ? 'text-orange-500' : 'text-slate-400'}`}>
-                      {description.length.toLocaleString()} / 2,000
+                    <span className={`text-[10px] font-mono font-bold ${description.length > 180000 ? 'text-orange-500' : 'text-slate-400'}`}>
+                      {description.length.toLocaleString()} / 200,000
                     </span>
                   </div>
                   <AutoResizeTextarea
                     id="add-idea-desc"
                     value={description}
                     onChange={(e) => setDescription(e.target.value)}
-                    maxLength={2000}
+                    maxLength={200000}
                     required
                     placeholder="Summarize the product concept, core values, and features visually. (Supports any language)"
                     className="group-hover:border-slate-300 dark:group-hover:border-slate-700"
@@ -732,7 +740,7 @@ export default function AddIdeaModal({
                 <div className="space-y-4">
                   <div className="flex items-center justify-between px-1">
                     <label className="block text-[10px] font-black font-mono text-slate-500 dark:text-slate-400 uppercase tracking-widest select-none">
-                      Concept Visibility Strategy <span className="text-red-500">*</span>
+                      Idea Visibility <span className="text-red-500">*</span>
                     </label>
                   </div>
                   
@@ -753,16 +761,16 @@ export default function AddIdeaModal({
                       
                       <div className="flex items-center space-x-3 mb-4">
                         <div className={`p-3 rounded-2xl transition-colors duration-300 ${isPublic ? 'bg-blue-600 text-white shadow-blue-200' : 'bg-slate-100 dark:bg-slate-800 text-slate-400 group-hover:bg-slate-200'}`}>
-                          <Eye className="h-5 w-5" />
+                          <Globe className="h-5 w-5" />
                         </div>
                         <span className={`text-[13px] font-black leading-tight uppercase tracking-tight ${isPublic ? 'text-blue-900 dark:text-blue-200' : 'text-slate-800 dark:text-slate-200'}`}>
-                          Public Pitch
+                          PUBLIC PITCH
                         </span>
                       </div>
 
                       <div className="space-y-2">
                         <span className={`block text-[11px] font-bold leading-relaxed ${isPublic ? 'text-blue-800/80 dark:text-blue-300/80' : 'text-slate-500 dark:text-slate-400'}`}>
-                          Featured on homepage feed. Let co-founders and investors find your vision.
+                          Feature on explore feed — visible to all founders
                         </span>
                       </div>
 
@@ -780,38 +788,112 @@ export default function AddIdeaModal({
                       onClick={() => setIsPublic(false)}
                       className={`group relative text-left p-5 rounded-[1.5rem] border-2 transition-all duration-300 cursor-pointer flex flex-col h-full ${
                         !isPublic 
-                          ? 'bg-amber-50/50 dark:bg-amber-500/5 border-amber-500 ring-4 ring-amber-500/10 shadow-lg translate-y-[-2px]' 
+                          ? 'bg-blue-50/50 dark:bg-blue-500/5 border-blue-500 ring-4 ring-blue-500/10 shadow-lg translate-y-[-2px]' 
                           : 'bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-800 opacity-80 hover:opacity-100 hover:border-slate-300 dark:hover:border-slate-700'
                       }`}
                     >
                       {!isPublic && (
-                        <div className="absolute top-4 right-4 h-2.5 w-2.5 rounded-full bg-amber-500 shadow-[0_0_10px_rgba(245,158,11,0.5)] animate-pulse" />
+                        <div className="absolute top-4 right-4 h-2.5 w-2.5 rounded-full bg-blue-600 shadow-[0_0_10px_rgba(37,99,235,0.5)] animate-pulse" />
                       )}
 
                       <div className="flex items-center space-x-3 mb-4">
-                        <div className={`p-3 rounded-2xl transition-colors duration-300 ${!isPublic ? 'bg-amber-500 text-white shadow-amber-200' : 'bg-slate-100 dark:bg-slate-800 text-slate-400 group-hover:bg-slate-200'}`}>
-                          <Rocket className="h-5 w-5 rotate-90" />
+                        <div className={`p-3 rounded-2xl transition-colors duration-300 ${!isPublic ? 'bg-blue-600 text-white shadow-blue-200' : 'bg-slate-100 dark:bg-slate-800 text-slate-400 group-hover:bg-slate-200'}`}>
+                          <Lock className="h-5 w-5" />
                         </div>
-                        <span className={`text-[13px] font-black leading-tight uppercase tracking-tight ${!isPublic ? 'text-amber-900 dark:text-amber-200' : 'text-slate-800 dark:text-slate-200'}`}>
-                          Private Draft
+                        <span className={`text-[13px] font-black leading-tight uppercase tracking-tight ${!isPublic ? 'text-blue-900 dark:text-blue-200' : 'text-slate-800 dark:text-slate-200'}`}>
+                          PRIVATE DRAFT
                         </span>
                       </div>
 
                       <div className="space-y-2">
-                        <span className={`block text-[11px] font-bold leading-relaxed ${!isPublic ? 'text-amber-800/80 dark:text-amber-300/80' : 'text-slate-500 dark:text-slate-400'}`}>
-                          Hidden from feed. Manage securely in your private Founder Hub.
+                        <span className={`block text-[11px] font-bold leading-relaxed ${!isPublic ? 'text-blue-800/80 dark:text-blue-300/80' : 'text-slate-500 dark:text-slate-400'}`}>
+                          Hidden safely as personal draft
                         </span>
                       </div>
 
                       {!isPublic && (
-                        <div className="mt-auto pt-4 flex items-center text-[10px] font-black text-amber-600 dark:text-amber-400 uppercase tracking-widest">
-                          <X className="h-3 w-3 mr-1.5" />
+                        <div className="mt-auto pt-4 flex items-center text-[10px] font-black text-blue-600 dark:text-blue-400 uppercase tracking-widest">
+                          <Lock className="h-3 w-3 mr-1.5" />
                           Confidential
                         </div>
                       )}
                     </button>
                   </div>
                 </div>
+              </div>
+            </div>
+
+            {/* SECTION 8: Collaboration & Funding */}
+            <div className="bg-slate-50/50 dark:bg-slate-900/40 p-5 sm:p-7 rounded-[2rem] border border-slate-200/40 dark:border-slate-800/50 space-y-6 hover:shadow-[0_8px_30px_rgba(0,0,0,0.02)] transition-all">
+              <div className="flex flex-col space-y-1 border-b border-slate-200/45 dark:border-slate-800/50 pb-4">
+                <div className="flex items-center space-x-3">
+                  <div className="w-2 h-4 bg-blue-500 rounded-full" />
+                  <div>
+                    <span className="block text-[10px] font-bold font-mono text-slate-400 dark:text-slate-500 uppercase tracking-widest leading-none select-none">SECTION 8</span>
+                    <span className="block text-sm font-black text-slate-900 dark:text-slate-100 mt-1 select-none">Collaboration & Funding</span>
+                  </div>
+                </div>
+                <p className="text-[11px] text-slate-500 dark:text-slate-400 pl-5">
+                  Let others know if you are open to collaboration or funding
+                </p>
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                {/* Card 1: Looking for Collaborator */}
+                <button
+                  type="button"
+                  onClick={() => setSeekingCollaboration(!seekingCollaboration)}
+                  className={`group flex items-center justify-between p-5 rounded-2xl border-2 transition-all duration-300 cursor-pointer text-left ${
+                    seekingCollaboration 
+                      ? 'bg-blue-50/40 dark:bg-blue-500/5 border-blue-500 shadow-[0_4px_20px_rgba(59,130,246,0.08)]' 
+                      : 'bg-white dark:bg-slate-950 border-slate-200 dark:border-slate-800 hover:border-slate-300 dark:hover:border-slate-700'
+                  }`}
+                >
+                  <div className="flex items-center space-x-4">
+                    <div className={`p-3 rounded-xl transition-all duration-300 ${seekingCollaboration ? 'bg-blue-600 text-white shadow-lg shadow-blue-200/50' : 'bg-slate-100 dark:bg-slate-800 text-slate-400'}`}>
+                      <Handshake className="h-5 w-5" />
+                    </div>
+                    <div className="flex flex-col">
+                      <span className={`text-[13px] font-black tracking-tight leading-tight ${seekingCollaboration ? 'text-blue-900 dark:text-blue-100' : 'text-slate-800 dark:text-slate-200'}`}>
+                        Looking for Collaborator
+                      </span>
+                      <span className={`text-[10px] font-bold mt-0.5 ${seekingCollaboration ? 'text-blue-700/70 dark:text-blue-300/60' : 'text-slate-500 dark:text-slate-400'}`}>
+                        Open to co-founders, partners or team
+                      </span>
+                    </div>
+                  </div>
+                  <div className={`w-10 h-5 rounded-full relative transition-all duration-300 shrink-0 ml-4 ${seekingCollaboration ? 'bg-blue-600' : 'bg-slate-200 dark:bg-slate-800'}`}>
+                    <div className={`absolute top-1 left-1 w-3 h-3 bg-white rounded-full shadow-sm transition-transform duration-300 ${seekingCollaboration ? 'translate-x-5 scale-110' : 'translate-x-0 scale-100'}`} />
+                  </div>
+                </button>
+
+                {/* Card 2: Open to Funding */}
+                <button
+                  type="button"
+                  onClick={() => setSeekingFunding(!seekingFunding)}
+                  className={`group flex items-center justify-between p-5 rounded-2xl border-2 transition-all duration-300 cursor-pointer text-left ${
+                    seekingFunding 
+                      ? 'bg-emerald-50/40 dark:bg-emerald-500/5 border-emerald-500 shadow-[0_4px_20px_rgba(16,185,129,0.08)]' 
+                      : 'bg-white dark:bg-slate-950 border-slate-200 dark:border-slate-800 hover:border-slate-300 dark:hover:border-slate-700'
+                  }`}
+                >
+                  <div className="flex items-center space-x-4">
+                    <div className={`p-3 rounded-xl transition-all duration-300 ${seekingFunding ? 'bg-emerald-600 text-white shadow-lg shadow-emerald-200/50' : 'bg-slate-100 dark:bg-slate-800 text-slate-400'}`}>
+                      <Coins className="h-5 w-5" />
+                    </div>
+                    <div className="flex flex-col">
+                      <span className={`text-[13px] font-black tracking-tight leading-tight ${seekingFunding ? 'text-emerald-900 dark:text-emerald-100' : 'text-slate-800 dark:text-slate-200'}`}>
+                        Open to Funding
+                      </span>
+                      <span className={`text-[10px] font-bold mt-0.5 ${seekingFunding ? 'text-emerald-700/70 dark:text-emerald-300/60' : 'text-slate-500 dark:text-slate-400'}`}>
+                        Accepting interest from investors
+                      </span>
+                    </div>
+                  </div>
+                  <div className={`w-10 h-5 rounded-full relative transition-all duration-300 shrink-0 ml-4 ${seekingFunding ? 'bg-emerald-600' : 'bg-slate-200 dark:bg-slate-800'}`}>
+                    <div className={`absolute top-1 left-1 w-3 h-3 bg-white rounded-full shadow-sm transition-transform duration-300 ${seekingFunding ? 'translate-x-5 scale-110' : 'translate-x-0 scale-100'}`} />
+                  </div>
+                </button>
               </div>
             </div>
 

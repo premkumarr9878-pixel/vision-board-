@@ -47,7 +47,11 @@ export interface StartupIdea {
   // Features requested
   needCollaboration: boolean;
   needFunding: boolean;
+  seeking_collaboration: boolean;
+  seeking_funding: boolean;
   isPublic: boolean;
+  visibility: 'public' | 'private';
+  status: 'draft' | 'published';
   maxCollaborators?: number;
   fundingGoal?: string;
   instagramUrl?: string;
@@ -85,6 +89,18 @@ export interface FundingRequest {
   message: string;
   status: RequestStatus;
   createdAt: string;
+}
+
+export interface Suggestion {
+  id: string;
+  ideaId: string;
+  founderId: string;
+  content: string;
+  createdAt: string;
+  // Local UI fields (optional mapping)
+  authorName?: string;
+  authorAvatar?: string;
+  ideaName?: string;
 }
 
 export interface UserStats {
