@@ -52,7 +52,11 @@ export const INITIAL_IDEAS: StartupIdea[] = [
     suggestionsCount: 15,
     needCollaboration: true,
     needFunding: true,
+    seeking_collaboration: true,
+    seeking_funding: true,
     isPublic: true,
+    visibility: 'public',
+    status: 'published',
     createdAt: '2026-05-18T10:00:00Z'
   },
   {
@@ -75,7 +79,11 @@ export const INITIAL_IDEAS: StartupIdea[] = [
     suggestionsCount: 7,
     needCollaboration: true,
     needFunding: false,
+    seeking_collaboration: true,
+    seeking_funding: false,
     isPublic: true,
+    visibility: 'public',
+    status: 'published',
     createdAt: '2026-05-19T08:30:00Z'
   },
   {
@@ -98,7 +106,11 @@ export const INITIAL_IDEAS: StartupIdea[] = [
     suggestionsCount: 22,
     needCollaboration: false,
     needFunding: true,
+    seeking_collaboration: false,
+    seeking_funding: true,
     isPublic: true,
+    visibility: 'public',
+    status: 'published',
     createdAt: '2026-05-17T12:15:00Z'
   },
 
@@ -123,7 +135,11 @@ export const INITIAL_IDEAS: StartupIdea[] = [
     suggestionsCount: 4,
     needCollaboration: true,
     needFunding: true,
+    seeking_collaboration: true,
+    seeking_funding: true,
     isPublic: true,
+    visibility: 'public',
+    status: 'published',
     createdAt: '2026-05-20T04:20:00Z'
   },
   {
@@ -146,7 +162,11 @@ export const INITIAL_IDEAS: StartupIdea[] = [
     suggestionsCount: 8,
     needCollaboration: true,
     needFunding: false,
+    seeking_collaboration: true,
+    seeking_funding: false,
     isPublic: true,
+    visibility: 'public',
+    status: 'published',
     createdAt: '2026-05-20T11:05:00Z'
   },
   {
@@ -169,7 +189,11 @@ export const INITIAL_IDEAS: StartupIdea[] = [
     suggestionsCount: 9,
     needCollaboration: true,
     needFunding: true,
+    seeking_collaboration: true,
+    seeking_funding: true,
     isPublic: true,
+    visibility: 'public',
+    status: 'published',
     createdAt: '2026-05-20T14:45:00Z'
   },
 
@@ -194,7 +218,11 @@ export const INITIAL_IDEAS: StartupIdea[] = [
     suggestionsCount: 16,
     needCollaboration: true,
     needFunding: true,
+    seeking_collaboration: true,
+    seeking_funding: true,
     isPublic: true,
+    visibility: 'public',
+    status: 'published',
     createdAt: '2026-05-15T09:00:00Z'
   },
   {
@@ -217,7 +245,11 @@ export const INITIAL_IDEAS: StartupIdea[] = [
     suggestionsCount: 18,
     needCollaboration: true,
     needFunding: true,
+    seeking_collaboration: true,
+    seeking_funding: true,
     isPublic: true,
+    visibility: 'public',
+    status: 'published',
     createdAt: '2026-05-16T13:40:00Z'
   },
   {
@@ -240,7 +272,11 @@ export const INITIAL_IDEAS: StartupIdea[] = [
     suggestionsCount: 12,
     needCollaboration: true,
     needFunding: false,
+    seeking_collaboration: true,
+    seeking_funding: false,
     isPublic: true,
+    visibility: 'public',
+    status: 'published',
     createdAt: '2026-05-16T15:20:00Z'
   }
 ];
@@ -249,6 +285,7 @@ export const INITIAL_SUGGESTIONS: Suggestion[] = [
   {
     id: 's-1',
     ideaId: 'idea-1',
+    founderId: 'founder-1',
     authorName: 'Alex Rivera',
     authorAvatar: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&q=80&w=200',
     content: 'Love this concept. Have you thought about integrating directly with AthenaHealth or Epic? Integrating with secondary open EHR APIs would be a huge quick-win before full certification.',
@@ -258,6 +295,7 @@ export const INITIAL_SUGGESTIONS: Suggestion[] = [
   {
     id: 's-2',
     ideaId: 'idea-1',
+    founderId: 'founder-1',
     authorName: 'Devon Lee',
     authorAvatar: 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?auto=format&fit=crop&q=80&w=200',
     content: 'Very critical problem. However, make sure you double down on HIPAA audio-processing rules. Storing transcribing outputs on server instances requires specific security enclaves.',
@@ -267,6 +305,7 @@ export const INITIAL_SUGGESTIONS: Suggestion[] = [
   {
     id: 's-3',
     ideaId: 'idea-2',
+    founderId: 'founder-2',
     authorName: 'Sarah Jenkins',
     authorAvatar: 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?auto=format&fit=crop&q=80&w=200',
     content: 'Would love to collaborate on the pipeline builder frontend. I build interactive visual node interfaces in React for my day job!',

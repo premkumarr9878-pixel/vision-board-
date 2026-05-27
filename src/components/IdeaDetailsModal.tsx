@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { X, Heart, MessageSquare, Users, CircleDollarSign, ArrowRight, Share2, ClipboardList, BrainCircuit, Globe, Calendar, Check, Instagram, Facebook, Handshake, Coins, UserCircle, Lightbulb } from 'lucide-react';
+import { X, Heart, MessageSquare, Users, CircleDollarSign, ArrowRight, Share2, ClipboardList, BrainCircuit, Globe, Calendar, Check, Instagram, Facebook, Handshake, Coins, UserCircle, Lightbulb, ExternalLink, Twitter } from 'lucide-react';
 import { StartupIdea, Suggestion, FounderProfile } from '../types';
 import { motion, AnimatePresence } from 'motion/react';
 
@@ -13,16 +13,18 @@ interface IdeaDetailsModalProps {
   onAddSuggestion: (content: string, guestName?: string) => void;
   onCollaborationClick: () => void;
   onFundingClick: () => void;
+  onFounderProfileClick: (founderId: string) => void;
   currentUser: FounderProfile | null;
   isCollaborationRequested?: boolean;
 }
 
-const SocialIcon = ({ type, url }: { type: 'instagram' | 'facebook' | 'website', url?: string }) => {
+const SocialIcon = ({ type, url }: { type: 'instagram' | 'facebook' | 'twitter' | 'website', url?: string }) => {
   if (!url) return null;
   
   const icons = {
     instagram: <Instagram className="h-5 w-5" />,
     facebook: <Facebook className="h-5 w-5" />,
+    twitter: <Twitter className="h-5 w-5" />,
     website: <Globe className="h-5 w-5" />
   };
 
@@ -49,6 +51,7 @@ export default function IdeaDetailsModal({
   onAddSuggestion,
   onCollaborationClick,
   onFundingClick,
+  onFounderProfileClick = () => {},
   currentUser,
   isCollaborationRequested = false
 }: IdeaDetailsModalProps) {
@@ -135,7 +138,7 @@ export default function IdeaDetailsModal({
             )}
             
             {/* Logo overlay */}
-            <div className="absolute -bottom-8 left-6 sm:left-8 w-22 h-22 rounded-2xl bg-white dark:bg-slate-900 flex items-center justify-center text-4xl border-4 border-white dark:border-slate-950 shadow-xl select-none overflow-hidden">
+            <div className="absolute -bottom-8 left-6 sm:left-8 w-22 h-22 rounded-2xl bg-white dark:bg-slate-900 flex items-center justify-center text-4xl border-4 border-white dark:border-950 shadow-xl select-none overflow-hidden">
               {idea.logo && (idea.logo.startsWith('data:image/') || idea.logo.startsWith('http')) ? (
                 <img src={idea.logo} alt={idea.name} className="w-full h-full object-cover rounded-xl" />
               ) : (
@@ -330,131 +333,134 @@ export default function IdeaDetailsModal({
               <div className="space-y-6">
                 
                 {/* Founder Info box */}
-                <div className="p-5 border-2 border-slate-200 dark:border-slate-800 rounded-2xl bg-white dark:bg-slate-900 space-y-4 shadow-sm">
-                  <h3 className="text-xs font-black text-slate-500 dark:text-slate-400 font-mono tracking-wider uppercase select-none">Founder Profile</h3>
-                  <div className="flex items-center space-x-3">
-                    <div className="w-12 h-12 rounded-xl overflow-hidden border-2 border-slate-100 dark:border-slate-800 select-none">
-                      <img 
-                        src={idea.founderAvatar} 
-                        alt={idea.founderName} 
-                        className="w-full h-full object-cover"
-                        referrerPolicy="no-referrer"
-                      />
-                    </div>
-                    <div>
-                      <h4 className="font-display font-black text-sm text-slate-950 dark:text-white select-all leading-tight">{idea.founderName}</h4>
-                      <span className="inline-block mt-0.5 text-[10px] text-slate-600 dark:text-slate-400 font-bold uppercase tracking-tight">Concept Owner</span>
-                    </div>
+                <div 
+                  onClick={() => typeof onFounderProfileClick === 'function' && onFounderProfileClick(idea.founderId)}
+                  className="p-5 border-2 border-slate-200 dark:border-slate-800 rounded-2xl bg-white dark:bg-slate-900 space-y-4 shadow-sm cursor-pointer hover:border-blue-600 dark:hover:border-blue-500 hover:shadow-lg transition-all group relative overflow-hidden"
+                >
+                  <div className="absolute top-0 right-0 p-2 bg-blue-600/10 text-blue-600 rounded-bl-xl opacity-0 group-hover:opacity-100 transition-opacity">
+                    <ExternalLink className="h-3 w-3" />
                   </div>
 
-                  {/* Founder Social Links */}
-                  {(idea.instagramUrl || idea.facebookUrl || idea.websiteUrl) && (
-                    <div className="flex items-center gap-3 mb-6">
-                      <SocialIcon type="instagram" url={idea.instagramUrl} />
-                      <SocialIcon type="facebook" url={idea.facebookUrl} />
-                      <SocialIcon type="website" url={idea.websiteUrl} />
+                  <div className="flex flex-col space-y-3">
+                    <div className="flex items-center justify-between">
+                      <h3 className="text-xs font-black text-slate-500 dark:text-slate-400 font-mono tracking-wider uppercase select-none group-hover:text-blue-600">Know About Founder</h3>
+                      <span className="text-[10px] font-black text-blue-600 dark:text-blue-400 uppercase tracking-tight opacity-0 group-hover:opacity-100 transition-opacity">View Profile</span>
                     </div>
-                  )}
-
-                  <p className="text-slate-700 dark:text-slate-300 text-xs font-bold leading-normal">
-                    This builder is seeking peer suggestions and active partnerships to bring their roadmap to fruition.
-                  </p>
-
-                  {/* Founder social outreach handles */}
-                  {(idea.instagramUrl || idea.facebookUrl || idea.websiteUrl) && (
-                    <div className="pt-3 border-t border-slate-100 dark:border-slate-800">
-                      <span className="block text-[10px] font-bold font-mono tracking-wider uppercase text-slate-400 dark:text-slate-500 mb-2">Connect with Founder</span>
-                      <div className="flex flex-col gap-2 bg-slate-50/50 dark:bg-slate-950/40 p-2.5 rounded-xl border border-slate-200/10 dark:border-slate-800/80">
-                        {idea.websiteUrl && (
-                          <a
-                            href={idea.websiteUrl.startsWith('http') ? idea.websiteUrl : `https://${idea.websiteUrl}`}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className="inline-flex items-center space-x-2 text-xs text-blue-600 dark:text-blue-400 hover:text-blue-750 dark:hover:text-blue-350 font-semibold transition-colors"
-                          >
-                            <Globe className="h-3.5 w-3.5" />
-                            <span className="truncate">Official Website</span>
-                          </a>
-                        )}
-                        {idea.instagramUrl && (
-                          <a
-                            href={idea.instagramUrl.startsWith('http') ? idea.instagramUrl : `https://${idea.instagramUrl}`}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className="inline-flex items-center space-x-2 text-xs text-pink-600 dark:text-pink-400 hover:text-pink-850 dark:hover:text-pink-350 font-semibold transition-colors"
-                          >
-                            <Instagram className="h-3.5 w-3.5" />
-                            <span className="truncate">Instagram</span>
-                          </a>
-                        )}
-                        {idea.facebookUrl && (
-                          <a
-                            href={idea.facebookUrl.startsWith('http') ? idea.facebookUrl : `https://${idea.facebookUrl}`}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className="inline-flex items-center space-x-2 text-xs text-blue-800 dark:text-blue-400 hover:text-blue-900 dark:hover:text-blue-300 font-semibold transition-colors"
-                          >
-                            <Facebook className="h-3.5 w-3.5" />
-                            <span className="truncate">Facebook Profile</span>
-                          </a>
-                        )}
+                    
+                    <div className="flex items-center space-x-3">
+                      <div className="w-12 h-12 rounded-xl overflow-hidden border-2 border-slate-100 dark:border-slate-800 select-none group-hover:scale-105 transition-transform">
+                        <img 
+                          src={idea.founderAvatar} 
+                          alt={idea.founderName} 
+                          className="w-full h-full object-cover"
+                          referrerPolicy="no-referrer"
+                        />
+                      </div>
+                      <div>
+                        <h4 className="font-display font-black text-sm text-slate-950 dark:text-white select-all leading-tight group-hover:text-blue-600">{idea.founderName}</h4>
+                        <span className="inline-block mt-0.5 text-[10px] text-slate-600 dark:text-slate-400 font-bold uppercase tracking-tight">Concept Owner</span>
                       </div>
                     </div>
-                  )}
 
-                  {/* Sidebar stats */}
-                  <div className="space-y-2.5 border-t-2 border-slate-100 dark:border-slate-800 pt-3" id="sidebar-stats">
-                    <div className="flex justify-between items-center text-xs">
-                      <span className="text-slate-500 dark:text-slate-400 font-bold select-none uppercase tracking-tight text-[10px]">Partners Bid:</span>
-                      <span className="font-black text-slate-900 dark:text-slate-100 bg-slate-100 dark:bg-slate-950 px-2 py-0.5 border-2 border-slate-200 dark:border-slate-800 rounded-lg">{idea.collaborationCount} joined</span>
-                    </div>
-                    <div className="flex justify-between items-center text-xs">
-                      <span className="text-slate-500 dark:text-slate-400 font-bold select-none uppercase tracking-tight text-[10px]">Fund Expressions:</span>
-                      <span className="font-black text-slate-900 dark:text-slate-100 bg-slate-100 dark:bg-slate-950 px-2 py-0.5 border-2 border-slate-200 dark:border-slate-800 rounded-lg">
-                        {idea.needFunding ? `${idea.fundingInterestCount} bids` : 'Closed'}
-                      </span>
-                    </div>
-                    <div className="flex justify-between items-center text-xs">
-                      <span className="text-slate-500 dark:text-slate-400 font-bold select-none uppercase tracking-tight text-[10px]">Initiated On:</span>
-                      <span className="font-black text-slate-900 dark:text-slate-300 flex items-center space-x-1 text-[11px]">
-                        <Calendar className="h-3.5 w-3.5 text-blue-600 dark:text-blue-400 shrink-0" />
-                        <span>{new Date(idea.createdAt).toLocaleDateString()}</span>
-                      </span>
+                    <div className="pt-2 border-t border-slate-100 dark:border-slate-800 flex items-center justify-center">
+                      <span className="text-[11px] font-black text-slate-400 dark:text-slate-500 group-hover:text-blue-600 transition-colors">Click to View Profile</span>
                     </div>
                   </div>
-
-                  {/* Actions Sidebar Buttons (Inside Profile Card) */}
-                  {currentUser?.id !== idea.founderId && (
-                    <div className="space-y-3 pt-4 border-t border-slate-100 dark:border-slate-800">
-                      {idea.seeking_collaboration && (
-                        <button
-                          id="collaboration-action-btn"
-                          onClick={onCollaborationClick}
-                          className={`w-full py-3.5 px-5 rounded-xl text-[11px] font-black uppercase tracking-widest transition-all select-none cursor-pointer flex items-center justify-center space-x-2 border-2 ${
-                            isCollaborationRequested 
-                              ? 'bg-emerald-600 border-emerald-600 text-white hover:bg-emerald-700' 
-                              : 'bg-transparent border-emerald-600/30 text-emerald-600 hover:bg-emerald-50 dark:hover:bg-emerald-950/20'
-                          }`}
-                        >
-                          <Handshake className="h-4 w-4" />
-                          <span>{isCollaborationRequested ? 'Request Sent' : 'Request Collaboration'}</span>
-                        </button>
-                      )}
-
-                      {idea.seeking_funding && (
-                        <button
-                          id="funding-action-btn"
-                          onClick={onFundingClick}
-                          className="w-full py-3.5 px-5 bg-transparent border-2 border-orange-600/30 text-orange-600 hover:bg-orange-50 dark:hover:bg-orange-950/20 rounded-xl text-[11px] font-black uppercase tracking-widest transition-all select-none cursor-pointer flex items-center justify-center space-x-2"
-                        >
-                          <Coins className="h-4 w-4" />
-                          <span>Express Funding Interest</span>
-                        </button>
-                      )}
-                    </div>
-                  )}
                 </div>
 
+                {/* Founder social outreach handles */}
+                {(idea.instagramUrl || idea.facebookUrl || idea.websiteUrl) && (
+                  <div className="pt-3 border-t border-slate-100 dark:border-slate-800">
+                    <span className="block text-[10px] font-bold font-mono tracking-wider uppercase text-slate-400 dark:text-slate-500 mb-2">Connect with Founder</span>
+                    <div className="flex flex-col gap-2 bg-slate-50/50 dark:bg-slate-950/40 p-2.5 rounded-xl border border-slate-200/10 dark:border-slate-800/80">
+                      {idea.websiteUrl && (
+                        <a
+                          href={idea.websiteUrl.startsWith('http') ? idea.websiteUrl : `https://${idea.websiteUrl}`}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="inline-flex items-center space-x-2 text-xs text-blue-600 dark:text-blue-400 hover:text-blue-750 dark:hover:text-blue-350 font-semibold transition-colors"
+                        >
+                          <Globe className="h-3.5 w-3.5" />
+                          <span className="truncate">Official Website</span>
+                        </a>
+                      )}
+                      {idea.instagramUrl && (
+                        <a
+                          href={idea.instagramUrl.startsWith('http') ? idea.instagramUrl : `https://${idea.instagramUrl}`}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="inline-flex items-center space-x-2 text-xs text-pink-600 dark:text-pink-400 hover:text-pink-850 dark:hover:text-pink-350 font-semibold transition-colors"
+                        >
+                          <Instagram className="h-3.5 w-3.5" />
+                          <span className="truncate">Instagram</span>
+                        </a>
+                      )}
+                      {idea.facebookUrl && (
+                        <a
+                          href={idea.facebookUrl.startsWith('http') ? idea.facebookUrl : `https://${idea.facebookUrl}`}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="inline-flex items-center space-x-2 text-xs text-blue-800 dark:text-blue-400 hover:text-blue-900 dark:hover:text-blue-300 font-semibold transition-colors"
+                        >
+                          <Facebook className="h-3.5 w-3.5" />
+                          <span className="truncate">Facebook Profile</span>
+                        </a>
+                      )}
+                    </div>
+                  </div>
+                )}
+
+                {/* Sidebar stats */}
+                <div className="space-y-2.5 border-t-2 border-slate-100 dark:border-slate-800 pt-3" id="sidebar-stats">
+                  <div className="flex justify-between items-center text-xs">
+                    <span className="text-slate-500 dark:text-slate-400 font-bold select-none uppercase tracking-tight text-[10px]">Partners Bid:</span>
+                    <span className="font-black text-slate-900 dark:text-slate-100 bg-slate-100 dark:bg-slate-950 px-2 py-0.5 border-2 border-slate-200 dark:border-slate-800 rounded-lg">{idea.collaborationCount} joined</span>
+                  </div>
+                  <div className="flex justify-between items-center text-xs">
+                    <span className="text-slate-500 dark:text-slate-400 font-bold select-none uppercase tracking-tight text-[10px]">Fund Expressions:</span>
+                    <span className="font-black text-slate-900 dark:text-slate-100 bg-slate-100 dark:bg-slate-950 px-2 py-0.5 border-2 border-slate-200 dark:border-slate-800 rounded-lg">
+                      {idea.needFunding ? `${idea.fundingInterestCount} bids` : 'Closed'}
+                    </span>
+                  </div>
+                  <div className="flex justify-between items-center text-xs">
+                    <span className="text-slate-500 dark:text-slate-400 font-bold select-none uppercase tracking-tight text-[10px]">Initiated On:</span>
+                    <span className="font-black text-slate-900 dark:text-slate-300 flex items-center space-x-1 text-[11px]">
+                      <Calendar className="h-3.5 w-3.5 text-blue-600 dark:text-blue-400 shrink-0" />
+                      <span>{new Date(idea.createdAt).toLocaleDateString()}</span>
+                    </span>
+                  </div>
+                </div>
+
+                {/* Actions Sidebar Buttons */}
+                {currentUser?.id !== idea.founderId && (
+                  <div className="space-y-3 pt-4 border-t border-slate-100 dark:border-slate-800">
+                    {idea.seeking_collaboration && (
+                      <button
+                        id="collaboration-action-btn"
+                        onClick={onCollaborationClick}
+                        className={`w-full py-3.5 px-5 rounded-xl text-[11px] font-black uppercase tracking-widest transition-all select-none cursor-pointer flex items-center justify-center space-x-2 border-2 ${
+                          isCollaborationRequested 
+                            ? 'bg-emerald-600 border-emerald-600 text-white hover:bg-emerald-700' 
+                            : 'bg-transparent border-emerald-600/30 text-emerald-600 hover:bg-emerald-50 dark:hover:bg-emerald-950/20'
+                        }`}
+                      >
+                        <Handshake className="h-4 w-4" />
+                        <span>{isCollaborationRequested ? 'Request Sent' : 'Request Collaboration'}</span>
+                      </button>
+                    )}
+
+                    {idea.seeking_funding && (
+                      <button
+                        id="funding-action-btn"
+                        onClick={onFundingClick}
+                        className="w-full py-3.5 px-5 bg-transparent border-2 border-orange-600/30 text-orange-600 hover:bg-orange-50 dark:hover:bg-orange-950/20 rounded-xl text-[11px] font-black uppercase tracking-widest transition-all select-none cursor-pointer flex items-center justify-center space-x-2"
+                      >
+                        <Coins className="h-4 w-4" />
+                        <span>Express Funding Interest</span>
+                      </button>
+                    )}
+                  </div>
+                )}
               </div>
             </div>
 
@@ -558,7 +564,6 @@ export default function IdeaDetailsModal({
                 </div>
               </form>
             </div>
-
           </div>
         </motion.div>
       </div>

@@ -3,24 +3,32 @@ export interface FounderProfile {
   name: string;
   email: string;
   bio: string;
+  profession?: string;
   skills: string[];
-  buildingDesc?: string; // "What Are You Building?"
-  startupLogo?: string;  // Startup logo search upload base64
-  github?: string;
-  twitter?: string;
-  linkedin?: string;
-  avatar: string; // Founder avatar
+  buildingDesc?: string;
+  startupLogo?: string;
+  githubUrl?: string;
+  twitterUrl?: string;
+  linkedinUrl?: string;
+  instagramUrl?: string;
+  facebookUrl?: string;
+  experience?: string;
+  startupInterests?: string[];
+  avatar: string;
   userRole?: 'founder_hub' | 'vision_board';
 }
 
 export interface Suggestion {
   id: string;
   ideaId: string;
-  authorName: string;
-  authorAvatar: string;
+  founderId: string;
   content: string;
   createdAt: string;
-  likes: number;
+  likes?: number;
+  // Local UI fields (optional mapping)
+  authorName?: string;
+  authorAvatar?: string;
+  ideaName?: string;
 }
 
 export interface StartupIdea {
@@ -40,7 +48,7 @@ export interface StartupIdea {
   // Option Section details
   collaborationCount: number;
   fundingInterestCount: number;
-  progressStage: 'JUST IDEA NOW' | 'IDEATION' | 'MVP BUILDING' | 'PROTOTYPE' | 'SCALE';
+  progressStage: 'JUST IDEA NOW' | 'IDEATION' | 'RESEARCH' | 'MVP BUILDING' | 'PROTOTYPE' | 'SCALE';
   likes: number;
   suggestionsCount: number;
   
@@ -89,18 +97,6 @@ export interface FundingRequest {
   message: string;
   status: RequestStatus;
   createdAt: string;
-}
-
-export interface Suggestion {
-  id: string;
-  ideaId: string;
-  founderId: string;
-  content: string;
-  createdAt: string;
-  // Local UI fields (optional mapping)
-  authorName?: string;
-  authorAvatar?: string;
-  ideaName?: string;
 }
 
 export interface UserStats {

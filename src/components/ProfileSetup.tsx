@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { User, Camera, Mail, Rocket, ArrowRight, Github, Twitter, Linkedin, CheckCircle2, Sparkles, Upload } from 'lucide-react';
+import { User, Camera, Mail, Rocket, ArrowRight, Github, Twitter, Linkedin, CheckCircle2, Sparkles, Upload, AlertCircle } from 'lucide-react';
 import { FounderProfile } from '../types';
 import { supabase } from '../supabase';
 import { motion } from 'motion/react';

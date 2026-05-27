@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { X, Send, User, Mail, Phone, MessageSquare, DollarSign, Briefcase, ChevronRight, Info } from 'lucide-react';
+import { X, Send, User, Mail, Phone, MessageSquare, DollarSign, Briefcase, ChevronRight, Info, Handshake, Coins } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 
 interface InterestModalProps {

@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { X, HelpCircle, Eye, Rocket, Send, Sparkles, Upload, Link, Info, Image as ImageIcon, Users, CircleDollarSign, Handshake, Coins, Globe, Lock } from 'lucide-react';
+import { X, HelpCircle, Eye, Rocket, Send, Sparkles, Upload, Link, Info, Image as ImageIcon, Users, CircleDollarSign, Handshake, Coins, Globe, Lock, ArrowLeft, Instagram, Facebook, Twitter, Briefcase, GraduationCap, User, Plus } from 'lucide-react';
 import { StartupIdea, FounderProfile } from '../types';
 import { CATEGORIES } from '../data';
 import { motion, AnimatePresence } from 'motion/react';
@@ -8,9 +8,12 @@ interface AddIdeaModalProps {
   isOpen: boolean;
   onClose: () => void;
   onSubmit: (ideaData: Partial<StartupIdea>) => void;
+  onUpdateProfile: (profile: FounderProfile) => void;
   currentUser: FounderProfile | null;
   ideaToEdit?: StartupIdea | null;
 }
+
+const PROFESSIONS = ['Developer', 'Designer', 'Student', 'Business', 'Job', 'Founder', 'Researcher', 'Other'];
 
 const PRESET_BANNERS = [
   'https://images.unsplash.com/photo-1579546929518-9e396f3cc809?auto=format&fit=crop&q=80&w=600', // vibrant abstract
@@ -69,9 +72,13 @@ export default function AddIdeaModal({
   isOpen,
   onClose,
   onSubmit,
+  onUpdateProfile,
   currentUser,
   ideaToEdit = null
 }: AddIdeaModalProps) {
+  const [view, setView] = useState<'idea' | 'profile'>('idea');
+  
+  // Idea Form State
   const [name, setName] = useState('');
   const [logo, setLogo] = useState('🚀');
   const [logoType, setLogoType] = useState<'emoji' | 'upload' | 'url'>('emoji');
@@ -98,6 +105,21 @@ export default function AddIdeaModal({
   const [instagramUrl, setInstagramUrl] = useState('');
   const [facebookUrl, setFacebookUrl] = useState('');
   const [websiteUrl, setWebsiteUrl] = useState('');
+
+  // Profile Form State
+  const [profileName, setProfileName] = useState(currentUser?.name || '');
+  const [profileEmail, setProfileEmail] = useState(currentUser?.email || '');
+  const [profileBio, setProfileBio] = useState(currentUser?.bio || '');
+  const [profileProfession, setProfileProfession] = useState(currentUser?.profession || 'Developer');
+  const [profileAvatar, setProfileAvatar] = useState(currentUser?.avatar || '');
+  const [profileInstagram, setProfileInstagram] = useState(currentUser?.instagramUrl || '');
+  const [profileFacebook, setProfileFacebook] = useState(currentUser?.facebookUrl || '');
+  const [profileTwitter, setProfileTwitter] = useState(currentUser?.twitterUrl || '');
+  const [profileLinkedin, setProfileLinkedin] = useState(currentUser?.linkedinUrl || '');
+  const [profileGithub, setProfileGithub] = useState(currentUser?.githubUrl || '');
+  const [profileExperience, setProfileExperience] = useState(currentUser?.experience || '');
+  const [profileSkills, setProfileSkills] = useState(currentUser?.skills?.join(', ') || '');
+  const [profileInterests, setProfileInterests] = useState(currentUser?.startupInterests?.join(', ') || '');
 
   const [error, setError] = useState('');
 
@@ -153,8 +175,25 @@ export default function AddIdeaModal({
       setInstagramUrl('');
       setFacebookUrl('');
       setWebsiteUrl('');
+      setView('idea');
     }
-  }, [ideaToEdit, isOpen]);
+
+    if (currentUser && isOpen) {
+      setProfileName(currentUser.name);
+      setProfileEmail(currentUser.email);
+      setProfileBio(currentUser.bio);
+      setProfileProfession(currentUser.profession || 'Developer');
+      setProfileAvatar(currentUser.avatar);
+      setProfileInstagram(currentUser.instagramUrl || '');
+      setProfileFacebook(currentUser.facebookUrl || '');
+      setProfileTwitter(currentUser.twitterUrl || '');
+      setProfileLinkedin(currentUser.linkedinUrl || '');
+      setProfileGithub(currentUser.githubUrl || '');
+      setProfileExperience(currentUser.experience || '');
+      setProfileSkills(currentUser.skills?.join(', ') || '');
+      setProfileInterests(currentUser.startupInterests?.join(', ') || '');
+    }
+  }, [ideaToEdit, isOpen, currentUser]);
 
   const handleLogoFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -181,7 +220,48 @@ export default function AddIdeaModal({
     reader.readAsDataURL(file);
   };
 
+  const handleProfileAvatarChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onloadend = () => {
+      if (typeof reader.result === 'string') {
+        setProfileAvatar(reader.result);
+      }
+    };
+    reader.readAsDataURL(file);
+  };
+
   if (!isOpen) return null;
+
+  const handleProfileSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!profileName.trim()) {
+      setError('Name is required for profile.');
+      return;
+    }
+    
+    const updatedProfile: FounderProfile = {
+      ...currentUser!,
+      name: profileName,
+      email: profileEmail,
+      bio: profileBio,
+      profession: profileProfession,
+      avatar: profileAvatar,
+      instagramUrl: profileInstagram,
+      facebookUrl: profileFacebook,
+      twitterUrl: profileTwitter,
+      linkedinUrl: profileLinkedin,
+      githubUrl: profileGithub,
+      experience: profileExperience,
+      skills: profileSkills.split(',').map(s => s.trim()).filter(s => s),
+      startupInterests: profileInterests.split(',').map(s => s.trim()).filter(s => s)
+    };
+
+    onUpdateProfile(updatedProfile);
+    setView('idea');
+    setError('');
+  };
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -275,40 +355,64 @@ export default function AddIdeaModal({
           <div className="px-6 py-5 border-b-2 border-slate-100 dark:border-slate-800 flex items-center justify-between bg-slate-50 dark:bg-slate-950 select-none">
             <div className="flex items-center space-x-3">
               <div className="p-2 bg-blue-600/10 rounded-xl">
-                <Sparkles className="h-5 w-5 text-blue-700 dark:text-blue-400" />
+                {view === 'idea' ? (
+                  <Sparkles className="h-5 w-5 text-blue-700 dark:text-blue-400" />
+                ) : (
+                  <User className="h-5 w-5 text-blue-700 dark:text-blue-400" />
+                )}
               </div>
               <div>
                 <h2 className="font-display font-black text-lg text-slate-950 dark:text-white leading-tight">
-                  {ideaToEdit ? "Edit Your Startup Idea" : "Publish a Future Startup Idea"}
+                  {view === 'idea' 
+                    ? (ideaToEdit ? "Edit Your Startup Idea" : "Publish a Future Startup Idea")
+                    : "Founder Profile Details"
+                  }
                 </h2>
                 <p className="text-[11px] text-slate-600 dark:text-slate-400 mt-0.5 font-bold">
-                  {ideaToEdit ? "Modify your project settings, status, or design options." : "Draft your vision & connect with looking co-founders."}
+                  {view === 'idea'
+                    ? (ideaToEdit ? "Modify your project settings, status, or design options." : "Draft your vision & connect with looking co-founders.")
+                    : "Complete your professional profile to build trust with collaborators."
+                  }
                 </p>
               </div>
             </div>
-            <button
-              id="close-add-idea-btn"
-              onClick={onClose}
-              className="p-1.5 text-slate-500 dark:text-slate-400 hover:text-slate-950 dark:hover:text-white hover:bg-slate-200 dark:hover:bg-slate-800 rounded-xl transition-all shrink-0 cursor-pointer"
-            >
-              <X className="h-5 w-5" />
-            </button>
+            <div className="flex items-center space-x-2">
+              {view === 'idea' && !ideaToEdit && (
+                <button
+                  type="button"
+                  onClick={() => setView('profile')}
+                  className="flex items-center space-x-2 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white text-[11px] font-black rounded-xl transition-all shadow-md cursor-pointer"
+                >
+                  <Plus className="h-3.5 w-3.5" />
+                  <span>+ Add Your Profile</span>
+                </button>
+              )}
+              <button
+                id="close-add-idea-btn"
+                onClick={onClose}
+                className="p-1.5 text-slate-500 dark:text-slate-400 hover:text-slate-950 dark:hover:text-white hover:bg-slate-200 dark:hover:bg-slate-800 rounded-xl transition-all shrink-0 cursor-pointer"
+              >
+                <X className="h-5 w-5" />
+              </button>
+            </div>
           </div>
 
           {/* Form wrapper (Scrollable) */}
-          <form onSubmit={handleSubmit} className="flex-1 overflow-y-auto p-5 sm:p-7 space-y-6">
-            
-            {/* Error banner */}
-            {error && (
-              <motion.div 
-                initial={{ opacity: 0, y: -10 }}
-                animate={{ opacity: 1, y: 0 }}
-                className="p-3 bg-red-500/10 dark:bg-red-500/5 border border-red-200/20 dark:border-red-550/30 rounded-xl text-xs text-red-650 dark:text-red-400" 
-                id="add-idea-error"
-              >
-                {error}
-              </motion.div>
-            )}
+          {view === 'idea' ? (
+            <form onSubmit={handleSubmit} className="flex-1 overflow-y-auto p-5 sm:p-7 space-y-6">
+              
+              {/* Error banner */}
+              {error && (
+                <motion.div 
+                  initial={{ opacity: 0, y: -10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  className="p-3 bg-red-500/10 dark:bg-red-500/5 border border-red-200/20 dark:border-red-550/30 rounded-xl text-xs text-red-650 dark:text-red-400" 
+                  id="add-idea-error"
+                >
+                  {error}
+                </motion.div>
+              )}
+              {/* ... Rest of the existing form content ... */}
 
             {/* SECTION 1: Startup Branding */}
             <div className="bg-slate-50 dark:bg-slate-800/50 p-4 sm:p-5 rounded-2xl border-2 border-slate-200 dark:border-slate-800 space-y-4 hover:shadow-md transition-all">
@@ -918,6 +1022,216 @@ export default function AddIdeaModal({
             </div>
 
           </form>
+          ) : (
+            /* Founder Profile Details Page */
+            <form onSubmit={handleProfileSubmit} className="flex-1 overflow-y-auto p-5 sm:p-7 space-y-6">
+              
+              {/* Error banner */}
+              {error && (
+                <motion.div 
+                  initial={{ opacity: 0, y: -10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  className="p-3 bg-red-500/10 dark:bg-red-500/5 border border-red-200/20 dark:border-red-550/30 rounded-xl text-xs text-red-650 dark:text-red-400" 
+                >
+                  {error}
+                </motion.div>
+              )}
+
+              {/* Profile Basics */}
+              <div className="bg-slate-50 dark:bg-slate-800/50 p-5 rounded-2xl border-2 border-slate-200 dark:border-slate-800 space-y-5">
+                <div className="flex items-center space-x-6">
+                  <div className="relative group">
+                    <div className="w-24 h-24 rounded-2xl border-2 border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-950 overflow-hidden shadow-lg">
+                      {profileAvatar ? (
+                        <img src={profileAvatar} alt="Avatar Preview" className="w-full h-full object-cover" />
+                      ) : (
+                        <div className="w-full h-full flex items-center justify-center text-slate-400">
+                          <User className="h-10 w-10" />
+                        </div>
+                      )}
+                    </div>
+                    <input
+                      type="file"
+                      id="profile-avatar-upload"
+                      className="hidden"
+                      accept="image/*"
+                      onChange={handleProfileAvatarChange}
+                    />
+                    <button
+                      type="button"
+                      onClick={() => document.getElementById('profile-avatar-upload')?.click()}
+                      className="absolute -bottom-2 -right-2 p-2 bg-blue-600 text-white rounded-xl shadow-lg hover:scale-110 transition-transform cursor-pointer"
+                    >
+                      <Upload className="h-3.5 w-3.5" />
+                    </button>
+                  </div>
+                  <div className="flex-1 space-y-4">
+                    <div>
+                      <label className="block text-[10px] font-black font-mono text-slate-500 dark:text-slate-400 uppercase tracking-widest mb-1.5">Full Name</label>
+                      <input
+                        type="text"
+                        required
+                        value={profileName}
+                        onChange={(e) => setProfileName(e.target.value)}
+                        className="w-full py-2.5 px-3.5 border-2 border-slate-200 dark:border-slate-800 rounded-xl text-xs bg-white dark:bg-slate-950 dark:text-white font-bold"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-[10px] font-black font-mono text-slate-500 dark:text-slate-400 uppercase tracking-widest mb-1.5">Email Address</label>
+                      <input
+                        type="email"
+                        required
+                        value={profileEmail}
+                        onChange={(e) => setProfileEmail(e.target.value)}
+                        className="w-full py-2.5 px-3.5 border-2 border-slate-200 dark:border-slate-800 rounded-xl text-xs bg-white dark:bg-slate-950 dark:text-white font-bold"
+                      />
+                    </div>
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-[10px] font-black font-mono text-slate-500 dark:text-slate-400 uppercase tracking-widest mb-1.5">Profession</label>
+                    <div className="relative">
+                      <select
+                        value={profileProfession}
+                        onChange={(e) => setProfileProfession(e.target.value)}
+                        className="w-full py-2.5 px-3.5 border-2 border-slate-200 dark:border-slate-800 rounded-xl text-xs bg-white dark:bg-slate-950 dark:text-white font-bold appearance-none cursor-pointer"
+                      >
+                        {PROFESSIONS.map(p => (
+                          <option key={p} value={p}>{p}</option>
+                        ))}
+                      </select>
+                      <Briefcase className="absolute right-3.5 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-slate-400 pointer-events-none" />
+                    </div>
+                  </div>
+                  <div>
+                    <label className="block text-[10px] font-black font-mono text-slate-500 dark:text-slate-400 uppercase tracking-widest mb-1.5">Years of Experience</label>
+                    <div className="relative">
+                      <input
+                        type="text"
+                        placeholder="e.g. 5+ Years in Tech"
+                        value={profileExperience}
+                        onChange={(e) => setProfileExperience(e.target.value)}
+                        className="w-full py-2.5 px-3.5 border-2 border-slate-200 dark:border-slate-800 rounded-xl text-xs bg-white dark:bg-slate-950 dark:text-white font-bold"
+                      />
+                      <Clock className="absolute right-3.5 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-slate-400 pointer-events-none" />
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Skills & Interests */}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <label className="block text-[10px] font-black font-mono text-slate-500 dark:text-slate-400 uppercase tracking-widest px-1">Skills (Comma separated)</label>
+                  <input
+                    type="text"
+                    placeholder="e.g. React, UI/UX, Growth"
+                    value={profileSkills}
+                    onChange={(e) => setProfileSkills(e.target.value)}
+                    className="w-full py-2.5 px-3.5 border-2 border-slate-200 dark:border-slate-800 rounded-xl text-xs bg-white dark:bg-slate-950 dark:text-white font-bold"
+                  />
+                </div>
+                <div className="space-y-2">
+                  <label className="block text-[10px] font-black font-mono text-slate-500 dark:text-slate-400 uppercase tracking-widest px-1">Startup Interests (Comma separated)</label>
+                  <input
+                    type="text"
+                    placeholder="e.g. AI/ML, SaaS, B2B"
+                    value={profileInterests}
+                    onChange={(e) => setProfileInterests(e.target.value)}
+                    className="w-full py-2.5 px-3.5 border-2 border-slate-200 dark:border-slate-800 rounded-xl text-xs bg-white dark:bg-slate-950 dark:text-white font-bold"
+                  />
+                </div>
+              </div>
+
+              {/* About Yourself */}
+              <div className="space-y-2">
+                <label className="block text-[10px] font-black font-mono text-slate-500 dark:text-slate-400 uppercase tracking-widest px-1">About Yourself</label>
+                <AutoResizeTextarea
+                  value={profileBio}
+                  onChange={(e) => setProfileBio(e.target.value)}
+                  placeholder="Share your background, experience, and what drives you..."
+                  className="min-h-[120px]"
+                />
+              </div>
+
+              {/* Social Links */}
+              <div className="bg-slate-50 dark:bg-slate-800/50 p-5 rounded-2xl border-2 border-slate-200 dark:border-slate-800 space-y-4">
+                <h3 className="text-[11px] font-black font-mono text-slate-500 dark:text-slate-400 uppercase tracking-widest border-b border-slate-200 dark:border-slate-700 pb-2">Social Connections</h3>
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                  <div className="relative">
+                    <Instagram className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-pink-500" />
+                    <input
+                      type="url"
+                      placeholder="Instagram URL"
+                      value={profileInstagram}
+                      onChange={(e) => setProfileInstagram(e.target.value)}
+                      className="w-full py-2.5 pl-10 pr-3.5 border-2 border-slate-200 dark:border-slate-800 rounded-xl text-xs bg-white dark:bg-slate-950 dark:text-white"
+                    />
+                  </div>
+                  <div className="relative">
+                    <Facebook className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-blue-600" />
+                    <input
+                      type="url"
+                      placeholder="Facebook URL"
+                      value={profileFacebook}
+                      onChange={(e) => setProfileFacebook(e.target.value)}
+                      className="w-full py-2.5 pl-10 pr-3.5 border-2 border-slate-200 dark:border-slate-800 rounded-xl text-xs bg-white dark:bg-slate-950 dark:text-white"
+                    />
+                  </div>
+                  <div className="relative">
+                    <Twitter className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-sky-500" />
+                    <input
+                      type="url"
+                      placeholder="Twitter/X URL"
+                      value={profileTwitter}
+                      onChange={(e) => setProfileTwitter(e.target.value)}
+                      className="w-full py-2.5 pl-10 pr-3.5 border-2 border-slate-200 dark:border-slate-800 rounded-xl text-xs bg-white dark:bg-slate-950 dark:text-white"
+                    />
+                  </div>
+                  <div className="relative">
+                    <Linkedin className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-blue-700" />
+                    <input
+                      type="url"
+                      placeholder="LinkedIn URL"
+                      value={profileLinkedin}
+                      onChange={(e) => setProfileLinkedin(e.target.value)}
+                      className="w-full py-2.5 pl-10 pr-3.5 border-2 border-slate-200 dark:border-slate-800 rounded-xl text-xs bg-white dark:bg-slate-950 dark:text-white"
+                    />
+                  </div>
+                  <div className="relative">
+                    <Github className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-900 dark:text-white" />
+                    <input
+                      type="url"
+                      placeholder="GitHub URL"
+                      value={profileGithub}
+                      onChange={(e) => setProfileGithub(e.target.value)}
+                      className="w-full py-2.5 pl-10 pr-3.5 border-2 border-slate-200 dark:border-slate-800 rounded-xl text-xs bg-white dark:bg-slate-950 dark:text-white"
+                    />
+                  </div>
+                </div>
+              </div>
+
+              {/* Footer Actions */}
+              <div className="border-t border-slate-100 dark:border-slate-800/60 pt-6 flex items-center justify-between select-none">
+                <button
+                  type="button"
+                  onClick={() => setView('idea')}
+                  className="flex items-center space-x-2 py-2.5 px-5 border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 rounded-xl text-xs font-semibold hover:bg-slate-50 dark:hover:bg-slate-800 transition-all cursor-pointer"
+                >
+                  <ArrowLeft className="h-3.5 w-3.5" />
+                  <span>Back to Idea</span>
+                </button>
+                <button
+                  type="submit"
+                  className="py-2.5 px-8 bg-blue-600 hover:bg-blue-700 text-white rounded-xl text-xs font-bold transition-all shadow-lg hover:-translate-y-0.5 cursor-pointer"
+                >
+                  Save Profile
+                </button>
+              </div>
+            </form>
+          )}
         </motion.div>
       </div>
     </AnimatePresence>

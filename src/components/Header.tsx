@@ -9,6 +9,8 @@ interface HeaderProps {
   onAddIdeaClick: () => void;
   onDashboardClick: () => void;
   onExploreClick: () => void;
+  onAuthClick: () => void;
+  onLogout: () => void;
   currentUser: FounderProfile | null;
   currentView: 'explore' | 'dashboard';
   theme: 'light' | 'dark';
@@ -21,6 +23,8 @@ export default function Header({
   onAddIdeaClick,
   onDashboardClick,
   onExploreClick,
+  onAuthClick,
+  onLogout,
   currentUser,
   currentView,
   theme,
@@ -116,12 +120,6 @@ export default function Header({
               active={currentView === 'explore'} 
               icon={Globe} 
               label="Explore" 
-            />
-            <NavButton 
-              onClick={onDashboardClick} 
-              active={currentView === 'dashboard'} 
-              icon={LayoutDashboard} 
-              label="Founder Hub" 
             />
           </nav>
 
@@ -225,12 +223,6 @@ export default function Header({
                     active={currentView === 'explore'} 
                     icon={Globe} 
                     label="Explore Ideas" 
-                  />
-                  <NavButton 
-                    onClick={onDashboardClick} 
-                    active={currentView === 'dashboard'} 
-                    icon={LayoutDashboard} 
-                    label="Founder Hub" 
                   />
                   <div className="h-px bg-slate-100 dark:bg-slate-800 my-6" />
                   <NavButton 

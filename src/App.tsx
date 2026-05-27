@@ -7,12 +7,16 @@ import AddIdeaModal from './components/AddIdeaModal';
 import InterestModal from './components/InterestModal';
 import DashboardView from './components/DashboardView';
 import LeaderboardTable from './components/LeaderboardTable';
+import PublicProfileModal from './components/PublicProfileModal';
 import { CardSkeleton, TableRowSkeleton } from './components/Skeleton';
 import { getLocalStorageState, saveLocalStorageState, DEFAULT_PROFILE, safeParse } from './data';
 import { StartupIdea, FounderProfile, CollaborationRequest, FundingRequest, Suggestion, RequestStatus } from './types';
 import { Star, Sparkles, Send, Flame, Lightbulb, Users, Globe, ExternalLink, Search } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import { supabase } from './supabase';
+
+// Global flag to prevent multiple auth attempts in StrictMode or rapid re-renders
+let hasAttemptedAuth = false;
 
 export default function App() {
   const [currentUser, setCurrentUser] = useState<FounderProfile | null>(DEFAULT_PROFILE);
@@ -40,16 +44,50 @@ export default function App() {
   // Anonymous Authentication & Profile Setup
   useEffect(() => {
     const handleAuth = async () => {
+      if (hasAttemptedAuth) return;
+      hasAttemptedAuth = true;
+
       try {
         // 1. Get current session or sign in anonymously
         let { data: { session: currentSession } } = await supabase.auth.getSession();
         
+        if (currentSession) {
+          localStorage.removeItem('supabase_auth_disabled');
+        }
+
         if (!currentSession) {
-          const { data, error } = await supabase.auth.signInAnonymously();
+          // Only attempt anonymous sign-in if we haven't confirmed it's disabled in this session
+          const isAuthDisabled = localStorage.getItem('supabase_auth_disabled') === 'true';
           
-          if (error) {
-            console.warn('Anonymous sign-in failed, falling back to local guest mode:', error.message);
-            // Fallback: use a consistent local guest ID if Supabase Auth is disabled
+          if (!isAuthDisabled) {
+            try {
+              const { data, error } = await supabase.auth.signInAnonymously();
+              
+              if (error) {
+                if (error.message.includes('disabled') || error.status === 422) {
+                  localStorage.setItem('supabase_auth_disabled', 'true');
+                  console.info('Supabase Anonymous Auth is disabled. You can enable it in Project Settings -> Authentication -> Providers -> Anonymous. Falling back to local guest mode.');
+                } else {
+                  console.warn('Anonymous sign-in failed, falling back to local guest mode:', error.message);
+                }
+                
+                // Fallback: use a consistent local guest ID
+                const guestId = '00000000-0000-0000-0000-000000000000'; 
+                setCurrentUser({
+                  ...DEFAULT_PROFILE,
+                  id: guestId
+                });
+                return;
+              }
+              currentSession = data.session;
+            } catch (signInErr) {
+              console.warn('Critical auth failure, falling back to guest mode:', signInErr);
+              const guestId = '00000000-0000-0000-0000-000000000000'; 
+              setCurrentUser({ ...DEFAULT_PROFILE, id: guestId });
+              return;
+            }
+          } else {
+            // Already known to be disabled, skip request and use guest mode immediately
             const guestId = '00000000-0000-0000-0000-000000000000'; 
             setCurrentUser({
               ...DEFAULT_PROFILE,
@@ -57,7 +95,6 @@ export default function App() {
             });
             return;
           }
-          currentSession = data.session;
         }
         
         setSession(currentSession);
@@ -149,9 +186,14 @@ export default function App() {
         bio: data.bio,
         skills: data.skills || [],
         avatar: data.avatar_url,
-        github: data.github_url,
-        twitter: data.twitter_url,
-        linkedin: data.linkedin_url
+        githubUrl: data.github_url,
+        twitterUrl: data.twitter_url,
+        linkedinUrl: data.linkedin_url,
+        instagramUrl: data.instagram_url,
+        facebookUrl: data.facebook_url,
+        profession: data.profession,
+        experience: data.experience,
+        startupInterests: data.startup_interests || []
       };
       setCurrentUser(profile);
     }
@@ -198,6 +240,10 @@ export default function App() {
   // Expression of Interest states
   const [interestTargetType, setInterestTargetType] = useState<'collaboration' | 'funding' | null>(null);
   const [interestTargetIdea, setInterestTargetIdea] = useState<StartupIdea | null>(null);
+
+  // Public Profile Modal State
+  const [selectedPublicProfile, setSelectedPublicProfile] = useState<FounderProfile | null>(null);
+  const [selectedFounderIdeas, setSelectedFounderIdeas] = useState<StartupIdea[]>([]);
 
   // Loading state for simulation
   const [isLoading, setIsLoading] = useState(true);
@@ -297,7 +343,7 @@ export default function App() {
         // Fetch suggestions with profile info
         const { data: suggestions, error: suggestionsError } = await supabase
           .from('suggestions')
-          .select('*, profiles:requester_id(name, avatar_url)');
+          .select('*, profiles!fk_suggestions_requester(name, avatar_url)');
 
         const mappedSuggestions: Suggestion[] = (suggestions || []).map(s => ({
           id: s.id,
@@ -387,9 +433,14 @@ export default function App() {
         bio: updated.bio,
         skills: updated.skills,
         avatar_url: updated.avatar,
-        github_url: updated.github,
-        twitter_url: updated.twitter,
-        linkedin_url: updated.linkedin
+        github_url: updated.githubUrl,
+        twitter_url: updated.twitterUrl,
+        linkedin_url: updated.linkedinUrl,
+        instagram_url: updated.instagramUrl,
+        facebook_url: updated.facebookUrl,
+        experience: updated.experience,
+        startup_interests: updated.startupInterests,
+        profession: updated.profession
       })
       .eq('id', currentUser.id);
 
@@ -400,8 +451,71 @@ export default function App() {
     }
 
     setCurrentUser(updated);
-    setState(prev => ({ ...prev, profile: updated }));
+    setState(prev => ({ 
+      ...prev, 
+      profile: updated,
+      // Update founder info in local ideas if the user just updated their own profile
+      ideas: prev.ideas.map(idea => 
+        idea.founderId === updated.id 
+          ? { ...idea, founderName: updated.name, founderAvatar: updated.avatar } 
+          : idea
+      )
+    }));
     showToast('Founder Bio updated successfully!');
+  };
+
+  const handleFounderProfileClick = async (founderId: string) => {
+    // Fetch ideas by this founder first (local and remote)
+    const founderIdeas = state.ideas.filter(idea => idea.founderId === founderId && (idea.isPublic || (idea as any).is_public));
+    setSelectedFounderIdeas(founderIdeas);
+
+    // 1. Check if it's the current user
+    if (currentUser && founderId === currentUser.id) {
+      setSelectedPublicProfile(currentUser);
+      return;
+    }
+
+    // 2. Fetch from Supabase
+    const { data, error } = await supabase
+      .from('profiles')
+      .select('*')
+      .eq('id', founderId)
+      .single();
+
+    if (!error && data) {
+      const profile: FounderProfile = {
+        id: data.id,
+        name: data.name,
+        email: data.email,
+        bio: data.bio,
+        profession: data.profession,
+        skills: data.skills || [],
+        avatar: data.avatar_url,
+        githubUrl: data.github_url,
+        twitterUrl: data.twitter_url,
+        linkedinUrl: data.linkedin_url,
+        instagramUrl: data.instagram_url,
+        facebookUrl: data.facebook_url,
+        experience: data.experience,
+        startupInterests: data.startup_interests || []
+      };
+      setSelectedPublicProfile(profile);
+    } else {
+      // Fallback: look in local state ideas if fetch fails (e.g. offline/mock)
+      const ideaWithFounder = state.ideas.find(i => i.founderId === founderId);
+      if (ideaWithFounder) {
+        setSelectedPublicProfile({
+          id: ideaWithFounder.founderId,
+          name: ideaWithFounder.founderName,
+          email: 'Contact via Idea',
+          bio: 'Founder exploring new visions.',
+          avatar: ideaWithFounder.founderAvatar,
+          skills: []
+        });
+      } else {
+        showToast('Could not load founder profile.');
+      }
+    }
   };
 
   // Add startup idea handler
@@ -477,49 +591,49 @@ export default function App() {
       .select()
       .single();
 
-    if (error) {
-      console.error('Error creating idea:', error);
-      showToast('Failed to publish to database.');
-      return;
-    }
-
     const newIdeaObj: StartupIdea = {
-      id: data.id,
-      name: data.name,
-      logo: data.logo,
-      banner: data.banner,
-      description: data.description,
-      whyThisWorks: data.why_this_works,
-      problemSolved: data.problem_solved,
-      targetAudience: data.target_audience,
-      category: data.category,
-      founderId: data.founder_id,
-      founderName: data.founder_name,
-      founderAvatar: data.founder_avatar,
-      collaborationCount: data.collaboration_count,
-      fundingInterestCount: data.funding_interest_count,
-      progressStage: data.progress_stage,
-      likes: data.likes,
-      suggestionsCount: data.suggestions_count,
-      needCollaboration: data.need_collaboration,
-      needFunding: data.need_funding,
-      seeking_collaboration: data.seeking_collaboration,
-      seeking_funding: data.seeking_funding,
-      isPublic: data.is_public,
-      visibility: data.visibility || (data.is_public ? 'public' : 'private'),
-      status: data.status || 'published',
-      createdAt: data.created_at
+      id: data?.id || `sim-${Math.random().toString(36).substr(2, 9)}`,
+      name: payload.name,
+      logo: payload.logo,
+      banner: payload.banner,
+      description: payload.description,
+      whyThisWorks: payload.why_this_works,
+      problemSolved: payload.problem_solved,
+      targetAudience: payload.target_audience,
+      category: payload.category,
+      founderId: payload.founder_id,
+      founderName: payload.founder_name,
+      founderAvatar: payload.founder_avatar,
+      collaborationCount: payload.collaboration_count,
+      fundingInterestCount: payload.funding_interest_count,
+      progressStage: payload.progress_stage,
+      likes: payload.likes,
+      suggestionsCount: payload.suggestions_count,
+      needCollaboration: payload.need_collaboration,
+      needFunding: payload.need_funding,
+      seeking_collaboration: payload.seeking_collaboration,
+      seeking_funding: payload.seeking_funding,
+      isPublic: payload.is_public,
+      visibility: payload.visibility,
+      status: payload.status,
+      createdAt: payload.created_at
     };
 
-    // Prepend new ideas
+    // Update local state immediately for simulation/sandbox mode
     setState(prev => ({
       ...prev,
       ideas: [newIdeaObj, ...prev.ideas]
     }));
 
+    if (error) {
+      console.warn('Database sync failed, keeping in local simulation mode:', error);
+      showToast(`Published “${newIdeaObj.name}” (Local Simulation)`);
+    } else {
+      showToast(`Published “${newIdeaObj.name}” to the global database!`);
+    }
+
     // Auto-like the new project
     setLikedIdeaIds(prev => [...prev, newIdeaObj.id]);
-    showToast(`Published “${newIdeaObj.name}” to the global database!`);
   };
 
   // Deletion helper for owners
@@ -547,7 +661,7 @@ export default function App() {
     const idea = state.ideas.find(i => i.id === id);
     if (!idea) return;
 
-    const newVisibility = idea.visibility === 'public' ? 'private' : 'public';
+    const newVisibility: 'public' | 'private' = idea.visibility === 'public' ? 'private' : 'public';
     const newIsPublic = newVisibility === 'public';
 
     const { error } = await supabase
@@ -640,8 +754,8 @@ export default function App() {
       id: data.id,
       ideaId: data.idea_id,
       founderId: data.founder_id,
-      suggestion_text: data.suggestion_text,
-      created_at: data.created_at,
+      content: data.suggestion_text,
+      createdAt: data.created_at,
       authorName: currentUser ? currentUser.name : (guestName || 'Anonymous Founder'),
       authorAvatar: currentUser ? currentUser.avatar : 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?auto=format&fit=crop&q=80&w=80',
       ideaName: selectedIdea.name
@@ -823,10 +937,12 @@ export default function App() {
     const matchesCategory = selectedCategory ? (idea.category === selectedCategory) : true;
 
     // Filter by date intervals
-    const ideaTime = new Date(idea.createdAt).getTime();
+    const createdAt = idea.createdAt || (idea as any).created_at;
+    const ideaTime = createdAt ? new Date(createdAt).getTime() : 0;
     const now = Date.now();
     let matchesTime = true;
     if (timeFilter === 'day') {
+      // Within last 24 hours
       matchesTime = now - ideaTime <= 24 * 60 * 60 * 1000;
     } else if (timeFilter === 'week1') {
       matchesTime = now - ideaTime <= 7 * 24 * 60 * 60 * 1000;
@@ -842,8 +958,19 @@ export default function App() {
       matchesTime = now - ideaTime <= 90 * 24 * 60 * 60 * 1000;
     }
 
+    // Safety check for future dates (should not happen normally but good for simulation)
+    if (ideaTime > now + 60000) { // 1 minute buffer
+      matchesTime = true; // Show newly added ideas even if clock is slightly off
+    }
+
     return matchesSearch && matchesCategory && matchesTime;
   });
+
+  // Calculate global stats (unfiltered by search/category/time, but filtered by public status)
+  const totalPublicIdeasCount = state.ideas.filter(idea => 
+    (idea.isPublic === true || (idea as any).is_public === true) && 
+    (idea.status === 'published' || !idea.status)
+  ).length;
 
   // Segregate filtered lists into TrustMRR structured grid blocks
   // 1. Trending: Sorted by upvotes & collaborations count
@@ -860,6 +987,19 @@ export default function App() {
 
   // Active suggestions list addressed to the clicked idea details modal
   const activeSuggestions = state.suggestions.filter(s => selectedIdea && s.ideaId === selectedIdea.id);
+
+  const handleLogout = async () => {
+    await supabase.auth.signOut();
+    setCurrentUser(null);
+    setSession(null);
+    setLikedIdeaIds([]);
+    showToast('Signed out successfully.');
+  };
+
+  const handleAuthClick = () => {
+    // This could open an auth modal if implemented
+    showToast('Authentication modal would open here.');
+  };
 
   return (
     <div className="min-h-screen relative overflow-x-hidden bg-[#F9FAFB]/90 dark:bg-slate-950 text-slate-900 dark:text-slate-100 flex flex-col font-sans selection:bg-blue-500/10 selection:text-blue-900 dark:selection:text-blue-200 transition-colors">
@@ -878,6 +1018,8 @@ export default function App() {
         }}
         onDashboardClick={() => setCurrentView('dashboard')}
         onExploreClick={() => setCurrentView('explore')}
+        onAuthClick={handleAuthClick}
+        onLogout={handleLogout}
         currentUser={currentUser}
         currentView={currentView}
         theme={theme}
@@ -931,7 +1073,7 @@ export default function App() {
                 <div>
                   <span className="block text-[10px] font-black font-mono text-slate-500 dark:text-slate-400 uppercase tracking-widest mb-0.5 group-hover:text-blue-600 transition-colors">Total Ideas Shared</span>
                   <span className="text-2xl font-display font-black text-slate-950 dark:text-white tracking-tighter" id="total-ideas-count">
-                    {filteredPublicIdeas.length.toLocaleString()}
+                    {totalPublicIdeasCount.toLocaleString()}
                   </span>
                 </div>
                 <div className="h-8 w-1 bg-blue-600 rounded-full transform group-hover:scale-y-125 transition-transform" />
@@ -1072,7 +1214,7 @@ export default function App() {
                       onCardClick={() => setSelectedIdea(idea)}
                       onLikeClick={() => handleLikeToggle(idea.id)}
                       isLikedByUser={likedIdeaIds.includes(idea.id)}
-                      rowStyle="latest"
+                      rowStyle="recent"
                     />
                   ))
                 )}
@@ -1173,8 +1315,23 @@ export default function App() {
             setInterestTargetType('funding');
             setInterestTargetIdea(selectedIdea);
           }}
+          onFounderProfileClick={handleFounderProfileClick}
           currentUser={currentUser}
           isCollaborationRequested={state.collaborations.some(c => c.ideaId === selectedIdea.id && (currentUser ? c.email === currentUser.email : false))}
+        />
+      )}
+
+      {/* Founder Public Profile Modal */}
+      {selectedPublicProfile && (
+        <PublicProfileModal
+          profile={selectedPublicProfile}
+          ideas={selectedFounderIdeas}
+          isOpen={!!selectedPublicProfile}
+          onClose={() => setSelectedPublicProfile(null)}
+          onIdeaClick={(idea) => {
+            setSelectedPublicProfile(null);
+            setSelectedIdea(idea);
+          }}
         />
       )}
 
@@ -1187,6 +1344,7 @@ export default function App() {
             setIdeaToEdit(null);
           }}
           onSubmit={handleAddIdeaSubmit}
+          onUpdateProfile={handleProfileUpdate}
           currentUser={currentUser}
           ideaToEdit={ideaToEdit}
         />

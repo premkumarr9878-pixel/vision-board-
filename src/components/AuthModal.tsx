@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { X, Mail, Lock, AlertCircle, ArrowRight, Upload, User, Rocket } from 'lucide-react';
+import { X, Mail, Lock, AlertCircle, ArrowRight, Upload, User, Rocket, Sparkles } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import { supabase } from '../supabase';
 
