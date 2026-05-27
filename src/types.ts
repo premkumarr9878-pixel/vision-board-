@@ -48,6 +48,7 @@ export interface StartupIdea {
   // Option Section details
   collaborationCount: number;
   fundingInterestCount: number;
+  viewsCount: number;
   progressStage: 'JUST IDEA NOW' | 'IDEATION' | 'RESEARCH' | 'MVP BUILDING' | 'PROTOTYPE' | 'SCALE';
   likes: number;
   suggestionsCount: number;

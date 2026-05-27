@@ -24,9 +24,9 @@ export const DEFAULT_PROFILE: FounderProfile = {
   email: 'arjunk067860@gmail.com',
   bio: 'Founder exploring new visions.',
   skills: ['React', 'TypeScript', 'Node.js', 'Solidity', 'TailwindCSS', 'Product Design'],
-  github: 'https://github.com/sahil_dev',
-  twitter: 'https://twitter.com/sahil_builds',
-  linkedin: 'https://linkedin.com/in/sahil-build',
+  githubUrl: 'https://github.com/sahil_dev',
+  twitterUrl: 'https://twitter.com/sahil_builds',
+  linkedinUrl: 'https://linkedin.com/in/sahil-build',
   avatar: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&q=80&w=200'
 };
 

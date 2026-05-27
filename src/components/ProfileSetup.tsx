@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { User, Camera, Mail, Rocket, ArrowRight, Github, Twitter, Linkedin, CheckCircle2, Sparkles, Upload, AlertCircle } from 'lucide-react';
 import { FounderProfile } from '../types';
 import { supabase } from '../supabase';
-import { motion } from 'motion/react';
+import { motion } from 'framer-motion';
 
 interface ProfileSetupProps {
   profile: FounderProfile;
@@ -15,9 +15,9 @@ export default function ProfileSetup({ profile, onComplete }: ProfileSetupProps)
   const [buildingDesc, setBuildingDesc] = useState(profile.buildingDesc || '');
   const [avatar, setAvatar] = useState(profile.avatar || '');
   const [skills, setSkills] = useState<string>(profile.skills?.join(', ') || '');
-  const [github, setGithub] = useState(profile.github || '');
-  const [twitter, setTwitter] = useState(profile.twitter || '');
-  const [linkedin, setLinkedin] = useState(profile.linkedin || '');
+  const [github, setGithub] = useState(profile.githubUrl || '');
+  const [twitter, setTwitter] = useState(profile.twitterUrl || '');
+  const [linkedin, setLinkedin] = useState(profile.linkedinUrl || '');
   
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState('');
@@ -76,9 +76,9 @@ export default function ProfileSetup({ profile, onComplete }: ProfileSetupProps)
         buildingDesc,
         avatar,
         skills: skillsArray,
-        github,
-        twitter,
-        linkedin
+        githubUrl: github,
+        twitterUrl: twitter,
+        linkedinUrl: linkedin
       });
     } catch (err: any) {
       setError(err.message || 'Failed to save profile details.');

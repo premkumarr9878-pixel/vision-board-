@@ -17,10 +17,10 @@ export default function CategoryFilters({
         <button
           id="category-filter-all"
           onClick={() => onSelectCategory(null)}
-          className={`px-5 py-2.5 rounded-xl text-xs font-black transition-all duration-300 whitespace-nowrap border-2 cursor-pointer select-none shadow-sm ${
+          className={`px-5 py-2.5 rounded-xl text-xs font-black transition-all duration-300 whitespace-nowrap border-2 cursor-pointer select-none ${
             selectedCategory === null
-              ? 'bg-blue-600 text-white border-blue-600 shadow-lg shadow-blue-500/20 scale-105'
-              : 'bg-white dark:bg-slate-900 text-slate-700 dark:text-slate-300 border-slate-200 dark:border-slate-800 hover:border-blue-600 dark:hover:border-blue-500 hover:text-blue-700 dark:hover:text-blue-400'
+              ? 'bg-blue-600 text-white border-blue-600 shadow-[0_8px_20px_-6px_rgba(37,99,235,0.35)] dark:shadow-[0_8px_20px_-6px_rgba(37,99,235,0.45)] scale-[1.03] z-10'
+              : 'bg-white dark:bg-slate-900 text-slate-700 dark:text-slate-300 border-slate-200 dark:border-slate-800 hover:border-blue-600/60 dark:hover:border-blue-500/60 hover:text-blue-700 dark:hover:text-blue-400 hover:shadow-md'
           }`}
         >
           All Ideas
@@ -32,10 +32,10 @@ export default function CategoryFilters({
             key={category}
             id={`category-filter-${category.toLowerCase().replace(/\s+/g, '-')}`}
             onClick={() => onSelectCategory(category)}
-            className={`px-5 py-2.5 rounded-xl text-xs font-black transition-all duration-300 whitespace-nowrap border-2 cursor-pointer select-none shadow-sm ${
+            className={`px-5 py-2.5 rounded-xl text-xs font-black transition-all duration-300 whitespace-nowrap border-2 cursor-pointer select-none ${
               selectedCategory === category
-                ? 'bg-blue-600 text-white border-blue-600 shadow-lg shadow-blue-500/20 scale-105'
-                : 'bg-white dark:bg-slate-900 text-slate-700 dark:text-slate-300 border-slate-200 dark:border-slate-800 hover:border-blue-600 dark:hover:border-blue-500 hover:text-blue-700 dark:hover:text-blue-400'
+                ? 'bg-blue-600 text-white border-blue-600 shadow-[0_8px_20px_-6px_rgba(37,99,235,0.35)] dark:shadow-[0_8px_20px_-6px_rgba(37,99,235,0.45)] scale-[1.03] z-10'
+                : 'bg-white dark:bg-slate-900 text-slate-700 dark:text-slate-300 border-slate-200 dark:border-slate-800 hover:border-blue-600/60 dark:hover:border-blue-500/60 hover:text-blue-700 dark:hover:text-blue-400 hover:shadow-md'
             }`}
           >
             {category}

@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Search, Plus, User, LogOut, LayoutDashboard, Globe, Moon, Sun, Menu, X, Rocket } from 'lucide-react';
 import { FounderProfile } from '../types';
-import { motion, AnimatePresence } from 'motion/react';
+import { motion, AnimatePresence } from 'framer-motion';
 
 interface HeaderProps {
   searchQuery: string;
@@ -88,102 +88,42 @@ export default function Header({
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between gap-4 sm:gap-8">
           
-          {/* LOGO */}
-          <div 
-            onClick={onExploreClick}
-            className="flex items-center cursor-pointer group shrink-0 select-none relative"
-          >
-            <div className="flex items-center space-x-3 transition-all duration-500 ease-out group-hover:scale-[1.02] group-active:scale-95">
-              <div className="w-10 h-10 sm:w-11 sm:h-11 bg-gradient-to-br from-blue-600 via-indigo-600 to-purple-600 rounded-2xl flex items-center justify-center shadow-xl shadow-blue-500/10 border-2 border-white/20 relative overflow-hidden">
-                <div className="absolute inset-0 bg-white/10 opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
-                <Rocket className="h-6 w-6 text-white transform rotate-45 group-hover:translate-x-0.5 group-hover:-translate-y-0.5 transition-transform duration-500" />
+          {/* LOGO & THEME TOGGLE */}
+          <div className="flex items-center space-x-4 sm:space-x-6">
+            <div 
+              onClick={onExploreClick}
+              className="flex items-center cursor-pointer group shrink-0 select-none relative"
+            >
+              <div className="flex items-center space-x-3 transition-all duration-500 ease-out group-hover:scale-[1.02] group-active:scale-95">
+                <div className="w-10 h-10 sm:w-11 sm:h-11 bg-gradient-to-br from-blue-600 via-indigo-600 to-purple-600 rounded-2xl flex items-center justify-center shadow-xl shadow-blue-500/10 border-2 border-white/20 relative overflow-hidden">
+                  <div className="absolute inset-0 bg-white/10 opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
+                  <Rocket className="h-6 w-6 text-white transform rotate-45 group-hover:translate-x-0.5 group-hover:-translate-y-0.5 transition-transform duration-500" />
+                </div>
+                <div className="flex items-baseline tracking-tighter">
+                  <span className="text-xl sm:text-2xl font-black text-slate-950 dark:text-white">Vision</span>
+                  <span className="text-xl sm:text-2xl font-black bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent">Board</span>
+                </div>
+                {/* Premium Glow Effect on Hover */}
+                <div className="absolute -inset-2 bg-blue-600/0 group-hover:bg-blue-600/5 rounded-full transition-all duration-500 -z-10" />
               </div>
-              <div className="flex items-baseline tracking-tighter">
-                <span className="text-xl sm:text-2xl font-black text-slate-950 dark:text-white">Vision</span>
-                <span className="text-xl sm:text-2xl font-black bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent">Board</span>
-              </div>
-              {/* Premium Glow Effect on Hover */}
-              <div className="absolute -inset-2 bg-blue-600/0 group-hover:bg-blue-600/5 rounded-full transition-all duration-500 -z-10" />
             </div>
-          </div>
 
-          {/* SEARCH BAR (Desktop) - REMOVED AS REQUESTED IN PREVIOUS STEPS AND REDUNDANT NOW */}
-
-          {/* NAVIGATION (Desktop) */}
-          <nav className="hidden lg:flex items-center space-x-3">
-            <div className="flex items-center space-x-2.5 px-5 py-2.5 bg-blue-500/20 dark:bg-blue-400/20 text-blue-700 dark:text-blue-400 text-[13px] font-black font-mono uppercase tracking-widest rounded-2xl border-2 border-blue-500/40 shadow-md select-none group">
-              <Rocket className="h-5 w-5 text-blue-600 dark:text-blue-400 shrink-0 fill-current animate-pulse group-hover:scale-110 transition-transform" />
-              <span>Sandbox 2.0 Live</span>
-            </div>
-            <NavButton 
-              onClick={onExploreClick} 
-              active={currentView === 'explore'} 
-              icon={Globe} 
-              label="Explore" 
-            />
-          </nav>
-
-          {/* RIGHT ACTIONS */}
-          <div className="flex items-center space-x-3">
-            {/* Theme Toggle */}
+            {/* Theme Toggle beside Logo */}
             <button
               onClick={toggleTheme}
-              className="p-3 rounded-2xl bg-white dark:bg-slate-900 text-slate-700 dark:text-slate-300 hover:text-blue-700 dark:hover:text-blue-400 transition-all cursor-pointer border-2 border-slate-200 dark:border-slate-800 hover:border-blue-600/30 shadow-sm"
+              className="p-2.5 sm:p-3 rounded-2xl bg-white dark:bg-slate-900 text-slate-700 dark:text-slate-300 hover:text-blue-700 dark:hover:text-blue-400 transition-all cursor-pointer border-2 border-slate-200 dark:border-slate-800 hover:border-blue-600/30 shadow-sm shrink-0"
               aria-label="Toggle theme"
             >
-              {theme === 'dark' ? <Sun className="h-4.5 w-4.5" /> : <Moon className="h-4.5 w-4.5" />}
+              {theme === 'dark' ? <Sun className="h-4 sm:h-4.5 w-4 sm:w-4.5" /> : <Moon className="h-4 sm:h-4.5 w-4 sm:w-4.5" />}
             </button>
+          </div>
 
-            {/* User Profile / Auth */}
-            <div className="hidden sm:block">
-              {currentUser && (
-                <div className="flex items-center space-x-3 pl-2">
-                  <div className="text-right hidden xl:block select-none">
-                    <p className="text-[10px] font-black text-slate-900 dark:text-white uppercase tracking-tight" dir="auto">{currentUser.name}</p>
-                    <p className="text-[9px] font-bold text-slate-400 uppercase tracking-widest">Active Founder</p>
-                  </div>
-                  <div className="relative">
-                    <button 
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        setIsProfileOpen(!isProfileOpen);
-                      }}
-                      className={`h-11 w-11 rounded-2xl border-2 overflow-hidden cursor-pointer transition-all shadow-sm ${
-                        isProfileOpen ? 'border-blue-600 ring-4 ring-blue-500/10' : 'border-slate-200 dark:border-slate-800 hover:border-blue-600'
-                      }`}
-                    >
-                      <img src={currentUser.avatar} alt="Profile" className="h-full w-full object-cover" />
-                    </button>
-                    
-                    {/* Dropdown menu */}
-                    <AnimatePresence>
-                      {isProfileOpen && (
-                        <motion.div 
-                          initial={{ opacity: 0, y: 10, scale: 0.95 }}
-                          animate={{ opacity: 1, y: 0, scale: 1 }}
-                          exit={{ opacity: 0, y: 10, scale: 0.95 }}
-                          className="absolute right-0 top-full mt-2 w-48 bg-white dark:bg-slate-950 border-2 border-slate-200 dark:border-slate-800 rounded-2xl shadow-2xl p-2 z-[60]"
-                        >
-                          <div className="px-3 py-2 border-b-2 border-slate-100 dark:border-slate-900 mb-1 xl:hidden">
-                            <p className="text-[10px] font-black text-slate-900 dark:text-white uppercase tracking-tight truncate">{currentUser.name}</p>
-                            <p className="text-[8px] font-bold text-slate-400 uppercase tracking-widest">Active Founder</p>
-                          </div>
-                          
-                          <div className="px-3 py-2.5 text-xs font-bold text-slate-600 dark:text-slate-400">
-                            <span>{currentUser.email}</span>
-                          </div>
-                        </motion.div>
-                      )}
-                    </AnimatePresence>
-                  </div>
-                </div>
-              )}
-            </div>
-
+          {/* RIGHT ACTIONS */}
+          <div className="flex items-center">
             {/* Mobile Menu Toggle */}
             <button
               onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-              className="lg:hidden p-3 rounded-2xl bg-white dark:bg-slate-900 text-slate-700 dark:text-slate-300 border-2 border-slate-200 dark:border-slate-800 transition-all cursor-pointer shadow-sm"
+              className="p-3 rounded-2xl bg-white dark:bg-slate-900 text-slate-700 dark:text-slate-300 border-2 border-slate-200 dark:border-slate-800 transition-all cursor-pointer shadow-sm"
             >
               {isMobileMenuOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
             </button>
@@ -219,13 +159,6 @@ export default function Header({
 
                 <div className="space-y-3 flex-1">
                   <NavButton 
-                    onClick={onExploreClick} 
-                    active={currentView === 'explore'} 
-                    icon={Globe} 
-                    label="Explore Ideas" 
-                  />
-                  <div className="h-px bg-slate-100 dark:bg-slate-800 my-6" />
-                  <NavButton 
                     onClick={onAddIdeaClick} 
                     icon={Plus} 
                     label="Publish Idea" 
@@ -235,13 +168,6 @@ export default function Header({
                 <div className="pt-6 border-t border-slate-100 dark:border-slate-800">
                   {currentUser ? (
                     <div className="space-y-4">
-                      <div className="flex items-center space-x-3 px-2">
-                        <img src={currentUser.avatar} alt="Avatar" className="h-10 w-10 rounded-xl border-2 border-slate-100 dark:border-slate-800" />
-                        <div>
-                          <p className="text-xs font-black text-slate-900 dark:text-white uppercase tracking-tight" dir="auto">{currentUser.name}</p>
-                          <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Founder Session</p>
-                        </div>
-                      </div>
                       <button
                         onClick={() => {
                           onLogout();

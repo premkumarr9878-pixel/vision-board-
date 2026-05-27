@@ -1,8 +1,27 @@
 import React, { useState } from 'react';
-import { X, HelpCircle, Eye, Rocket, Send, Sparkles, Upload, Link, Info, Image as ImageIcon, Users, CircleDollarSign, Handshake, Coins, Globe, Lock, ArrowLeft, Instagram, Facebook, Twitter, Briefcase, GraduationCap, User, Plus } from 'lucide-react';
+import { X, HelpCircle, Eye, Rocket, Send, Sparkles, Upload, Link, Info, Image as ImageIcon, Users, CircleDollarSign, Globe, Lock, ArrowLeft, Instagram, Facebook, Twitter, Briefcase, GraduationCap, User, Plus, Clock, Linkedin, Github } from 'lucide-react';
 import { StartupIdea, FounderProfile } from '../types';
 import { CATEGORIES } from '../data';
-import { motion, AnimatePresence } from 'motion/react';
+import { motion, AnimatePresence } from 'framer-motion';
+
+// Custom Incognito Icon Component to match user request
+const IncognitoIcon = ({ className }: { className?: string }) => (
+  <svg 
+    viewBox="0 0 24 24" 
+    fill="none" 
+    stroke="currentColor" 
+    strokeWidth="2" 
+    strokeLinecap="round" 
+    strokeLinejoin="round" 
+    className={className}
+  >
+    <path d="M2 12h20" />
+    <path d="M6 12v-1a6 6 0 0 1 12 0v1" />
+    <circle cx="9" cy="17" r="2.5" />
+    <circle cx="15" cy="17" r="2.5" />
+    <path d="M11.5 17h1" />
+  </svg>
+);
 
 interface AddIdeaModalProps {
   isOpen: boolean;
@@ -98,8 +117,6 @@ export default function AddIdeaModal({
   const [fundingAmount, setFundingAmount] = useState('$50,000');
   const [progressStage, setProgressStage] = useState<'JUST IDEA NOW' | 'IDEATION' | 'MVP BUILDING' | 'PROTOTYPE' | 'SCALE'>('JUST IDEA NOW');
   const [isPublic, setIsPublic] = useState(true);
-  const [seekingCollaboration, setSeekingCollaboration] = useState(false);
-  const [seekingFunding, setSeekingFunding] = useState(false);
 
   // Social link inputs State
   const [instagramUrl, setInstagramUrl] = useState('');
@@ -117,6 +134,7 @@ export default function AddIdeaModal({
   const [profileTwitter, setProfileTwitter] = useState(currentUser?.twitterUrl || '');
   const [profileLinkedin, setProfileLinkedin] = useState(currentUser?.linkedinUrl || '');
   const [profileGithub, setProfileGithub] = useState(currentUser?.githubUrl || '');
+  const [profileTagline, setProfileTagline] = useState(currentUser?.buildingDesc || '');
   const [profileExperience, setProfileExperience] = useState(currentUser?.experience || '');
   const [profileSkills, setProfileSkills] = useState(currentUser?.skills?.join(', ') || '');
   const [profileInterests, setProfileInterests] = useState(currentUser?.startupInterests?.join(', ') || '');
@@ -148,8 +166,6 @@ export default function AddIdeaModal({
       setFundingAmount(ideaToEdit.fundingGoal || '$50,000');
       setProgressStage(ideaToEdit.progressStage || 'JUST IDEA NOW');
       setIsPublic(ideaToEdit.isPublic ?? true);
-      setSeekingCollaboration(ideaToEdit.seeking_collaboration ?? false);
-      setSeekingFunding(ideaToEdit.seeking_funding ?? false);
       setInstagramUrl(ideaToEdit.instagramUrl || '');
       setFacebookUrl(ideaToEdit.facebookUrl || '');
       setWebsiteUrl(ideaToEdit.websiteUrl || '');
@@ -170,8 +186,6 @@ export default function AddIdeaModal({
       setFundingAmount('$50,000');
       setProgressStage('JUST IDEA NOW');
       setIsPublic(true);
-      setSeekingCollaboration(false);
-      setSeekingFunding(false);
       setInstagramUrl('');
       setFacebookUrl('');
       setWebsiteUrl('');
@@ -189,6 +203,7 @@ export default function AddIdeaModal({
       setProfileTwitter(currentUser.twitterUrl || '');
       setProfileLinkedin(currentUser.linkedinUrl || '');
       setProfileGithub(currentUser.githubUrl || '');
+      setProfileTagline(currentUser.buildingDesc || '');
       setProfileExperience(currentUser.experience || '');
       setProfileSkills(currentUser.skills?.join(', ') || '');
       setProfileInterests(currentUser.startupInterests?.join(', ') || '');
@@ -246,6 +261,7 @@ export default function AddIdeaModal({
       name: profileName,
       email: profileEmail,
       bio: profileBio,
+      buildingDesc: profileTagline,
       profession: profileProfession,
       avatar: profileAvatar,
       instagramUrl: profileInstagram,
@@ -305,10 +321,9 @@ export default function AddIdeaModal({
       maxCollaborators: collaborationLimit,
       needFunding,
       fundingGoal: needFunding ? fundingAmount : undefined,
-      seeking_collaboration: seekingCollaboration,
-      seeking_funding: seekingFunding,
       progressStage,
       isPublic,
+      visibility: isPublic ? 'public' : 'private',
       instagramUrl,
       facebookUrl,
       websiteUrl
@@ -412,16 +427,15 @@ export default function AddIdeaModal({
                   {error}
                 </motion.div>
               )}
-              {/* ... Rest of the existing form content ... */}
 
-            {/* SECTION 1: Startup Branding */}
-            <div className="bg-slate-50 dark:bg-slate-800/50 p-4 sm:p-5 rounded-2xl border-2 border-slate-200 dark:border-slate-800 space-y-4 hover:shadow-md transition-all">
+            {/* SECTION 2: Identity & Branding Banner */}
+            <div className="bg-slate-50 dark:bg-slate-900/50 p-4 sm:p-5 rounded-2xl border-2 border-slate-200 dark:border-slate-800 space-y-4 hover:shadow-md transition-all">
               <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b-2 border-slate-100 dark:border-slate-700/50 pb-3">
                 <div className="flex items-center space-x-2">
                   <div className="w-1.5 h-3 bg-blue-600 rounded-full" />
                   <div>
                     <span className="block text-[9px] font-black font-mono text-slate-500 dark:text-slate-400 uppercase tracking-widest leading-none select-none">SECTION 1</span>
-                    <span className="block text-xs font-black text-slate-900 dark:text-slate-100 mt-1 select-none">Startup Branding</span>
+                    <span className="block text-xs font-black text-slate-900 dark:text-white mt-1 select-none">Startup Branding</span>
                   </div>
                 </div>
                 <div className="flex bg-slate-100 dark:bg-slate-950 p-0.5 rounded-lg text-[10px] self-start sm:self-auto border border-slate-200 dark:border-slate-800" id="logo-type-tabs">
@@ -464,7 +478,7 @@ export default function AddIdeaModal({
                         id="logo-dropdown"
                         value={logo}
                         onChange={(e) => setLogo(e.target.value)}
-                        className="flex-1 sm:w-full py-2 px-2 border border-slate-200 dark:border-slate-830 bg-white dark:bg-slate-900 rounded-xl text-xs focus:ring-4 focus:ring-blue-500/10 focus:border-blue-500 transition-all outline-none cursor-pointer"
+                        className="flex-1 sm:w-full py-2 px-2 border border-slate-200 dark:border-slate-830 bg-white dark:bg-slate-900 dark:text-white rounded-xl text-xs focus:ring-4 focus:ring-blue-500/10 focus:border-blue-500 transition-all outline-none cursor-pointer"
                       >
                         {PRESET_LOGOS.map(p => (
                           <option key={p} value={p}>{p}</option>
@@ -494,7 +508,7 @@ export default function AddIdeaModal({
                           placeholder="Paste image URL..."
                           value={logo.startsWith('http') ? logo : ''}
                           onChange={(e) => setLogo(e.target.value)}
-                          className="w-full py-2 px-2 border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 rounded-xl text-[10px] placeholder-slate-400 dark:text-white focus:ring-4 focus:ring-blue-500/10 focus:border-blue-500 transition-all outline-none"
+                          className="w-full py-2 px-2 border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 dark:text-white rounded-xl text-[10px] placeholder-slate-400 focus:ring-4 focus:ring-blue-500/10 focus:border-blue-500 transition-all outline-none"
                         />
                       </div>
                     )}
@@ -520,7 +534,7 @@ export default function AddIdeaModal({
             </div>
 
             {/* SECTION 2: Aesthetic Banner Artwork */}
-            <div className="bg-slate-50 dark:bg-slate-800/50 p-4 sm:p-5 rounded-2xl border-2 border-slate-200 dark:border-slate-800 space-y-4 hover:shadow-md transition-all">
+            <div className="bg-slate-50 dark:bg-slate-900/50 p-4 sm:p-5 rounded-2xl border-2 border-slate-200 dark:border-slate-800 space-y-4 hover:shadow-md transition-all">
               <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b-2 border-slate-100 dark:border-slate-700/50 pb-3">
                 <div className="flex items-center space-x-2">
                   <div className="w-1.5 h-3 bg-purple-600 rounded-full" />
@@ -619,16 +633,16 @@ export default function AddIdeaModal({
               )}
             </div>
 
-            {/* SECTION 3: Idea Category Selection */}
-            <div className="bg-slate-50/50 dark:bg-slate-900/40 p-4 sm:p-5 rounded-2xl border border-slate-200/40 dark:border-slate-800/50 space-y-3.5 hover:shadow-[0_4px_16px_rgba(0,0,0,0.01)] transition-all">
-              <div className="flex items-center space-x-2 border-b border-slate-200/45 dark:border-slate-800/50 pb-2">
-                <div className="w-1.5 h-3 bg-indigo-500 rounded-full" />
+            {/* SECTION 3: Industry Category Selection */}
+            <div className="bg-white dark:bg-slate-900/50 p-4 sm:p-5 rounded-2xl border-2 border-slate-200 dark:border-slate-800 space-y-3.5 hover:shadow-[0_8px_30px_-12px_rgba(0,0,0,0.05)] transition-all group">
+              <div className="flex items-center space-x-2 border-b-2 border-slate-100 dark:border-slate-800 pb-3">
+                <div className="w-1.5 h-3 bg-indigo-500 rounded-full shadow-[0_0_10px_rgba(99,102,241,0.4)]" />
                 <div>
-                  <span className="block text-[9px] font-bold font-mono text-slate-400 dark:text-slate-500 uppercase tracking-widest leading-none select-none">SECTION 3</span>
-                  <span className="block text-xs font-extrabold text-slate-800 dark:text-slate-200 mt-1 select-none">Industry Category <span className="text-red-500 text-2xs font-semibold">* Required</span></span>
+                  <span className="block text-[9px] font-black font-mono text-slate-500 dark:text-slate-400 uppercase tracking-widest leading-none select-none">SECTION 3</span>
+                  <span className="block text-xs font-black text-slate-900 dark:text-white mt-1 select-none">Industry Category <span className="text-red-500 text-[10px] font-bold">* Required</span></span>
                 </div>
               </div>
-              <div className="flex flex-wrap gap-1.5" id="form-categories-list">
+              <div className="flex flex-wrap gap-2" id="form-categories-list">
                 {CATEGORIES.map(cat => {
                   const isActive = category === cat;
                   return (
@@ -636,10 +650,10 @@ export default function AddIdeaModal({
                       key={cat}
                       type="button"
                       onClick={() => setCategory(cat)}
-                      className={`px-3.5 py-1.5 border rounded-xl text-[11px] font-semibold transition-all duration-[180ms] cursor-pointer hover:scale-[1.02] active:scale-[0.98] ${
+                      className={`px-4 py-2 border-2 rounded-xl text-[11px] font-black transition-all duration-200 cursor-pointer hover:scale-[1.02] active:scale-[0.98] ${
                         isActive 
-                          ? 'bg-slate-950 dark:bg-slate-100 border-slate-950 dark:border-slate-100 text-white dark:text-slate-950 shadow-sm' 
-                          : 'bg-white dark:bg-slate-900/40 border-slate-200/80 dark:border-slate-800/70 text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:border-slate-300 dark:hover:border-slate-700'
+                          ? 'bg-slate-950 dark:bg-white border-slate-950 dark:border-white text-white dark:text-slate-950 shadow-lg' 
+                          : 'bg-white dark:bg-slate-950 border-slate-200 dark:border-slate-800 text-slate-600 dark:text-slate-400 hover:text-slate-950 dark:hover:text-white hover:border-slate-400 dark:hover:border-slate-600'
                       }`}
                     >
                       {cat}
@@ -650,19 +664,19 @@ export default function AddIdeaModal({
             </div>
 
             {/* SECTION 4: Elevator Pitch & Problem */}
-            <div className="bg-slate-50/50 dark:bg-slate-900/40 p-5 sm:p-7 rounded-[2rem] border border-slate-200/40 dark:border-slate-800/50 space-y-6 hover:shadow-[0_8px_30px_rgba(0,0,0,0.02)] transition-all">
-              <div className="flex items-center space-x-3 border-b border-slate-200/45 dark:border-slate-800/50 pb-4">
-                <div className="w-2 h-4 bg-emerald-500 rounded-full" />
+            <div className="bg-white dark:bg-slate-900/50 p-5 sm:p-6 rounded-[2rem] border-2 border-slate-200 dark:border-slate-800 space-y-6 hover:shadow-[0_8px_30px_-12px_rgba(0,0,0,0.05)] transition-all group">
+              <div className="flex items-center space-x-3 border-b-2 border-slate-100 dark:border-slate-800 pb-4">
+                <div className="w-2 h-4 bg-emerald-500 rounded-full shadow-[0_0_10px_rgba(16,185,129,0.4)]" />
                 <div>
-                  <span className="block text-[10px] font-bold font-mono text-slate-400 dark:text-slate-500 uppercase tracking-widest leading-none select-none">SECTION 4</span>
-                  <span className="block text-sm font-black text-slate-900 dark:text-slate-100 mt-1 select-none">Pitch Definition & Story</span>
+                  <span className="block text-[9px] font-black font-mono text-slate-500 dark:text-slate-400 uppercase tracking-widest leading-none select-none">SECTION 4</span>
+                  <span className="block text-sm font-black text-slate-900 dark:text-white mt-1 select-none">Pitch Definition & Story</span>
                 </div>
               </div>
 
               <div className="space-y-6">
-                <div className="group">
+                <div className="group/field">
                   <div className="flex justify-between items-center mb-2.5 px-1">
-                    <label className="flex items-center space-x-2 text-[11px] font-black font-mono text-slate-700 dark:text-slate-300 uppercase tracking-widest select-none">
+                    <label className="flex items-center space-x-2 text-[10px] font-black font-mono text-slate-500 dark:text-slate-400 uppercase tracking-widest select-none">
                       <div className="w-1.5 h-1.5 rounded-full bg-blue-500" />
                       <span>Describe Your Idea</span>
                       <span className="text-red-500 ml-0.5">*</span>
@@ -677,68 +691,56 @@ export default function AddIdeaModal({
                     onChange={(e) => setDescription(e.target.value)}
                     maxLength={200000}
                     required
-                    placeholder="Summarize the product concept, core values, and features visually. (Supports any language)"
-                    className="group-hover:border-slate-300 dark:group-hover:border-slate-700"
+                    placeholder="Summarize the product concept, core values, and features visually."
+                    className="focus:ring-blue-500/10 group-hover/field:border-slate-300 dark:group-hover/field:border-slate-700"
                   />
-                  <p className="mt-2 text-[10px] text-slate-400 dark:text-slate-500 font-medium italic px-1">
-                    Tip: Be clear and concise. This is the first thing people see.
-                  </p>
                 </div>
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                  <div className="group">
+                  <div className="group/field">
                     <div className="flex justify-between items-center mb-2.5 px-1">
-                      <label className="flex items-center space-x-2 text-[11px] font-black font-mono text-slate-700 dark:text-slate-300 uppercase tracking-widest select-none">
+                      <label className="flex items-center space-x-2 text-[10px] font-black font-mono text-slate-500 dark:text-slate-400 uppercase tracking-widest select-none">
                         <div className="w-1.5 h-1.5 rounded-full bg-emerald-500" />
                         <span>Why this idea works</span>
                         <span className="text-red-500 ml-0.5">*</span>
                       </label>
-                      <span className="text-[10px] font-mono font-bold text-slate-400">
-                        {whyThisWorks.length.toLocaleString()}
-                      </span>
                     </div>
                     <AutoResizeTextarea
                       id="why-works-textarea"
                       value={whyThisWorks}
                       onChange={(e) => setWhyThisWorks(e.target.value)}
                       required
-                      placeholder="Unique market advantages, viability, and demand."
-                      className="group-hover:border-slate-300 dark:group-hover:border-slate-700 min-h-[120px]"
+                      placeholder="Unique market advantages and demand."
+                      className="min-h-[120px] focus:ring-emerald-500/10 group-hover/field:border-slate-300 dark:group-hover/field:border-slate-700"
                     />
                   </div>
 
-                  <div className="group">
+                  <div className="group/field">
                     <div className="flex justify-between items-center mb-2.5 px-1">
-                      <label className="flex items-center space-x-2 text-[11px] font-black font-mono text-slate-700 dark:text-slate-300 uppercase tracking-widest select-none">
+                      <label className="flex items-center space-x-2 text-[10px] font-black font-mono text-slate-500 dark:text-slate-400 uppercase tracking-widest select-none">
                         <div className="w-1.5 h-1.5 rounded-full bg-orange-500" />
                         <span>Exact Problem Solved</span>
                         <span className="text-red-500 ml-0.5">*</span>
                       </label>
-                      <span className="text-[10px] font-mono font-bold text-slate-400">
-                        {problemSolved.length.toLocaleString()}
-                      </span>
                     </div>
                     <AutoResizeTextarea
                       id="problem-textarea"
                       value={problemSolved}
                       onChange={(e) => setProblemSolved(e.target.value)}
                       required
-                      placeholder="User pain points this idea targets directly."
-                      className="group-hover:border-slate-300 dark:group-hover:border-slate-700 min-h-[120px]"
+                      placeholder="User pain points this idea targets."
+                      className="min-h-[120px] focus:ring-orange-500/10 group-hover/field:border-slate-300 dark:group-hover/field:border-slate-700"
                     />
                   </div>
                 </div>
 
-                <div className="group">
+                <div className="group/field">
                   <div className="flex justify-between items-center mb-2.5 px-1">
-                    <label className="flex items-center space-x-2 text-[11px] font-black font-mono text-slate-700 dark:text-slate-300 uppercase tracking-widest select-none">
+                    <label className="flex items-center space-x-2 text-[10px] font-black font-mono text-slate-500 dark:text-slate-400 uppercase tracking-widest select-none">
                       <div className="w-1.5 h-1.5 rounded-full bg-indigo-500" />
                       <span>Target Audience / Segment</span>
                       <span className="text-red-500 ml-0.5">*</span>
                     </label>
-                    <span className="text-[10px] font-mono font-bold text-slate-400">
-                      {targetAudience.length.toLocaleString()}
-                    </span>
                   </div>
                   <input
                     id="target-audience-input"
@@ -746,76 +748,75 @@ export default function AddIdeaModal({
                     required
                     value={targetAudience}
                     onChange={(e) => setTargetAudience(e.target.value)}
-                    dir="auto"
                     placeholder="e.g. Physicians, Node Engineers, College Students..."
-                    className="w-full py-4 px-4 border-2 border-slate-200 dark:border-slate-700 rounded-2xl text-[14px] font-sans font-medium placeholder-slate-400 bg-white dark:bg-slate-50 dark:text-black focus:outline-none focus:ring-4 focus:ring-blue-500/10 focus:border-blue-500 transition-all group-hover:border-slate-300 dark:group-hover:border-slate-600 multilingual-text"
+                    className="w-full py-3.5 px-4 border-2 border-slate-200 dark:border-slate-800 rounded-2xl text-xs font-bold placeholder-slate-400 bg-white dark:bg-slate-950 dark:text-white focus:outline-none focus:ring-4 focus:ring-indigo-500/10 focus:border-indigo-600 dark:focus:border-indigo-500 transition-all group-hover/field:border-slate-300 dark:group-hover/field:border-slate-700"
                   />
                 </div>
               </div>
             </div>
 
             {/* SECTION 5: Optional connect URLs */}
-            <div className="bg-slate-50/50 dark:bg-slate-900/40 p-4 sm:p-5 rounded-2xl border border-slate-200/40 dark:border-slate-800/50 space-y-4 hover:shadow-[0_4px_16px_rgba(0,0,0,0.01)] transition-all">
-              <div className="flex items-center space-x-2 border-b border-slate-200/45 dark:border-slate-800/50 pb-2">
-                <div className="w-1.5 h-3 bg-amber-500 rounded-full" />
+            <div className="bg-white dark:bg-slate-900/50 p-4 sm:p-5 rounded-2xl border-2 border-slate-200 dark:border-slate-800 space-y-4 hover:shadow-[0_8px_30px_-12px_rgba(0,0,0,0.05)] transition-all group">
+              <div className="flex items-center space-x-2 border-b-2 border-slate-100 dark:border-slate-800 pb-3">
+                <div className="w-1.5 h-3 bg-amber-500 rounded-full shadow-[0_0_10px_rgba(245,158,11,0.4)]" />
                 <div>
-                  <span className="block text-[9px] font-bold font-mono text-slate-400 dark:text-slate-500 uppercase tracking-widest leading-none select-none">SECTION 5</span>
-                  <span className="block text-xs font-extrabold text-slate-800 dark:text-slate-200 mt-1 select-none">Optional Social & Site Links</span>
+                  <span className="block text-[9px] font-black font-mono text-slate-500 dark:text-slate-400 uppercase tracking-widest leading-none select-none">SECTION 5</span>
+                  <span className="block text-xs font-black text-slate-900 dark:text-white mt-1 select-none">Optional Social & Site Links</span>
                 </div>
               </div>
 
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-3.5">
-                <div>
-                  <label className="block text-[10px] text-slate-500 dark:text-slate-400 mb-1 select-none font-bold uppercase tracking-wider font-mono">Instagram</label>
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div className="group/field">
+                  <label className="block text-[9px] font-black font-mono text-slate-500 dark:text-slate-400 uppercase tracking-widest mb-1.5 px-1">Instagram</label>
                   <input
                     id="idea-instagram-url"
                     type="url"
                     value={instagramUrl}
                     onChange={(e) => setInstagramUrl(e.target.value)}
-                    placeholder="https://instagram.com/co"
-                    className="w-full py-2 px-3 border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-950 dark:text-white rounded-xl text-xs placeholder-slate-400 focus:ring-4 focus:ring-blue-500/10 focus:border-blue-500 outline-none transition-all"
+                    placeholder="https://instagram.com/..."
+                    className="w-full py-2.5 px-3.5 border-2 border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-950 dark:text-white rounded-xl text-[11px] font-bold placeholder-slate-400 focus:ring-4 focus:ring-blue-500/10 focus:border-blue-500 outline-none transition-all group-hover/field:border-slate-300 dark:group-hover/field:border-slate-700"
                   />
                 </div>
-                <div>
-                  <label className="block text-[10px] text-slate-500 dark:text-slate-400 mb-1 select-none font-bold uppercase tracking-wider font-mono">Facebook</label>
+                <div className="group/field">
+                  <label className="block text-[9px] font-black font-mono text-slate-500 dark:text-slate-400 uppercase tracking-widest mb-1.5 px-1">Facebook</label>
                   <input
                     id="idea-facebook-url"
                     type="url"
                     value={facebookUrl}
                     onChange={(e) => setFacebookUrl(e.target.value)}
-                    placeholder="https://facebook.com/co"
-                    className="w-full py-2 px-3 border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-950 dark:text-white rounded-xl text-xs placeholder-slate-400 focus:ring-4 focus:ring-blue-500/10 focus:border-blue-500 outline-none transition-all"
+                    placeholder="https://facebook.com/..."
+                    className="w-full py-2.5 px-3.5 border-2 border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-950 dark:text-white rounded-xl text-[11px] font-bold placeholder-slate-400 focus:ring-4 focus:ring-blue-500/10 focus:border-blue-500 outline-none transition-all group-hover/field:border-slate-300 dark:group-hover/field:border-slate-700"
                   />
                 </div>
-                <div>
-                  <label className="block text-[10px] text-slate-500 dark:text-slate-400 mb-1 select-none font-bold uppercase tracking-wider font-mono">Website Pitch</label>
+                <div className="group/field">
+                  <label className="block text-[9px] font-black font-mono text-slate-500 dark:text-slate-400 uppercase tracking-widest mb-1.5 px-1">Website Pitch</label>
                   <input
                     id="idea-website-url"
                     type="url"
                     value={websiteUrl}
                     onChange={(e) => setWebsiteUrl(e.target.value)}
                     placeholder="https://mycompany.com"
-                    className="w-full py-2 px-3 border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-950 dark:text-white rounded-xl text-xs placeholder-slate-400 focus:ring-4 focus:ring-blue-500/10 focus:border-blue-500 outline-none transition-all"
+                    className="w-full py-2.5 px-3.5 border-2 border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-950 dark:text-white rounded-xl text-[11px] font-bold placeholder-slate-400 focus:ring-4 focus:ring-blue-500/10 focus:border-blue-500 outline-none transition-all group-hover/field:border-slate-300 dark:group-hover/field:border-slate-700"
                   />
                 </div>
               </div>
             </div>
 
             {/* SECTION 6: Project Growth Strategy */}
-            <div className="bg-slate-50/50 dark:bg-slate-900/40 p-5 sm:p-6 rounded-[2rem] border border-slate-200/40 dark:border-slate-800/50 space-y-8 hover:shadow-[0_4px_16px_rgba(0,0,0,0.01)] transition-all">
-              <div className="flex items-center justify-between border-b border-slate-200/45 dark:border-slate-800/50 pb-3">
+            <div className="bg-white dark:bg-slate-900/50 p-5 sm:p-6 rounded-[2rem] border-2 border-slate-200 dark:border-slate-800 space-y-8 hover:shadow-[0_8px_30px_-12px_rgba(0,0,0,0.05)] transition-all group">
+              <div className="flex items-center justify-between border-b-2 border-slate-100 dark:border-slate-800 pb-3">
                 <div className="flex items-center space-x-2">
-                  <div className="w-1.5 h-3 bg-blue-600 rounded-full" />
+                  <div className="w-1.5 h-3 bg-blue-600 rounded-full shadow-[0_0_10px_rgba(37,99,235,0.4)]" />
                   <div>
-                    <span className="block text-[9px] font-bold font-mono text-slate-400 dark:text-slate-500 uppercase tracking-widest leading-none select-none">SECTION 6</span>
-                    <span className="block text-xs font-extrabold text-slate-800 dark:text-slate-200 mt-1 select-none">Project Roadmap & Visibility</span>
+                    <span className="block text-[9px] font-black font-mono text-slate-500 dark:text-slate-400 uppercase tracking-widest leading-none select-none">SECTION 6</span>
+                    <span className="block text-xs font-black text-slate-900 dark:text-white mt-1 select-none">Project Roadmap & Visibility</span>
                   </div>
                 </div>
               </div>
 
               <div className="space-y-8">
                 {/* Progress Stage - Now Full Width */}
-                <div className="space-y-3">
+                <div className="space-y-3 group/field">
                   <label className="block text-[10px] font-black font-mono text-slate-500 dark:text-slate-400 uppercase tracking-widest select-none px-1">
                     Current Progress Stage <span className="text-red-500">*</span>
                   </label>
@@ -824,7 +825,7 @@ export default function AddIdeaModal({
                       id="progress-stage-select"
                       value={progressStage}
                       onChange={(e) => setProgressStage(e.target.value as any)}
-                      className="w-full py-3.5 px-4 border-2 border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-950 dark:text-white rounded-2xl text-[13px] font-bold focus:outline-none focus:ring-4 focus:ring-blue-500/10 focus:border-blue-500 transition-all appearance-none cursor-pointer"
+                      className="w-full py-3.5 px-4 border-2 border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-950 dark:text-white rounded-2xl text-xs font-black focus:outline-none focus:ring-4 focus:ring-blue-500/10 focus:border-blue-600 dark:focus:border-blue-500 transition-all appearance-none cursor-pointer group-hover/field:border-slate-300 dark:group-hover/field:border-slate-700"
                     >
                       <option value="JUST IDEA NOW">JUST IDEA NOW (Concept Sketch)</option>
                       <option value="IDEATION">IDEATION (Active Blueprint & Specs)</option>
@@ -833,8 +834,8 @@ export default function AddIdeaModal({
                       <option value="SCALE">SCALE (Live user production)</option>
                     </select>
                     <div className="absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none">
-                      <div className="w-5 h-5 rounded-lg bg-slate-100 dark:bg-slate-800 flex items-center justify-center">
-                        <Rocket className="w-3 h-3 text-slate-400 rotate-180" />
+                      <div className="w-6 h-6 rounded-lg bg-slate-100 dark:bg-slate-800 flex items-center justify-center border border-slate-200 dark:border-slate-700">
+                        <Rocket className="w-3.5 h-3.5 text-slate-500 dark:text-slate-400" />
                       </div>
                     </div>
                   </div>
@@ -853,10 +854,10 @@ export default function AddIdeaModal({
                     <button
                       type="button"
                       onClick={() => setIsPublic(true)}
-                      className={`group relative text-left p-5 rounded-[1.5rem] border-2 transition-all duration-300 cursor-pointer flex flex-col h-full ${
+                      className={`group/card relative text-left p-5 rounded-2xl border-2 transition-all duration-300 cursor-pointer flex flex-col h-full ${
                         isPublic 
-                          ? 'bg-blue-50/50 dark:bg-blue-500/5 border-blue-500 ring-4 ring-blue-500/10 shadow-lg translate-y-[-2px]' 
-                          : 'bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-800 opacity-80 hover:opacity-100 hover:border-slate-300 dark:hover:border-slate-700'
+                          ? 'bg-blue-50/50 dark:bg-blue-500/5 border-blue-600 ring-4 ring-blue-500/10 shadow-lg translate-y-[-2px]' 
+                          : 'bg-white dark:bg-slate-950 border-slate-200 dark:border-slate-800 opacity-80 hover:opacity-100 hover:border-slate-300 dark:hover:border-slate-700'
                       }`}
                     >
                       {isPublic && (
@@ -864,10 +865,10 @@ export default function AddIdeaModal({
                       )}
                       
                       <div className="flex items-center space-x-3 mb-4">
-                        <div className={`p-3 rounded-2xl transition-colors duration-300 ${isPublic ? 'bg-blue-600 text-white shadow-blue-200' : 'bg-slate-100 dark:bg-slate-800 text-slate-400 group-hover:bg-slate-200'}`}>
+                        <div className={`p-3 rounded-xl transition-colors duration-300 ${isPublic ? 'bg-blue-600 text-white shadow-lg shadow-blue-500/20' : 'bg-slate-100 dark:bg-slate-800 text-slate-400 group-hover/card:bg-slate-200'}`}>
                           <Globe className="h-5 w-5" />
                         </div>
-                        <span className={`text-[13px] font-black leading-tight uppercase tracking-tight ${isPublic ? 'text-blue-900 dark:text-blue-200' : 'text-slate-800 dark:text-slate-200'}`}>
+                        <span className={`text-xs font-black uppercase tracking-wider ${isPublic ? 'text-blue-900 dark:text-blue-200' : 'text-slate-800 dark:text-slate-200'}`}>
                           PUBLIC PITCH
                         </span>
                       </div>
@@ -879,7 +880,7 @@ export default function AddIdeaModal({
                       </div>
 
                       {isPublic && (
-                        <div className="mt-auto pt-4 flex items-center text-[10px] font-black text-blue-600 dark:text-blue-400 uppercase tracking-widest">
+                        <div className="mt-auto pt-4 flex items-center text-[9px] font-black text-blue-600 dark:text-blue-400 uppercase tracking-widest">
                           <Sparkles className="h-3 w-3 mr-1.5" />
                           Recommended
                         </div>
@@ -890,33 +891,33 @@ export default function AddIdeaModal({
                     <button
                       type="button"
                       onClick={() => setIsPublic(false)}
-                      className={`group relative text-left p-5 rounded-[1.5rem] border-2 transition-all duration-300 cursor-pointer flex flex-col h-full ${
+                      className={`group/card relative text-left p-5 rounded-2xl border-2 transition-all duration-300 cursor-pointer flex flex-col h-full ${
                         !isPublic 
-                          ? 'bg-blue-50/50 dark:bg-blue-500/5 border-blue-500 ring-4 ring-blue-500/10 shadow-lg translate-y-[-2px]' 
-                          : 'bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-800 opacity-80 hover:opacity-100 hover:border-slate-300 dark:hover:border-slate-700'
+                          ? 'bg-amber-50/50 dark:bg-amber-500/5 border-amber-600 ring-4 ring-amber-500/10 shadow-lg translate-y-[-2px]' 
+                          : 'bg-white dark:bg-slate-950 border-slate-200 dark:border-slate-800 opacity-80 hover:opacity-100 hover:border-slate-300 dark:hover:border-slate-700'
                       }`}
                     >
                       {!isPublic && (
-                        <div className="absolute top-4 right-4 h-2.5 w-2.5 rounded-full bg-blue-600 shadow-[0_0_10px_rgba(37,99,235,0.5)] animate-pulse" />
+                        <div className="absolute top-4 right-4 h-2.5 w-2.5 rounded-full bg-amber-600 shadow-[0_0_10px_rgba(245,158,11,0.5)] animate-pulse" />
                       )}
 
                       <div className="flex items-center space-x-3 mb-4">
-                        <div className={`p-3 rounded-2xl transition-colors duration-300 ${!isPublic ? 'bg-blue-600 text-white shadow-blue-200' : 'bg-slate-100 dark:bg-slate-800 text-slate-400 group-hover:bg-slate-200'}`}>
-                          <Lock className="h-5 w-5" />
+                        <div className={`p-3 rounded-xl transition-colors duration-300 ${!isPublic ? 'bg-amber-500 text-white shadow-lg shadow-amber-500/20' : 'bg-slate-100 dark:bg-slate-800 text-slate-400 group-hover:card:bg-slate-200'}`}>
+                          <IncognitoIcon className="h-5 w-5" />
                         </div>
-                        <span className={`text-[13px] font-black leading-tight uppercase tracking-tight ${!isPublic ? 'text-blue-900 dark:text-blue-200' : 'text-slate-800 dark:text-slate-200'}`}>
-                          PRIVATE DRAFT
+                        <span className={`text-xs font-black uppercase tracking-wider ${!isPublic ? 'text-amber-900 dark:text-amber-200' : 'text-slate-800 dark:text-slate-200'}`}>
+                          PRIVATE PROTECTION
                         </span>
                       </div>
 
                       <div className="space-y-2">
-                        <span className={`block text-[11px] font-bold leading-relaxed ${!isPublic ? 'text-blue-800/80 dark:text-blue-300/80' : 'text-slate-500 dark:text-slate-400'}`}>
-                          Hidden safely as personal draft
+                        <span className={`block text-[11px] font-bold leading-relaxed ${!isPublic ? 'text-amber-800/80 dark:text-amber-300/80' : 'text-slate-500 dark:text-slate-400'}`}>
+                          Visible on feed but locked for public
                         </span>
                       </div>
 
                       {!isPublic && (
-                        <div className="mt-auto pt-4 flex items-center text-[10px] font-black text-blue-600 dark:text-blue-400 uppercase tracking-widest">
+                        <div className="mt-auto pt-4 flex items-center text-[9px] font-black text-blue-600 dark:text-blue-400 uppercase tracking-widest">
                           <Lock className="h-3 w-3 mr-1.5" />
                           Confidential
                         </div>
@@ -924,80 +925,6 @@ export default function AddIdeaModal({
                     </button>
                   </div>
                 </div>
-              </div>
-            </div>
-
-            {/* SECTION 8: Collaboration & Funding */}
-            <div className="bg-slate-50/50 dark:bg-slate-900/40 p-5 sm:p-7 rounded-[2rem] border border-slate-200/40 dark:border-slate-800/50 space-y-6 hover:shadow-[0_8px_30px_rgba(0,0,0,0.02)] transition-all">
-              <div className="flex flex-col space-y-1 border-b border-slate-200/45 dark:border-slate-800/50 pb-4">
-                <div className="flex items-center space-x-3">
-                  <div className="w-2 h-4 bg-blue-500 rounded-full" />
-                  <div>
-                    <span className="block text-[10px] font-bold font-mono text-slate-400 dark:text-slate-500 uppercase tracking-widest leading-none select-none">SECTION 8</span>
-                    <span className="block text-sm font-black text-slate-900 dark:text-slate-100 mt-1 select-none">Collaboration & Funding</span>
-                  </div>
-                </div>
-                <p className="text-[11px] text-slate-500 dark:text-slate-400 pl-5">
-                  Let others know if you are open to collaboration or funding
-                </p>
-              </div>
-
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                {/* Card 1: Looking for Collaborator */}
-                <button
-                  type="button"
-                  onClick={() => setSeekingCollaboration(!seekingCollaboration)}
-                  className={`group flex items-center justify-between p-5 rounded-2xl border-2 transition-all duration-300 cursor-pointer text-left ${
-                    seekingCollaboration 
-                      ? 'bg-blue-50/40 dark:bg-blue-500/5 border-blue-500 shadow-[0_4px_20px_rgba(59,130,246,0.08)]' 
-                      : 'bg-white dark:bg-slate-950 border-slate-200 dark:border-slate-800 hover:border-slate-300 dark:hover:border-slate-700'
-                  }`}
-                >
-                  <div className="flex items-center space-x-4">
-                    <div className={`p-3 rounded-xl transition-all duration-300 ${seekingCollaboration ? 'bg-blue-600 text-white shadow-lg shadow-blue-200/50' : 'bg-slate-100 dark:bg-slate-800 text-slate-400'}`}>
-                      <Handshake className="h-5 w-5" />
-                    </div>
-                    <div className="flex flex-col">
-                      <span className={`text-[13px] font-black tracking-tight leading-tight ${seekingCollaboration ? 'text-blue-900 dark:text-blue-100' : 'text-slate-800 dark:text-slate-200'}`}>
-                        Looking for Collaborator
-                      </span>
-                      <span className={`text-[10px] font-bold mt-0.5 ${seekingCollaboration ? 'text-blue-700/70 dark:text-blue-300/60' : 'text-slate-500 dark:text-slate-400'}`}>
-                        Open to co-founders, partners or team
-                      </span>
-                    </div>
-                  </div>
-                  <div className={`w-10 h-5 rounded-full relative transition-all duration-300 shrink-0 ml-4 ${seekingCollaboration ? 'bg-blue-600' : 'bg-slate-200 dark:bg-slate-800'}`}>
-                    <div className={`absolute top-1 left-1 w-3 h-3 bg-white rounded-full shadow-sm transition-transform duration-300 ${seekingCollaboration ? 'translate-x-5 scale-110' : 'translate-x-0 scale-100'}`} />
-                  </div>
-                </button>
-
-                {/* Card 2: Open to Funding */}
-                <button
-                  type="button"
-                  onClick={() => setSeekingFunding(!seekingFunding)}
-                  className={`group flex items-center justify-between p-5 rounded-2xl border-2 transition-all duration-300 cursor-pointer text-left ${
-                    seekingFunding 
-                      ? 'bg-emerald-50/40 dark:bg-emerald-500/5 border-emerald-500 shadow-[0_4px_20px_rgba(16,185,129,0.08)]' 
-                      : 'bg-white dark:bg-slate-950 border-slate-200 dark:border-slate-800 hover:border-slate-300 dark:hover:border-slate-700'
-                  }`}
-                >
-                  <div className="flex items-center space-x-4">
-                    <div className={`p-3 rounded-xl transition-all duration-300 ${seekingFunding ? 'bg-emerald-600 text-white shadow-lg shadow-emerald-200/50' : 'bg-slate-100 dark:bg-slate-800 text-slate-400'}`}>
-                      <Coins className="h-5 w-5" />
-                    </div>
-                    <div className="flex flex-col">
-                      <span className={`text-[13px] font-black tracking-tight leading-tight ${seekingFunding ? 'text-emerald-900 dark:text-emerald-100' : 'text-slate-800 dark:text-slate-200'}`}>
-                        Open to Funding
-                      </span>
-                      <span className={`text-[10px] font-bold mt-0.5 ${seekingFunding ? 'text-emerald-700/70 dark:text-emerald-300/60' : 'text-slate-500 dark:text-slate-400'}`}>
-                        Accepting interest from investors
-                      </span>
-                    </div>
-                  </div>
-                  <div className={`w-10 h-5 rounded-full relative transition-all duration-300 shrink-0 ml-4 ${seekingFunding ? 'bg-emerald-600' : 'bg-slate-200 dark:bg-slate-800'}`}>
-                    <div className={`absolute top-1 left-1 w-3 h-3 bg-white rounded-full shadow-sm transition-transform duration-300 ${seekingFunding ? 'translate-x-5 scale-110' : 'translate-x-0 scale-100'}`} />
-                  </div>
-                </button>
               </div>
             </div>
 
@@ -1038,10 +965,12 @@ export default function AddIdeaModal({
               )}
 
               {/* Profile Basics */}
-              <div className="bg-slate-50 dark:bg-slate-800/50 p-5 rounded-2xl border-2 border-slate-200 dark:border-slate-800 space-y-5">
+              <div className="bg-slate-50 dark:bg-slate-900/50 p-5 rounded-2xl border-2 border-slate-200 dark:border-slate-800 space-y-5">
+              {/* Personal Details Section */}
+              <div className="bg-white dark:bg-slate-900/50 p-5 rounded-[1.5rem] border-2 border-slate-200 dark:border-slate-800 space-y-6 hover:shadow-[0_8px_30px_-12px_rgba(0,0,0,0.05)] transition-all group">
                 <div className="flex items-center space-x-6">
-                  <div className="relative group">
-                    <div className="w-24 h-24 rounded-2xl border-2 border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-950 overflow-hidden shadow-lg">
+                  <div className="relative group/avatar">
+                    <div className="w-24 h-24 rounded-2xl border-2 border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-950 overflow-hidden shadow-lg group-hover/avatar:border-blue-500/50 transition-colors">
                       {profileAvatar ? (
                         <img src={profileAvatar} alt="Avatar Preview" className="w-full h-full object-cover" />
                       ) : (
@@ -1060,43 +989,43 @@ export default function AddIdeaModal({
                     <button
                       type="button"
                       onClick={() => document.getElementById('profile-avatar-upload')?.click()}
-                      className="absolute -bottom-2 -right-2 p-2 bg-blue-600 text-white rounded-xl shadow-lg hover:scale-110 transition-transform cursor-pointer"
+                      className="absolute -bottom-2 -right-2 p-2 bg-blue-600 text-white rounded-xl shadow-lg hover:scale-110 active:scale-95 transition-all cursor-pointer z-10"
                     >
                       <Upload className="h-3.5 w-3.5" />
                     </button>
                   </div>
                   <div className="flex-1 space-y-4">
-                    <div>
-                      <label className="block text-[10px] font-black font-mono text-slate-500 dark:text-slate-400 uppercase tracking-widest mb-1.5">Full Name</label>
+                    <div className="group/field">
+                      <label className="block text-[10px] font-black font-mono text-slate-500 dark:text-slate-400 uppercase tracking-widest mb-1.5 px-1">Full Name</label>
                       <input
                         type="text"
                         required
                         value={profileName}
                         onChange={(e) => setProfileName(e.target.value)}
-                        className="w-full py-2.5 px-3.5 border-2 border-slate-200 dark:border-slate-800 rounded-xl text-xs bg-white dark:bg-slate-950 dark:text-white font-bold"
+                        className="w-full py-2.5 px-3.5 border-2 border-slate-200 dark:border-slate-800 rounded-xl text-xs bg-white dark:bg-slate-950 dark:text-white font-bold placeholder-slate-400 focus:ring-4 focus:ring-blue-500/10 focus:border-blue-500 outline-none transition-all group-hover/field:border-slate-300 dark:group-hover/field:border-slate-700"
                       />
                     </div>
-                    <div>
-                      <label className="block text-[10px] font-black font-mono text-slate-500 dark:text-slate-400 uppercase tracking-widest mb-1.5">Email Address</label>
+                    <div className="group/field">
+                      <label className="block text-[10px] font-black font-mono text-slate-500 dark:text-slate-400 uppercase tracking-widest mb-1.5 px-1">Email Address</label>
                       <input
                         type="email"
                         required
                         value={profileEmail}
                         onChange={(e) => setProfileEmail(e.target.value)}
-                        className="w-full py-2.5 px-3.5 border-2 border-slate-200 dark:border-slate-800 rounded-xl text-xs bg-white dark:bg-slate-950 dark:text-white font-bold"
+                        className="w-full py-2.5 px-3.5 border-2 border-slate-200 dark:border-slate-800 rounded-xl text-xs bg-white dark:bg-slate-950 dark:text-white font-bold placeholder-slate-400 focus:ring-4 focus:ring-blue-500/10 focus:border-blue-500 outline-none transition-all group-hover/field:border-slate-300 dark:group-hover/field:border-slate-700"
                       />
                     </div>
                   </div>
                 </div>
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div>
-                    <label className="block text-[10px] font-black font-mono text-slate-500 dark:text-slate-400 uppercase tracking-widest mb-1.5">Profession</label>
+                  <div className="group/field">
+                    <label className="block text-[10px] font-black font-mono text-slate-500 dark:text-slate-400 uppercase tracking-widest mb-1.5 px-1">Profession</label>
                     <div className="relative">
                       <select
                         value={profileProfession}
                         onChange={(e) => setProfileProfession(e.target.value)}
-                        className="w-full py-2.5 px-3.5 border-2 border-slate-200 dark:border-slate-800 rounded-xl text-xs bg-white dark:bg-slate-950 dark:text-white font-bold appearance-none cursor-pointer"
+                        className="w-full py-2.5 px-3.5 border-2 border-slate-200 dark:border-slate-800 rounded-xl text-xs bg-white dark:bg-slate-950 dark:text-white font-bold appearance-none cursor-pointer focus:ring-4 focus:ring-blue-500/10 focus:border-blue-500 outline-none transition-all group-hover/field:border-slate-300 dark:group-hover/field:border-slate-700"
                       >
                         {PROFESSIONS.map(p => (
                           <option key={p} value={p}>{p}</option>
@@ -1105,127 +1034,145 @@ export default function AddIdeaModal({
                       <Briefcase className="absolute right-3.5 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-slate-400 pointer-events-none" />
                     </div>
                   </div>
-                  <div>
-                    <label className="block text-[10px] font-black font-mono text-slate-500 dark:text-slate-400 uppercase tracking-widest mb-1.5">Years of Experience</label>
+                  <div className="group/field">
+                    <label className="block text-[10px] font-black font-mono text-slate-500 dark:text-slate-400 uppercase tracking-widest mb-1.5 px-1">Short Tagline</label>
+                    <input
+                      type="text"
+                      placeholder="e.g. Designing the future of collaboration"
+                      value={profileTagline}
+                      onChange={(e) => setProfileTagline(e.target.value)}
+                      className="w-full py-2.5 px-3.5 border-2 border-slate-200 dark:border-slate-800 rounded-xl text-xs bg-white dark:bg-slate-950 dark:text-white font-bold placeholder-slate-400 focus:ring-4 focus:ring-blue-500/10 focus:border-blue-500 outline-none transition-all group-hover/field:border-slate-300 dark:group-hover/field:border-slate-700"
+                    />
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div className="group/field">
+                    <label className="block text-[10px] font-black font-mono text-slate-500 dark:text-slate-400 uppercase tracking-widest mb-1.5 px-1">Years of Experience</label>
                     <div className="relative">
                       <input
                         type="text"
                         placeholder="e.g. 5+ Years in Tech"
                         value={profileExperience}
                         onChange={(e) => setProfileExperience(e.target.value)}
-                        className="w-full py-2.5 px-3.5 border-2 border-slate-200 dark:border-slate-800 rounded-xl text-xs bg-white dark:bg-slate-950 dark:text-white font-bold"
+                        className="w-full py-2.5 px-3.5 border-2 border-slate-200 dark:border-slate-800 rounded-xl text-xs bg-white dark:bg-slate-950 dark:text-white font-bold placeholder-slate-400 focus:ring-4 focus:ring-blue-500/10 focus:border-blue-500 outline-none transition-all group-hover/field:border-slate-300 dark:group-hover/field:border-slate-700"
                       />
                       <Clock className="absolute right-3.5 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-slate-400 pointer-events-none" />
                     </div>
                   </div>
                 </div>
               </div>
+            </div>
 
               {/* Skills & Interests */}
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div className="space-y-2">
-                  <label className="block text-[10px] font-black font-mono text-slate-500 dark:text-slate-400 uppercase tracking-widest px-1">Skills (Comma separated)</label>
+                <div className="bg-white dark:bg-slate-900/50 p-4 rounded-2xl border-2 border-slate-200 dark:border-slate-800 space-y-3 hover:shadow-[0_8px_30px_-12px_rgba(0,0,0,0.05)] transition-all group/field">
+                  <label className="block text-[10px] font-black font-mono text-slate-500 dark:text-slate-400 uppercase tracking-widest px-1">Skills</label>
                   <input
                     type="text"
                     placeholder="e.g. React, UI/UX, Growth"
                     value={profileSkills}
                     onChange={(e) => setProfileSkills(e.target.value)}
-                    className="w-full py-2.5 px-3.5 border-2 border-slate-200 dark:border-slate-800 rounded-xl text-xs bg-white dark:bg-slate-950 dark:text-white font-bold"
+                    className="w-full py-2.5 px-3.5 border-2 border-slate-200 dark:border-slate-800 rounded-xl text-xs bg-white dark:bg-slate-950 dark:text-white font-bold placeholder-slate-400 focus:ring-4 focus:ring-blue-500/10 focus:border-blue-500 outline-none transition-all group-hover/field:border-slate-300 dark:group-hover/field:border-slate-700"
                   />
                 </div>
-                <div className="space-y-2">
-                  <label className="block text-[10px] font-black font-mono text-slate-500 dark:text-slate-400 uppercase tracking-widest px-1">Startup Interests (Comma separated)</label>
+                <div className="bg-white dark:bg-slate-900/50 p-4 rounded-2xl border-2 border-slate-200 dark:border-slate-800 space-y-3 hover:shadow-[0_8px_30px_-12px_rgba(0,0,0,0.05)] transition-all group/field">
+                  <label className="block text-[10px] font-black font-mono text-slate-500 dark:text-slate-400 uppercase tracking-widest px-1">Interests</label>
                   <input
                     type="text"
                     placeholder="e.g. AI/ML, SaaS, B2B"
                     value={profileInterests}
                     onChange={(e) => setProfileInterests(e.target.value)}
-                    className="w-full py-2.5 px-3.5 border-2 border-slate-200 dark:border-slate-800 rounded-xl text-xs bg-white dark:bg-slate-950 dark:text-white font-bold"
+                    className="w-full py-2.5 px-3.5 border-2 border-slate-200 dark:border-slate-800 rounded-xl text-xs bg-white dark:bg-slate-950 dark:text-white font-bold placeholder-slate-400 focus:ring-4 focus:ring-blue-500/10 focus:border-blue-500 outline-none transition-all group-hover/field:border-slate-300 dark:group-hover/field:border-slate-700"
                   />
                 </div>
               </div>
 
               {/* About Yourself */}
-              <div className="space-y-2">
+              <div className="bg-white dark:bg-slate-900/50 p-5 rounded-2xl border-2 border-slate-200 dark:border-slate-800 space-y-3 hover:shadow-[0_8px_30px_-12px_rgba(0,0,0,0.05)] transition-all group/field">
                 <label className="block text-[10px] font-black font-mono text-slate-500 dark:text-slate-400 uppercase tracking-widest px-1">About Yourself</label>
                 <AutoResizeTextarea
                   value={profileBio}
                   onChange={(e) => setProfileBio(e.target.value)}
                   placeholder="Share your background, experience, and what drives you..."
-                  className="min-h-[120px]"
+                  className="min-h-[120px] focus:ring-blue-500/10 group-hover/field:border-slate-300 dark:group-hover/field:border-slate-700"
                 />
               </div>
 
               {/* Social Links */}
-              <div className="bg-slate-50 dark:bg-slate-800/50 p-5 rounded-2xl border-2 border-slate-200 dark:border-slate-800 space-y-4">
-                <h3 className="text-[11px] font-black font-mono text-slate-500 dark:text-slate-400 uppercase tracking-widest border-b border-slate-200 dark:border-slate-700 pb-2">Social Connections</h3>
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                  <div className="relative">
+              <div className="bg-white dark:bg-slate-900/50 p-5 rounded-[1.5rem] border-2 border-slate-200 dark:border-slate-800 space-y-5 hover:shadow-[0_8px_30px_-12px_rgba(0,0,0,0.05)] transition-all group">
+                <div className="flex items-center space-x-2 border-b-2 border-slate-100 dark:border-slate-800 pb-3">
+                  <div className="w-1.5 h-3 bg-indigo-500 rounded-full shadow-[0_0_10px_rgba(99,102,241,0.4)]" />
+                  <h3 className="text-[11px] font-black font-mono text-slate-500 dark:text-slate-400 uppercase tracking-widest">Social Connections</h3>
+                </div>
+                
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                  <div className="relative group/field">
                     <Instagram className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-pink-500" />
                     <input
                       type="url"
                       placeholder="Instagram URL"
                       value={profileInstagram}
                       onChange={(e) => setProfileInstagram(e.target.value)}
-                      className="w-full py-2.5 pl-10 pr-3.5 border-2 border-slate-200 dark:border-slate-800 rounded-xl text-xs bg-white dark:bg-slate-950 dark:text-white"
+                      className="w-full py-2.5 pl-10 pr-3.5 border-2 border-slate-200 dark:border-slate-800 rounded-xl text-xs bg-white dark:bg-slate-950 dark:text-white font-bold placeholder-slate-400 focus:ring-4 focus:ring-pink-500/10 focus:border-pink-500 outline-none transition-all group-hover/field:border-slate-300 dark:group-hover/field:border-slate-700"
                     />
                   </div>
-                  <div className="relative">
+                  <div className="relative group/field">
                     <Facebook className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-blue-600" />
                     <input
                       type="url"
                       placeholder="Facebook URL"
                       value={profileFacebook}
                       onChange={(e) => setProfileFacebook(e.target.value)}
-                      className="w-full py-2.5 pl-10 pr-3.5 border-2 border-slate-200 dark:border-slate-800 rounded-xl text-xs bg-white dark:bg-slate-950 dark:text-white"
+                      className="w-full py-2.5 pl-10 pr-3.5 border-2 border-slate-200 dark:border-slate-800 rounded-xl text-xs bg-white dark:bg-slate-950 dark:text-white font-bold placeholder-slate-400 focus:ring-4 focus:ring-blue-600/10 focus:border-blue-600 outline-none transition-all group-hover/field:border-slate-300 dark:group-hover/field:border-slate-700"
                     />
                   </div>
-                  <div className="relative">
+                  <div className="relative group/field">
                     <Twitter className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-sky-500" />
                     <input
                       type="url"
                       placeholder="Twitter/X URL"
                       value={profileTwitter}
                       onChange={(e) => setProfileTwitter(e.target.value)}
-                      className="w-full py-2.5 pl-10 pr-3.5 border-2 border-slate-200 dark:border-slate-800 rounded-xl text-xs bg-white dark:bg-slate-950 dark:text-white"
+                      className="w-full py-2.5 pl-10 pr-3.5 border-2 border-slate-200 dark:border-slate-800 rounded-xl text-xs bg-white dark:bg-slate-950 dark:text-white font-bold placeholder-slate-400 focus:ring-4 focus:ring-sky-500/10 focus:border-sky-500 outline-none transition-all group-hover/field:border-slate-300 dark:group-hover/field:border-slate-700"
                     />
                   </div>
-                  <div className="relative">
+                  <div className="relative group/field">
                     <Linkedin className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-blue-700" />
                     <input
                       type="url"
                       placeholder="LinkedIn URL"
                       value={profileLinkedin}
                       onChange={(e) => setProfileLinkedin(e.target.value)}
-                      className="w-full py-2.5 pl-10 pr-3.5 border-2 border-slate-200 dark:border-slate-800 rounded-xl text-xs bg-white dark:bg-slate-950 dark:text-white"
+                      className="w-full py-2.5 pl-10 pr-3.5 border-2 border-slate-200 dark:border-slate-800 rounded-xl text-xs bg-white dark:bg-slate-950 dark:text-white font-bold placeholder-slate-400 focus:ring-4 focus:ring-blue-700/10 focus:border-blue-700 outline-none transition-all group-hover/field:border-slate-300 dark:group-hover/field:border-slate-700"
                     />
                   </div>
-                  <div className="relative">
+                  <div className="relative group/field">
                     <Github className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-900 dark:text-white" />
                     <input
                       type="url"
                       placeholder="GitHub URL"
                       value={profileGithub}
                       onChange={(e) => setProfileGithub(e.target.value)}
-                      className="w-full py-2.5 pl-10 pr-3.5 border-2 border-slate-200 dark:border-slate-800 rounded-xl text-xs bg-white dark:bg-slate-950 dark:text-white"
+                      className="w-full py-2.5 pl-10 pr-3.5 border-2 border-slate-200 dark:border-slate-800 rounded-xl text-xs bg-white dark:bg-slate-950 dark:text-white font-bold placeholder-slate-400 focus:ring-4 focus:ring-slate-500/10 focus:border-slate-500 outline-none transition-all group-hover/field:border-slate-300 dark:group-hover/field:border-slate-700"
                     />
                   </div>
                 </div>
               </div>
 
               {/* Footer Actions */}
-              <div className="border-t border-slate-100 dark:border-slate-800/60 pt-6 flex items-center justify-between select-none">
+              <div className="border-t-2 border-slate-100 dark:border-slate-800/60 pt-6 flex items-center justify-between select-none">
                 <button
                   type="button"
                   onClick={() => setView('idea')}
-                  className="flex items-center space-x-2 py-2.5 px-5 border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 rounded-xl text-xs font-semibold hover:bg-slate-50 dark:hover:bg-slate-800 transition-all cursor-pointer"
+                  className="flex items-center space-x-2 py-3 px-6 border-2 border-slate-200 dark:border-slate-800 text-slate-600 dark:text-slate-300 rounded-xl text-xs font-black hover:bg-slate-50 dark:hover:bg-slate-800 hover:border-slate-300 dark:hover:border-slate-700 transition-all cursor-pointer active:scale-95"
                 >
                   <ArrowLeft className="h-3.5 w-3.5" />
                   <span>Back to Idea</span>
                 </button>
                 <button
                   type="submit"
-                  className="py-2.5 px-8 bg-blue-600 hover:bg-blue-700 text-white rounded-xl text-xs font-bold transition-all shadow-lg hover:-translate-y-0.5 cursor-pointer"
+                  className="py-3 px-10 bg-slate-900 dark:bg-white text-white dark:text-slate-900 rounded-xl text-xs font-black transition-all shadow-lg hover:shadow-blue-500/20 active:scale-95 cursor-pointer"
                 >
                   Save Profile
                 </button>

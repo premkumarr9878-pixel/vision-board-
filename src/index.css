@@ -36,13 +36,13 @@ textarea, input, .multilingual-text {
   unicode-bidi: plaintext; /* Better handling for mixed RTL/LTR in inputs */
 }
 
-/* Ensure user-written text is black even in dark theme for better contrast on light backgrounds */
+/* Ensure user-written text is white in dark theme for visibility on dark backgrounds */
 .dark textarea, .dark input {
-  color: #000000 !important;
+  color: #FFFFFF !important;
 }
 
 .dark textarea::placeholder, .dark input::placeholder {
-  color: #64748b !important; /* slate-500 for readability */
+  color: #94a3b8 !important; /* slate-400 for better contrast on dark bg */
 }
 
 /* Placeholder styling for multilingual clarity */
@@ -65,10 +65,50 @@ html.dark body {
   background: transparent;
 }
 ::-webkit-scrollbar-thumb {
-  background: #e4e4e7;
-  border-radius: 4px;
+  background: #e2e8f0; /* slate-200 */
+  border-radius: 10px;
 }
 ::-webkit-scrollbar-thumb:hover {
-  background: #d4d4d8;
+  background: #cbd5e1; /* slate-300 */
+}
+
+.dark ::-webkit-scrollbar-thumb {
+  background: #1e293b; /* slate-800 */
+}
+.dark ::-webkit-scrollbar-thumb:hover {
+  background: #334155; /* slate-700 */
+}
+
+/* Premium smooth transitions */
+* {
+  transition-property: background-color, border-color, color, fill, stroke, opacity, box-shadow, transform;
+  transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+  transition-duration: 200ms;
+}
+
+/* Interactive element clarity */
+button, a, .interactive-card {
+  @apply cursor-pointer active:scale-[0.98];
+}
+
+/* Border focus clarity */
+input:focus, textarea:focus, select:focus {
+  @apply ring-2 ring-blue-500/20 border-blue-500/80 outline-none;
+}
+
+/* Subtle shadows for depth */
+.soft-shadow {
+  box-shadow: 0 4px 20px -2px rgba(0, 0, 0, 0.05);
+}
+.dark .soft-shadow {
+  box-shadow: 0 4px 20px -2px rgba(0, 0, 0, 0.3);
+}
+
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+.no-scrollbar {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
 }
 
