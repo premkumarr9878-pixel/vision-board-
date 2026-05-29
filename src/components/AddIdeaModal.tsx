@@ -326,7 +326,9 @@ export default function AddIdeaModal({
       visibility: isPublic ? 'public' : 'private',
       instagramUrl,
       facebookUrl,
-      websiteUrl
+      websiteUrl,
+      seeking_collaboration: needCollaboration,
+      seeking_funding: needFunding
     };
 
     onSubmit(payload);

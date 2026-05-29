@@ -262,7 +262,7 @@ export default function App() {
   // Interactive Filter States
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
-  const [timeFilter, setTimeFilter] = useState<'all' | 'day' | 'week1' | 'week2' | 'week3' | 'month1' | 'month2' | 'month3'>('all');
+  const [timeFilter, setTimeFilter] = useState<'all' | 'day' | 'week1' | 'week2' | 'month1' | 'month2' | 'month3' | 'month6' | 'month8' | 'year1' | 'year2'>('all');
 
   // Active Modals overlay states
   const [selectedIdea, setSelectedIdea] = useState<StartupIdea | null>(null);
@@ -282,6 +282,7 @@ export default function App() {
 
   // Simple feedback alerts
   const [toastMessage, setToastMessage] = useState<string | null>(null);
+  const [totalIdeasCount, setTotalIdeasCount] = useState(0);
 
   // Liked tracking (local list of user loved ideaIds to simulate session validation)
   const [likedIdeaIds, setLikedIdeaIds] = useState<string[]>(() => {
@@ -295,151 +296,134 @@ export default function App() {
   });
 
   // Simulation of initial data fetch
-  useEffect(() => {
-    const loadData = async () => {
-      if (!isSupabaseConfigured) {
-        // Already loaded from local storage in state initialization
-        setIsLoading(false);
-        return;
+  const loadData = async () => {
+    if (!isSupabaseConfigured) {
+      setIsLoading(false);
+      return;
+    }
+
+    try {
+      // 1. Fetch ALL public published ideas for real-time counting & instant filtering
+      const { data: ideas, error: ideasError } = await supabase
+        .from('ideas')
+        .select('*')
+        .order('created_at', { ascending: false });
+
+      if (ideasError) {
+        console.warn('Error fetching ideas:', ideasError.message);
       }
+
+      const mappedIdeas: StartupIdea[] = (ideas || []).map(data => ({
+        id: data.id,
+        name: data.name || 'Untitled',
+        logo: data.logo || '🚀',
+        banner: data.banner,
+        description: data.description || '',
+        whyThisWorks: data.why_this_works || '',
+        problemSolved: data.problem_solved || '',
+        targetAudience: data.target_audience || '',
+        category: data.category || 'AI',
+        founderId: data.founder_id,
+        founderName: data.founder_name || 'Founder',
+        founderAvatar: data.founder_avatar,
+        collaborationCount: data.collaboration_count || 0,
+        fundingInterestCount: data.funding_interest_count || 0,
+        viewsCount: data.views_count || 0,
+        progressStage: data.progress_stage || 'IDEATION',
+        likes: data.likes || 0,
+        suggestionsCount: data.suggestions_count || 0,
+        needCollaboration: data.need_collaboration ?? true,
+        needFunding: data.need_funding ?? false,
+        seeking_collaboration: data.seeking_collaboration ?? false,
+        seeking_funding: data.seeking_funding ?? false,
+        isPublic: data.is_public ?? true,
+        visibility: data.visibility || (data.is_public ? 'public' : 'private'),
+        status: data.status || 'published',
+        createdAt: data.created_at
+      }));
+
+      // 2. Fetch collaboration requests
+      let mappedCollabs: CollaborationRequest[] = [];
       try {
-        // Fetch ideas
-        const { data: ideas, error: ideasError } = await supabase
-          .from('ideas')
-          .select('*')
-          .order('created_at', { ascending: false });
-
-        if (ideasError) {
-          console.warn('Error fetching ideas:', ideasError.message);
-          return; // Stop if we can't get basic ideas
-        }
-
-        const mappedIdeas: StartupIdea[] = (ideas || []).map(data => ({
-          id: data.id,
-          name: data.name || 'Untitled',
-          logo: data.logo || '🚀',
-          banner: data.banner,
-          description: data.description || '',
-          whyThisWorks: data.why_this_works || '',
-          problemSolved: data.problem_solved || '',
-          targetAudience: data.target_audience || '',
-          category: data.category || 'AI',
-          founderId: data.founder_id,
-          founderName: data.founder_name || 'Founder',
-          founderAvatar: data.founder_avatar,
-          collaborationCount: data.collaboration_count || 0,
-          fundingInterestCount: data.funding_interest_count || 0,
-          viewsCount: data.views_count || 0,
-          progressStage: data.progress_stage || 'IDEATION',
-          likes: data.likes || 0,
-          suggestionsCount: data.suggestions_count || 0,
-          needCollaboration: data.need_collaboration ?? true,
-          needFunding: data.need_funding ?? false,
-          seeking_collaboration: data.seeking_collaboration ?? false,
-          seeking_funding: data.seeking_funding ?? false,
-          isPublic: data.is_public ?? true,
-          visibility: data.visibility || (data.is_public ? 'public' : 'private'),
-          status: data.status || 'published',
-          createdAt: data.created_at
-        }));
-
-        // Fetch collaboration requests
         const { data: collabs, error: collabsError } = await supabase
           .from('collaboration_requests')
           .select('*');
+        if (!collabsError && collabs) {
+          mappedCollabs = collabs.map(c => ({
+            id: c.id,
+            ideaId: c.idea_id,
+            ideaName: c.idea_name,
+            founderId: c.founder_id,
+            name: c.full_name,
+            email: c.email,
+            phone: c.phone,
+            role: 'Partner',
+            message: c.about,
+            status: c.status as RequestStatus,
+            createdAt: c.created_at
+          }));
+        }
+      } catch (e) { console.warn('Collabs fetch failed'); }
 
-        if (collabsError) console.warn('Error fetching collabs:', collabsError.message);
-
-        const mappedCollabs: CollaborationRequest[] = (collabs || []).map(c => ({
-          id: c.id,
-          ideaId: c.idea_id,
-          ideaName: c.idea_name,
-          founderId: c.founder_id,
-          name: c.full_name,
-          email: c.email,
-          phone: c.phone,
-          role: 'Partner',
-          message: c.about,
-          status: c.status as RequestStatus,
-          createdAt: c.created_at
-        }));
-
-        // Fetch funding requests
+      // 3. Fetch funding requests
+      let mappedFundings: FundingRequest[] = [];
+      try {
         const { data: fundings, error: fundingsError } = await supabase
           .from('funding_requests')
           .select('*');
+        if (!fundingsError && fundings) {
+          mappedFundings = fundings.map(f => ({
+            id: f.id,
+            ideaId: f.idea_id,
+            ideaName: f.idea_name,
+            founderId: f.founder_id,
+            name: f.full_name,
+            email: f.email,
+            phone: f.phone,
+            investmentAmount: 'Not specified',
+            message: f.about,
+            status: f.status as RequestStatus,
+            createdAt: f.created_at
+          }));
+        }
+      } catch (e) { console.warn('Funding fetch failed'); }
 
-        if (fundingsError) console.warn('Error fetching fundings:', fundingsError.message);
-
-        const mappedFundings: FundingRequest[] = (fundings || []).map(f => ({
-          id: f.id,
-          ideaId: f.idea_id,
-          ideaName: f.idea_name,
-          founderId: f.founder_id,
-          name: f.full_name,
-          email: f.email,
-          phone: f.phone,
-          investmentAmount: 'Not specified',
-          message: f.about,
-          status: f.status as RequestStatus,
-          createdAt: f.created_at
-        }));
-
-        // Fetch suggestions
+      // 4. Fetch suggestions
+      let mappedSuggestions: Suggestion[] = [];
+      try {
         const { data: suggestions, error: suggestionsError } = await supabase
           .from('suggestions')
           .select('*, profiles!fk_suggestions_requester(name, avatar_url)');
-
-        if (suggestionsError) console.warn('Error fetching suggestions:', suggestionsError.message);
-
-        const mappedSuggestions: Suggestion[] = (suggestions || []).map(s => ({
-          id: s.id,
-          ideaId: s.idea_id,
-          founderId: s.founder_id,
-          content: s.suggestion_text,
-          createdAt: s.created_at,
-          authorName: (s as any).profiles?.name || 'Anonymous Founder',
-          authorAvatar: (s as any).profiles?.avatar_url || 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?auto=format&fit=crop&q=80&w=80',
-          ideaName: mappedIdeas.find(i => i.id === s.idea_id)?.name || 'Unknown Idea'
-        }));
-
-        setState(prev => ({
-          ...prev,
-          ideas: mappedIdeas,
-          collaborations: mappedCollabs,
-          funding: mappedFundings,
-          suggestions: mappedSuggestions
-        }));
-      } catch (err: any) {
-        console.error('Error loading data from Supabase:', err?.message || err);
-      } finally {
-        // Fetch user's upvoted idea IDs
-        try {
-          let voterId = currentUser?.id;
-          if (!voterId || voterId === '00000000-0000-0000-0000-000000000000') {
-            voterId = localStorage.getItem('vb_voter_id') || '';
-          }
-
-          if (voterId) {
-            const { data: upvotes, error: upvotesError } = await supabase
-              .from('idea_upvotes')
-              .select('idea_id')
-              .eq('voter_id', voterId);
-            
-            if (upvotesError) {
-              console.warn('Error fetching liked ideas:', upvotesError.message);
-            } else if (upvotes) {
-              setLikedIdeaIds(upvotes.map(v => v.idea_id));
-            }
-          }
-        } catch (upvoteErr: any) {
-          console.warn('Upvote fetch error:', upvoteErr?.message || upvoteErr);
+        
+        if (!suggestionsError && suggestions) {
+          mappedSuggestions = suggestions.map(s => ({
+            id: s.id,
+            ideaId: s.idea_id,
+            founderId: s.founder_id,
+            content: s.suggestion_text,
+            createdAt: s.created_at,
+            authorName: (s as any).profiles?.name || 'Anonymous Founder',
+            authorAvatar: (s as any).profiles?.avatar_url || 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?auto=format&fit=crop&q=80&w=80',
+            ideaName: mappedIdeas.find(i => i.id === s.idea_id)?.name || 'Unknown Idea'
+          }));
         }
+      } catch (e) { console.warn('Suggestions fetch failed'); }
 
-        setIsLoading(false);
-      }
-    };
+      setState(prev => ({
+        ...prev,
+        ideas: mappedIdeas,
+        collaborations: mappedCollabs,
+        funding: mappedFundings,
+        suggestions: mappedSuggestions
+      }));
+    } catch (err: any) {
+      console.error('Error loading data from Supabase:', err?.message || err);
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
+  useEffect(() => {
     if (currentUser) {
       loadData();
     } else {
@@ -449,26 +433,150 @@ export default function App() {
     if (isSupabaseConfigured) {
       // Set up realtime listeners (scoped to visible data)
       const ideasChannel = supabase.channel('public:ideas')
-        .on('postgres_changes', { event: '*', schema: 'public', table: 'ideas' }, () => loadData())
+        .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'ideas' }, (payload) => {
+          const newIdea = payload.new as any;
+          const mappedIdea: StartupIdea = {
+            id: newIdea.id,
+            name: newIdea.name || 'Untitled',
+            logo: newIdea.logo || '🚀',
+            banner: newIdea.banner,
+            description: newIdea.description || '',
+            whyThisWorks: newIdea.why_this_works || '',
+            problemSolved: newIdea.problem_solved || '',
+            targetAudience: newIdea.target_audience || '',
+            category: newIdea.category || 'AI',
+            founderId: newIdea.founder_id,
+            founderName: newIdea.founder_name || 'Founder',
+            founderAvatar: newIdea.founder_avatar,
+            collaborationCount: newIdea.collaboration_count || 0,
+            fundingInterestCount: newIdea.funding_interest_count || 0,
+            viewsCount: newIdea.views_count || 0,
+            progressStage: newIdea.progress_stage || 'IDEATION',
+            likes: newIdea.likes || 0,
+            suggestionsCount: newIdea.suggestions_count || 0,
+            needCollaboration: newIdea.need_collaboration ?? true,
+            needFunding: newIdea.need_funding ?? false,
+            seeking_collaboration: newIdea.seeking_collaboration ?? false,
+            seeking_funding: newIdea.seeking_funding ?? false,
+            isPublic: newIdea.is_public ?? true,
+            visibility: newIdea.visibility || (newIdea.is_public ? 'public' : 'private'),
+            status: newIdea.status || 'published',
+            createdAt: newIdea.created_at
+          };
+          
+          setState(prev => {
+            if (prev.ideas.some(i => i.id === mappedIdea.id)) return prev;
+            return { ...prev, ideas: [mappedIdea, ...prev.ideas] };
+          });
+        })
+        .on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'ideas' }, (payload) => {
+          const updatedIdea = payload.new as any;
+          setState(prev => ({
+            ...prev,
+            ideas: prev.ideas.map(idea => 
+              idea.id === updatedIdea.id 
+                ? { 
+                    ...idea, 
+                    ...updatedIdea, 
+                    whyThisWorks: updatedIdea.why_this_works || idea.whyThisWorks,
+                    problemSolved: updatedIdea.problem_solved || idea.problemSolved,
+                    targetAudience: updatedIdea.target_audience || idea.targetAudience,
+                    founderId: updatedIdea.founder_id || idea.founderId,
+                    founderName: updatedIdea.founder_name || idea.founderName,
+                    founderAvatar: updatedIdea.founder_avatar || idea.founderAvatar,
+                    collaborationCount: updatedIdea.collaboration_count ?? idea.collaborationCount,
+                    fundingInterestCount: updatedIdea.funding_interest_count ?? idea.fundingInterestCount,
+                    viewsCount: updatedIdea.views_count ?? idea.viewsCount,
+                    progressStage: updatedIdea.progress_stage || idea.progressStage,
+                    suggestionsCount: updatedIdea.suggestions_count ?? idea.suggestionsCount,
+                    needCollaboration: updatedIdea.need_collaboration ?? idea.needCollaboration,
+                    needFunding: updatedIdea.need_funding ?? idea.needFunding,
+                    seeking_collaboration: updatedIdea.seeking_collaboration ?? idea.seeking_collaboration,
+                    seeking_funding: updatedIdea.seeking_funding ?? idea.seeking_funding,
+                    isPublic: updatedIdea.is_public ?? idea.isPublic,
+                    createdAt: updatedIdea.created_at || idea.createdAt
+                  } as StartupIdea
+                : idea
+            )
+          }));
+        })
+        .on('postgres_changes', { event: 'DELETE', schema: 'public', table: 'ideas' }, (payload) => {
+          setState(prev => ({
+            ...prev,
+            ideas: prev.ideas.filter(idea => idea.id !== payload.old.id)
+          }));
+        })
         .subscribe();
 
       const collabsChannel = supabase.channel('public:collaboration_requests')
-        .on('postgres_changes', { event: '*', schema: 'public', table: 'collaboration_requests' }, () => loadData())
-        .subscribe();
-
-      const fundingChannel = supabase.channel('public:funding_requests')
-        .on('postgres_changes', { event: '*', schema: 'public', table: 'funding_requests' }, () => loadData())
+        .on('postgres_changes', { event: '*', schema: 'public', table: 'collaboration_requests' }, (payload) => {
+          if (payload.eventType === 'INSERT') {
+            const c = payload.new as any;
+            const mapped: CollaborationRequest = {
+              id: c.id,
+              ideaId: c.idea_id,
+              ideaName: c.idea_name,
+              founderId: c.founder_id,
+              name: c.full_name,
+              email: c.email,
+              phone: c.phone,
+              role: 'Partner',
+              message: c.about,
+              status: c.status as RequestStatus,
+              createdAt: c.created_at
+            };
+            setState(prev => ({ ...prev, collaborations: [mapped, ...prev.collaborations] }));
+          } else if (payload.eventType === 'UPDATE') {
+            setState(prev => ({
+              ...prev,
+              collaborations: prev.collaborations.map(c => c.id === payload.new.id ? { ...c, status: payload.new.status } : c)
+            }));
+          }
+        })
         .subscribe();
 
       const suggestionsChannel = supabase.channel('public:suggestions')
-        .on('postgres_changes', { event: '*', schema: 'public', table: 'suggestions' }, () => loadData())
+        .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'suggestions' }, (payload) => {
+          const s = payload.new as any;
+          const mapped: Suggestion = {
+            id: s.id,
+            ideaId: s.idea_id,
+            founderId: s.founder_id,
+            content: s.suggestion_text,
+            createdAt: s.created_at,
+            authorName: 'A Founder',
+            authorAvatar: 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?auto=format&fit=crop&q=80&w=80',
+            ideaName: 'New Suggestion'
+          };
+          setState(prev => ({ ...prev, suggestions: [mapped, ...prev.suggestions] }));
+        })
+        .subscribe();
+
+      const fundingChannel = supabase.channel('public:funding_requests')
+        .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'funding_requests' }, (payload) => {
+          const f = payload.new as any;
+          const mapped: FundingRequest = {
+            id: f.id,
+            ideaId: f.idea_id,
+            ideaName: f.idea_name,
+            founderId: f.founder_id,
+            name: f.full_name,
+            email: f.email,
+            phone: f.phone,
+            investmentAmount: 'Not specified',
+            message: f.about,
+            status: f.status as RequestStatus,
+            createdAt: f.created_at
+          };
+          setState(prev => ({ ...prev, funding: [mapped, ...prev.funding] }));
+        })
         .subscribe();
 
       return () => {
         supabase.removeChannel(ideasChannel);
         supabase.removeChannel(collabsChannel);
-        supabase.removeChannel(fundingChannel);
         supabase.removeChannel(suggestionsChannel);
+        supabase.removeChannel(fundingChannel);
       };
     }
   }, [currentUser]);
@@ -604,6 +712,7 @@ export default function App() {
       return;
     }
 
+    // Payload mapping for database (snake_case)
     const payload = {
       name: ideaData.name || 'Untitled Vision',
       logo: ideaData.logo || '🚀',
@@ -620,7 +729,7 @@ export default function App() {
       funding_interest_count: 0,
       views_count: 0,
       progress_stage: ideaData.progressStage || 'IDEATION',
-      likes: 1,
+      likes: 1, // Start with 1 upvote from founder
       suggestions_count: 0,
       need_collaboration: ideaData.needCollaboration ?? true,
       need_funding: ideaData.needFunding ?? false,
@@ -629,104 +738,126 @@ export default function App() {
       is_public: ideaData.isPublic ?? true,
       visibility: (ideaData.isPublic ?? true) ? 'public' : 'private',
       status: ideaData.status || 'published',
-      created_at: new Date().toISOString()
+      created_at: new Date().toISOString(),
+      instagram_url: ideaData.instagramUrl,
+      facebook_url: ideaData.facebookUrl,
+      website_url: ideaData.websiteUrl
     };
 
-    if (ideaToEdit) {
-      if (isSupabaseConfigured) {
-        const { error } = await supabase
-          .from('ideas')
-          .update(payload)
-          .eq('id', ideaToEdit.id);
+    try {
+      if (ideaToEdit) {
+        if (isSupabaseConfigured) {
+          const { error } = await supabase
+            .from('ideas')
+            .update(payload)
+            .eq('id', ideaToEdit.id);
 
-        if (error) {
-          console.error('Error updating idea:', error);
-          showToast('Failed to save changes to database.');
-          return;
+          if (error) throw error;
         }
-      }
 
-      setState(prev => {
-        const updatedIdeas = prev.ideas.map(idea => {
-          if (idea.id === ideaToEdit.id) {
-            return {
-              ...idea,
-              ...ideaData,
-              id: ideaToEdit.id,
-              founderId: currentUser.id,
-              founderName: currentUser.name,
-              founderAvatar: currentUser.avatar,
-            } as StartupIdea;
-          }
-          return idea;
-        });
-        return { ...prev, ideas: updatedIdeas };
-      });
-      showToast(`Saved changes for “${ideaData.name}” successfully!`);
-      setIdeaToEdit(null);
-      return;
-    }
-
-    let ideaId = `sim-${Math.random().toString(36).substr(2, 9)}`;
-
-    if (isSupabaseConfigured) {
-      const { data, error } = await supabase
-        .from('ideas')
-        .insert([payload])
-        .select()
-        .single();
-
-      if (error) {
-        console.error('Error adding idea to Supabase:', error);
-        showToast('Failed to save idea to database.');
+        setState(prev => ({
+          ...prev,
+          ideas: prev.ideas.map(idea => 
+            idea.id === ideaToEdit.id 
+              ? { ...idea, ...ideaData, founderId: currentUser.id } as StartupIdea 
+              : idea
+          )
+        }));
+        showToast(`Saved changes for “${ideaData.name}” successfully!`);
+        setIdeaToEdit(null);
         return;
       }
-      if (data) ideaId = data.id;
+
+      let newIdea: StartupIdea;
+
+      if (isSupabaseConfigured) {
+        const { data, error } = await supabase
+          .from('ideas')
+          .insert([payload])
+          .select()
+          .single();
+
+        if (error) throw error;
+        
+        newIdea = {
+          id: data.id,
+          name: data.name,
+          logo: data.logo,
+          banner: data.banner,
+          description: data.description,
+          whyThisWorks: data.why_this_works,
+          problemSolved: data.problem_solved,
+          targetAudience: data.target_audience,
+          category: data.category,
+          founderId: data.founder_id,
+          founderName: data.founder_name,
+          founderAvatar: data.founder_avatar,
+          collaborationCount: data.collaboration_count,
+          fundingInterestCount: data.funding_interest_count,
+          viewsCount: data.views_count,
+          progressStage: data.progress_stage,
+          likes: data.likes,
+          suggestionsCount: data.suggestions_count,
+          needCollaboration: data.need_collaboration,
+          needFunding: data.need_funding,
+          seeking_collaboration: data.seeking_collaboration,
+          seeking_funding: data.seeking_funding,
+          isPublic: data.is_public,
+          visibility: data.visibility as 'public' | 'private',
+          status: data.status as 'draft' | 'published',
+          createdAt: data.created_at,
+          instagramUrl: data.instagram_url,
+          facebookUrl: data.facebook_url,
+          websiteUrl: data.website_url
+        };
+      } else {
+        const ideaId = `sim-${Math.random().toString(36).substr(2, 9)}`;
+        newIdea = {
+          id: ideaId,
+          name: payload.name,
+          logo: payload.logo,
+          banner: payload.banner,
+          description: payload.description,
+          whyThisWorks: payload.why_this_works,
+          problemSolved: payload.problem_solved,
+          targetAudience: payload.target_audience,
+          category: payload.category,
+          founderId: payload.founder_id,
+          founderName: payload.founder_name,
+          founderAvatar: payload.founder_avatar,
+          collaborationCount: payload.collaboration_count,
+          fundingInterestCount: payload.funding_interest_count,
+          viewsCount: payload.views_count,
+          progressStage: payload.progress_stage,
+          likes: payload.likes,
+          suggestionsCount: payload.suggestions_count,
+          needCollaboration: payload.need_collaboration,
+          needFunding: payload.need_funding,
+          seeking_collaboration: payload.seeking_collaboration,
+          seeking_funding: payload.seeking_funding,
+          isPublic: payload.is_public,
+          visibility: payload.visibility as 'public' | 'private',
+          status: payload.status as 'draft' | 'published',
+          createdAt: payload.created_at,
+          instagramUrl: payload.instagram_url,
+          facebookUrl: payload.facebook_url,
+          websiteUrl: payload.website_url
+        };
+      }
+
+      // Update state instantly
+      setState(prev => ({
+        ...prev,
+        ideas: [newIdea, ...prev.ideas]
+      }));
+      
+      // Auto-like for the founder
+      setLikedIdeaIds(prev => [...prev, newIdea.id]);
+      showToast(`Vision “${newIdea.name}” is now live!`);
+    } catch (err: any) {
+      console.error('Submission error:', err.message || err);
+      showToast('Connection error. Please try publishing again.');
     }
-
-    const newIdeaObj: StartupIdea = {
-      id: ideaId,
-      name: payload.name,
-      logo: payload.logo,
-      banner: payload.banner,
-      description: payload.description,
-      whyThisWorks: payload.why_this_works,
-      problemSolved: payload.problem_solved,
-      targetAudience: payload.target_audience,
-      category: payload.category,
-      founderId: payload.founder_id,
-      founderName: payload.founder_name,
-      founderAvatar: payload.founder_avatar,
-      collaborationCount: payload.collaboration_count,
-      fundingInterestCount: payload.funding_interest_count,
-      viewsCount: payload.views_count,
-      progressStage: payload.progress_stage,
-      likes: payload.likes,
-      suggestionsCount: payload.suggestions_count,
-      needCollaboration: payload.need_collaboration,
-      needFunding: payload.need_funding,
-      seeking_collaboration: payload.seeking_collaboration,
-      seeking_funding: payload.seeking_funding,
-      isPublic: payload.is_public,
-      visibility: payload.visibility as 'public' | 'private',
-      status: payload.status as 'draft' | 'published',
-      createdAt: payload.created_at
-    };
-
-    // Update local state immediately for simulation/sandbox mode
-    setState(prev => ({
-      ...prev,
-      ideas: [newIdeaObj, ...prev.ideas]
-    }));
-
-    if (isSupabaseConfigured) {
-      showToast(`Published “${newIdeaObj.name}” to the global database!`);
-    } else {
-      showToast(`Published “${newIdeaObj.name}” (Local Simulation)`);
-    }
-
-    // Auto-like the new project
-    setLikedIdeaIds(prev => [...prev, newIdeaObj.id]);
   };
 
   // Deletion helper for owners
@@ -820,33 +951,34 @@ export default function App() {
     if (isLiked) {
       // Unlike: Remove from idea_upvotes table
       if (isSupabaseConfigured) {
-        const { error } = await supabase
-          .from('idea_upvotes')
-          .delete()
-          .match({ voter_id: voterId, idea_id: ideaId });
+        try {
+          const { error: upvoteError } = await supabase
+            .from('idea_upvotes')
+            .delete()
+            .match({ voter_id: voterId, idea_id: ideaId });
 
-        if (error) {
-          console.error('Error removing upvote:', error);
-          setLikedIdeaIds(likedIdeaIds); // Revert on error
-          showToast('Failed to remove upvote.');
-          return;
+          if (upvoteError) throw upvoteError;
+
+          // Sync count in ideas table
+          await supabase.rpc('decrement_idea_likes', { idea_uuid: ideaId });
+        } catch (err: any) {
+          console.warn('Unlike sync failed:', err.message);
         }
       }
     } else {
       // Like: Add to idea_upvotes table
       if (isSupabaseConfigured) {
-        const { error } = await supabase
-          .from('idea_upvotes')
-          .insert([{ voter_id: voterId, idea_id: ideaId }]);
+        try {
+          const { error: upvoteError } = await supabase
+            .from('idea_upvotes')
+            .insert([{ voter_id: voterId, idea_id: ideaId }]);
 
-        if (error) {
-          // If it's a unique constraint error, the user already liked it
-          if (error.code !== '23505') {
-            console.error('Error adding upvote:', error);
-            setLikedIdeaIds(likedIdeaIds); // Revert on error
-            showToast('Failed to add upvote.');
-            return;
-          }
+          if (upvoteError && upvoteError.code !== '23505') throw upvoteError;
+
+          // Sync count in ideas table
+          await supabase.rpc('increment_idea_likes', { idea_uuid: ideaId });
+        } catch (err: any) {
+          console.warn('Like sync failed:', err.message);
         }
       }
     }
@@ -1085,47 +1217,57 @@ export default function App() {
   // Filter ideas logic: query search, category pills & timeFilter
   const filteredPublicIdeas = useMemo(() => {
     return state.ideas.filter(idea => {
-      // Show ideas if they are public OR private (but protected)
-      const isVisibleOnFeed = idea.isPublic || (idea as any).is_public || idea.visibility === 'public' || idea.visibility === 'private';
-      if (!isVisibleOnFeed || idea.status !== 'published') return false;
+      const isVisibleOnFeed = 
+        idea.isPublic === true || 
+        (idea as any).is_public === true || 
+        idea.visibility === 'public';
+
+      if (!isVisibleOnFeed || idea.status === 'draft') return false;
       
+      const q = searchQuery.toLowerCase();
       const matchesSearch = 
-        (idea.name?.toLowerCase() || '').includes(searchQuery.toLowerCase()) ||
-        (idea.description?.toLowerCase() || '').includes(searchQuery.toLowerCase()) ||
-        (idea.category?.toLowerCase() || '').includes(searchQuery.toLowerCase()) ||
-        (idea.problemSolved?.toLowerCase() || '').includes(searchQuery.toLowerCase()) ||
-        (idea.targetAudience?.toLowerCase() || '').includes(searchQuery.toLowerCase());
+        (idea.name?.toLowerCase() || '').includes(q) ||
+        (idea.description?.toLowerCase() || '').includes(q) ||
+        (idea.category?.toLowerCase() || '').includes(q) ||
+        (idea.problemSolved?.toLowerCase() || '').includes(q) ||
+        (idea.targetAudience?.toLowerCase() || '').includes(q) ||
+        (idea.founderName?.toLowerCase() || '').includes(q) ||
+        (idea.whyThisWorks?.toLowerCase() || '').includes(q);
 
       const matchesCategory = selectedCategory ? (idea.category === selectedCategory) : true;
 
-      // Filter by date intervals
+      // Time Filter Logic
       const createdAt = idea.createdAt || (idea as any).created_at;
       const ideaTime = createdAt ? new Date(createdAt).getTime() : 0;
-      const now = new Date().getTime();
-      let matchesTime = true;
+      const now = new Date();
+      const nowTime = now.getTime();
+      const startOfToday = new Date(now.getFullYear(), now.getMonth(), now.getDate()).getTime();
       
+      let matchesTime = true;
       if (timeFilter === 'day') {
-        // Within last 24 hours
-        const oneDay = 24 * 60 * 60 * 1000;
-        matchesTime = now - ideaTime <= oneDay;
+        matchesTime = ideaTime >= startOfToday;
       } else if (timeFilter === 'week1') {
-        matchesTime = now - ideaTime <= 7 * 24 * 60 * 60 * 1000;
+        matchesTime = nowTime - ideaTime <= 7 * 24 * 60 * 60 * 1000;
       } else if (timeFilter === 'week2') {
-        matchesTime = now - ideaTime <= 14 * 24 * 60 * 60 * 1000;
-      } else if (timeFilter === 'week3') {
-        matchesTime = now - ideaTime <= 21 * 24 * 60 * 60 * 1000;
+        matchesTime = nowTime - ideaTime <= 14 * 24 * 60 * 60 * 1000;
       } else if (timeFilter === 'month1') {
-        matchesTime = now - ideaTime <= 30 * 24 * 60 * 60 * 1000;
+        matchesTime = nowTime - ideaTime <= 30 * 24 * 60 * 60 * 1000;
       } else if (timeFilter === 'month2') {
-        matchesTime = now - ideaTime <= 60 * 24 * 60 * 60 * 1000;
+        matchesTime = nowTime - ideaTime <= 60 * 24 * 60 * 60 * 1000;
       } else if (timeFilter === 'month3') {
-        matchesTime = now - ideaTime <= 90 * 24 * 60 * 60 * 1000;
-      } else if (timeFilter === 'all') {
-        matchesTime = true;
+        matchesTime = nowTime - ideaTime <= 90 * 24 * 60 * 60 * 1000;
+      } else if (timeFilter === 'month6') {
+        matchesTime = nowTime - ideaTime <= 180 * 24 * 60 * 60 * 1000;
+      } else if (timeFilter === 'month8') {
+        matchesTime = nowTime - ideaTime <= 240 * 24 * 60 * 60 * 1000;
+      } else if (timeFilter === 'year1') {
+        matchesTime = nowTime - ideaTime <= 365 * 24 * 60 * 60 * 1000;
+      } else if (timeFilter === 'year2') {
+        matchesTime = nowTime - ideaTime <= 730 * 24 * 60 * 60 * 1000;
       }
 
-      // Safety check for future dates or newly added ideas (allow 5 min future buffer)
-      if (ideaTime > now - 300000 && ideaTime < now + 300000) {
+      // Safety buffer for newly added ideas (within 5 minutes)
+      if (ideaTime > nowTime - 300000 && ideaTime < nowTime + 300000) {
         matchesTime = true;
       }
 
@@ -1133,25 +1275,70 @@ export default function App() {
     });
   }, [state.ideas, searchQuery, selectedCategory, timeFilter]);
 
-  // Calculate global stats (unfiltered by search/category/time, but filtered by public status)
-  // This represents the real total ideas in the database
-  const totalPublicIdeasCount = useMemo(() => {
-    return state.ideas.filter(idea => 
-      (idea.isPublic || (idea as any).is_public || idea.visibility === 'public' || idea.visibility === 'private') && 
-      (idea.status === 'published' || !idea.status)
-    ).length;
+  // Dynamically calculate counts for each time filter tab based on real-time database data
+  const timeFilterCounts = useMemo(() => {
+    const now = new Date();
+    const nowTime = now.getTime();
+    const startOfToday = new Date(now.getFullYear(), now.getMonth(), now.getDate()).getTime();
+    
+    const counts: Record<string, number> = {
+      all: 0,
+      day: 0,
+      week1: 0,
+      week2: 0,
+      month1: 0,
+      month2: 0,
+      month3: 0,
+      month6: 0,
+      month8: 0,
+      year1: 0,
+      year2: 0
+    };
+
+    state.ideas.forEach(idea => {
+      const isPublic = idea.isPublic === true || (idea as any).is_public === true || idea.visibility === 'public';
+      const isPublished = idea.status === 'published' || !idea.status;
+      
+      if (isPublic && isPublished) {
+        const createdAt = idea.createdAt || (idea as any).created_at;
+        const ideaTime = createdAt ? new Date(createdAt).getTime() : 0;
+        
+        counts.all++;
+        if (ideaTime >= startOfToday) counts.day++;
+        if (nowTime - ideaTime <= 7 * 24 * 60 * 60 * 1000) counts.week1++;
+        if (nowTime - ideaTime <= 14 * 24 * 60 * 60 * 1000) counts.week2++;
+        if (nowTime - ideaTime <= 30 * 24 * 60 * 60 * 1000) counts.month1++;
+        if (nowTime - ideaTime <= 60 * 24 * 60 * 60 * 1000) counts.month2++;
+        if (nowTime - ideaTime <= 90 * 24 * 60 * 60 * 1000) counts.month3++;
+        if (nowTime - ideaTime <= 180 * 24 * 60 * 60 * 1000) counts.month6++;
+        if (nowTime - ideaTime <= 240 * 24 * 60 * 60 * 1000) counts.month8++;
+        if (nowTime - ideaTime <= 365 * 24 * 60 * 60 * 1000) counts.year1++;
+        if (nowTime - ideaTime <= 730 * 24 * 60 * 60 * 1000) counts.year2++;
+      }
+    });
+    
+    return counts;
   }, [state.ideas]);
 
-  // Calculate dynamic category counts for all public ideas
+  // Calculate global stats (unfiltered by search/category/time, but filtered by public status)
+  // This represents the real total ideas available in the global ecosystem
+  const totalPublicIdeasCount = useMemo(() => {
+    return timeFilterCounts[timeFilter] || 0;
+  }, [timeFilterCounts, timeFilter]);
+
+  // Calculate dynamic category counts for all public ideas across the entire database
   const categoryCounts = useMemo(() => {
-    return state.ideas.reduce((acc, idea) => {
-      if ((idea.isPublic || (idea as any).is_public || idea.visibility === 'public' || idea.visibility === 'private') && 
-          (idea.status === 'published' || !idea.status)) {
+    const counts: Record<string, number> = {};
+    state.ideas.forEach(idea => {
+      const isPublic = idea.isPublic === true || (idea as any).is_public === true || idea.visibility === 'public';
+      const isPublished = idea.status === 'published' || !idea.status;
+      
+      if (isPublic && isPublished) {
         const cat = idea.category || 'Other';
-        acc[cat] = (acc[cat] || 0) + 1;
+        counts[cat] = (counts[cat] || 0) + 1;
       }
-      return acc;
-    }, {} as Record<string, number>);
+    });
+    return counts;
   }, [state.ideas]);
 
   // Segregate filtered lists into TrustMRR structured grid blocks
@@ -1180,38 +1367,26 @@ export default function App() {
   // Active suggestions list addressed to the clicked idea details modal
   const activeSuggestions = state.suggestions.filter(s => selectedIdea && s.ideaId === selectedIdea.id);
 
-  // View tracking handler with session cooldown
+  // View tracking handler - optimized for instant updates
   const handleIdeaView = async (ideaId: string) => {
+    if (!isSupabaseConfigured) return;
+
     try {
-      const viewerId = currentUser?.id || 'anonymous-' + (localStorage.getItem('vb_anonymous_id') || '');
-      if (!localStorage.getItem('vb_anonymous_id')) {
-        const newAnonId = Math.random().toString(36).substring(2, 15);
-        localStorage.setItem('vb_anonymous_id', newAnonId);
-      }
+      // Direct update for reliability (triggers real-time update event)
+      const idea = state.ideas.find(i => i.id === ideaId);
+      const currentViews = idea?.viewsCount || 0;
 
-      const lastViewedKey = `vb_viewed_${ideaId}`;
-      const lastViewed = localStorage.getItem(lastViewedKey);
-      const now = Date.now();
-      const cooldown = 1000 * 60 * 30; // 30 minutes cooldown
+      const { error } = await supabase
+        .from('ideas')
+        .update({ views_count: currentViews + 1 })
+        .eq('id', ideaId);
 
-      if (lastViewed && now - parseInt(lastViewed) < cooldown) {
-        return; // Skip if viewed recently in this session
-      }
-
-      // Record view in DB
-      if (isSupabaseConfigured) {
-        const { error } = await supabase.rpc('increment_idea_views', { idea_uuid: ideaId });
-        
-        if (error) {
-          console.warn('View tracking sync failed:', error.message);
-        } else {
-          localStorage.setItem(lastViewedKey, now.toString());
-        }
-      } else {
-        localStorage.setItem(lastViewedKey, now.toString());
+      if (error) {
+        // Fallback to database function if update fails
+        await supabase.rpc('increment_idea_views', { idea_uuid: ideaId });
       }
     } catch (err: any) {
-      console.warn('Error tracking view:', err?.message || err);
+      console.warn('View tracking sync failed:', err.message);
     }
   };
 
@@ -1272,92 +1447,101 @@ export default function App() {
         
         {currentView === 'explore' ? (
           
-          /* EXPLORE HOMEPAGE DECK (TrustMRR spacing style) */
-          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-0 space-y-2" id="explore-view">
+          /* EXPLORE HOMEPAGE DECK */
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-2 sm:py-6 space-y-8 sm:space-y-12" id="explore-view">
             
             {/* Geometric Centered Headline Callout */}
-            <div className="text-center max-w-4xl mx-auto space-y-1 select-none mb-1 pt-0" id="hero-centered-headline">
+            <div className="text-center max-w-4xl mx-auto space-y-4 sm:space-y-5 select-none pt-4 sm:pt-6" id="hero-centered-headline">
               
-              <div className="p-2 sm:p-3 bg-white/98 dark:bg-slate-900/98 backdrop-blur-sm rounded-3xl border-2 border-slate-200 dark:border-slate-800 shadow-[0_8px_30px_-12px_rgba(0,0,0,0.05)]">
-                <h2 className="font-display font-black text-3xl sm:text-5xl md:text-[58px] text-slate-950 dark:text-white tracking-tighter leading-[0.95]" id="main-visionboard-headline">
+              <div className="p-4 sm:p-5 bg-white/98 dark:bg-slate-900/98 backdrop-blur-sm rounded-[1.5rem] sm:rounded-[2.5rem] border-2 border-slate-200 dark:border-slate-800 shadow-sm">
+                <h2 className="responsive-heading font-display font-black text-slate-950 dark:text-white" id="main-visionboard-headline">
                   The database of <span className="bg-gradient-to-r from-blue-600 via-indigo-600 to-purple-600 dark:from-blue-400 dark:via-indigo-400 dark:to-purple-500 bg-clip-text text-transparent block sm:inline drop-shadow-sm">future startup ideas</span>
                 </h2>
               </div>
 
               {/* Home Add Idea trigger and Search Bar alignment */}
-              <div className="flex flex-col sm:flex-row items-center justify-center gap-2 max-w-4xl mx-auto pt-1">
+              <div className="flex flex-col sm:flex-row items-center justify-center gap-3 max-w-2xl mx-auto pt-1">
                 {/* HERO SEARCH BAR */}
-                <div className="flex-1 w-full max-w-md relative group">
+                <div className="w-full sm:flex-1 relative group">
                   <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-500 group-focus-within:text-blue-600 transition-colors z-10" />
                   <input
                     type="text"
-                    placeholder="Search ideas, founders, categories..."
+                    placeholder="Search ideas, founders..."
                     value={searchQuery}
                     onChange={(e) => setSearchQuery(e.target.value)}
-                    className="w-full pl-11 pr-4 py-3.5 bg-white dark:bg-slate-900 border-2 border-slate-200 dark:border-slate-800 focus:border-blue-600/60 dark:focus:border-blue-400/60 focus:bg-white dark:focus:bg-slate-900 rounded-2xl text-xs font-bold transition-all outline-none dark:text-white placeholder-slate-400 shadow-[0_2px_10px_-2px_rgba(0,0,0,0.02)] focus:shadow-[0_8px_30px_-4px_rgba(59,130,246,0.1)] dark:focus:shadow-[0_8px_30px_-4px_rgba(59,130,246,0.15)]"
+                    className="w-full pl-11 pr-4 py-3.5 bg-white dark:bg-slate-900 border-2 border-slate-200 dark:border-slate-800 focus:border-blue-600/60 dark:focus:border-blue-400/60 rounded-2xl text-sm font-bold transition-all outline-none dark:text-white placeholder-slate-400 shadow-sm"
                   />
                 </div>
 
                 <button
                   id="add-idea-hero-btn"
                   onClick={() => setShowAddIdeaModal(true)}
-                  className="w-full sm:w-auto px-9 py-3.5 bg-slate-950 dark:bg-white text-white dark:text-slate-950 border-2 border-slate-950 dark:border-white text-sm font-black rounded-2xl hover:scale-[1.03] active:scale-[0.98] transition-all select-none cursor-pointer text-center duration-300 shadow-[0_10px_30px_-10px_rgba(0,0,0,0.3)] dark:shadow-[0_10px_30px_-10px_rgba(255,255,255,0.1)] hover:shadow-[0_15px_35px_-8px_rgba(0,0,0,0.4)] dark:hover:shadow-[0_15px_35px_-8px_rgba(255,255,255,0.2)]"
+                  className="w-full sm:w-auto px-8 py-3.5 bg-slate-950 dark:bg-white text-white dark:text-slate-950 border-2 border-slate-950 dark:border-white text-sm font-black rounded-2xl hover:scale-[1.02] active:scale-[0.98] transition-all select-none cursor-pointer duration-300 shadow-lg"
                 >
-                  + Add Your Startup Idea
+                  + Add Your Idea
                 </button>
               </div>
             </div>
 
-            {/* Stats Summary Panel */}
-            <div className="flex flex-col md:flex-row items-center justify-center gap-2 md:gap-6 p-2.5 bg-white dark:bg-slate-900/95 backdrop-blur-sm rounded-3xl border-2 border-slate-200 dark:border-slate-800 shadow-xs" id="hero-stats-panel">
-              <div className="text-center group select-none flex items-center space-x-5">
-                <div>
-                  <span className="block text-[10px] font-black font-mono text-slate-500 dark:text-slate-400 uppercase tracking-widest mb-0.5 group-hover:text-blue-600 transition-colors">Total Ideas Shared</span>
-                  <span className="text-2xl font-display font-black text-slate-950 dark:text-white tracking-tighter" id="total-ideas-count">
+            {/* Filter & Stats Panel */}
+            <div className="flex flex-col lg:flex-row items-center justify-between gap-6 p-1.5 sm:p-2 bg-white dark:bg-slate-900/95 backdrop-blur-sm rounded-3xl border-2 border-slate-200 dark:border-slate-800 shadow-sm overflow-hidden" id="hero-stats-panel">
+              {/* Left Side: Stats */}
+              <div className="flex items-center space-x-6 px-4 py-2 sm:py-3 bg-slate-50 dark:bg-slate-800/50 rounded-2xl border border-slate-100 dark:border-slate-800/50">
+                <div className="text-center sm:text-left select-none">
+                  <span className="block text-[9px] font-black font-mono text-slate-500 dark:text-slate-400 uppercase tracking-widest mb-0.5">Total Ideas</span>
+                  <span className="text-xl sm:text-2xl font-display font-black text-slate-950 dark:text-white tracking-tighter" id="total-ideas-count">
                     {totalPublicIdeasCount.toLocaleString()}
                   </span>
                 </div>
-                <div className="h-8 w-1 bg-blue-600 rounded-full transform group-hover:scale-y-125 transition-transform" />
+                <div className="h-8 w-1 bg-blue-600 rounded-full" />
               </div>
 
-              <div className="hidden md:block w-px h-8 bg-slate-200 dark:bg-slate-800" />
-
-              {/* Home Filter Toggle Tabs (Time range) */}
-              <div className="flex flex-col space-y-0.5 select-none" id="time-filter-tabs">
-                <span className="text-[10px] font-black font-mono text-slate-500 dark:text-slate-400 uppercase tracking-widest text-center md:text-left">Filter by Release Day</span>
-                <div className="flex items-center p-1 bg-white/50 dark:bg-slate-900/50 backdrop-blur-sm border-2 border-slate-200 dark:border-slate-800 rounded-2xl shadow-sm overflow-x-auto no-scrollbar">
+              {/* Right Side: Filter Tabs */}
+              <div className="flex flex-col space-y-1.5 px-4 pb-3 sm:pb-0 flex-1 w-full max-w-4xl" id="time-filter-tabs">
+                <span className="text-[9px] font-black font-mono text-slate-500 dark:text-slate-400 uppercase tracking-widest text-center lg:text-left">Filter by Release Day</span>
+                <div className="flex items-center p-1 bg-slate-100/50 dark:bg-slate-950/50 border border-slate-200 dark:border-slate-800 rounded-2xl overflow-x-auto no-scrollbar mobile-scroll-container">
                   {[
                     { id: 'all', label: 'All Time' },
                     { id: 'day', label: 'Today' },
                     { id: 'week1', label: '1 Week' },
                     { id: 'week2', label: '2 Week' },
-                    { id: 'week3', label: '3 Week' },
                     { id: 'month1', label: '1 Month' },
                     { id: 'month2', label: '2 Month' },
-                    { id: 'month3', label: '3 Month' }
+                    { id: 'month3', label: '3 Month' },
+                    { id: 'month6', label: '6 Month' },
+                    { id: 'month8', label: '8 Month' },
+                    { id: 'year1', label: '1 Year' },
+                    { id: 'year2', label: '2 Year' }
                   ].map((f) => (
                     <button
                       key={f.id}
                       id={`time-filter-${f.id}`}
                       onClick={() => setTimeFilter(f.id as any)}
-                      className={`px-4 py-2 rounded-xl text-xs font-black transition-all cursor-pointer whitespace-nowrap ${
+                      className={`px-3.5 py-2 rounded-xl text-[10px] font-black transition-all cursor-pointer whitespace-nowrap flex items-center space-x-2 ${
                         timeFilter === f.id
-                          ? 'bg-slate-950 dark:bg-slate-100 text-white dark:text-slate-950 shadow-[0_4px_12px_-2px_rgba(0,0,0,0.12)] dark:shadow-[0_4px_12px_-2px_rgba(255,255,255,0.1)] scale-[1.05] z-10'
-                          : 'text-slate-500 dark:text-slate-500 hover:text-slate-950 dark:hover:text-white'
+                          ? 'bg-slate-950 dark:bg-white text-white dark:text-slate-950 shadow-md scale-[1.02] z-10'
+                          : 'text-slate-500 hover:text-slate-950 dark:hover:text-white'
                       }`}
                     >
-                      {f.label}
+                      <span>{f.label}</span>
+                      <span className={`px-1.5 py-0.5 rounded-md text-[8px] ${
+                        timeFilter === f.id 
+                          ? 'bg-white/20 dark:bg-slate-200 text-white dark:text-slate-950' 
+                          : 'bg-slate-100 dark:bg-slate-800 text-slate-500'
+                      }`}>
+                        {timeFilterCounts[f.id] || 0}
+                      </span>
                     </button>
                   ))}
                 </div>
               </div>
             </div>
 
-            {/* Category selection tab caps */}
-            <div className="mb-6" id="category-filter-section">
-              <div className="flex items-center justify-between mb-4 px-1">
-                <span className="text-[10px] font-bold font-mono uppercase tracking-widest text-slate-400 dark:text-slate-500">Designated Categories</span>
-                <div className="h-px flex-1 mx-4 bg-gradient-to-r from-slate-200/40 via-transparent to-transparent dark:from-slate-800/40" />
+            {/* Category selection */}
+            <div className="pt-2" id="category-filter-section">
+              <div className="flex items-center space-x-3 mb-4 px-1">
+                <span className="text-[9px] font-bold font-mono uppercase tracking-widest text-slate-400 dark:text-slate-500 shrink-0">Browse by Category</span>
+                <div className="h-px w-full bg-gradient-to-r from-slate-200/60 to-transparent dark:from-slate-800/60" />
               </div>
               <CategoryFilters
                 selectedCategory={selectedCategory}
@@ -1366,22 +1550,22 @@ export default function App() {
               />
             </div>
 
-          <div className="flex flex-col space-y-10" id="ideas-main-feed">
-            {/* 1. Trending Ideas (Sorted by high engagement) */}
+          <div className="flex flex-col space-y-6 sm:space-y-10" id="ideas-main-feed">
+            {/* 1. Trending Ideas */}
             <section id="trending-ideas-section">
-              <div className="flex items-center justify-between mb-8 px-1">
-                <div className="flex items-center space-x-3 select-none">
-                  <div className="p-2 rounded-xl bg-emerald-500 shadow-[0_8px_20px_-4px_rgba(16,185,129,0.4)]">
-                    <Flame className="h-5 w-5 text-white" />
+              <div className="flex items-center justify-between mb-4 sm:mb-6 px-1">
+                <div className="flex items-center space-x-2 select-none">
+                  <div className="p-1.5 rounded-lg bg-emerald-500 shadow-md">
+                    <Flame className="h-4 w-4 text-white" />
                   </div>
-                  <h2 className="text-xl font-display font-black text-slate-950 dark:text-white uppercase tracking-tight">Trending Ideas</h2>
+                  <h2 className="text-base sm:text-lg font-display font-black text-slate-950 dark:text-white uppercase tracking-tight">Trending Ideas</h2>
                 </div>
-                <div className="flex items-center space-x-2 text-[10px] font-black font-mono text-emerald-600 dark:text-emerald-400 uppercase tracking-widest bg-emerald-50/50 dark:bg-emerald-950/30 px-3 py-1.5 rounded-lg border-2 border-emerald-100 dark:border-emerald-900/50 shadow-sm">
+                <div className="hidden sm:flex items-center space-x-2 text-[8px] font-black font-mono text-emerald-600 dark:text-emerald-400 uppercase tracking-widest bg-emerald-50/50 dark:bg-emerald-950/30 px-2.5 py-1.5 rounded-lg border border-emerald-100 dark:border-emerald-900/50 shadow-sm">
                   <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
                   <span>Feed Validated</span>
                 </div>
               </div>
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
                 {isLoading ? (
                   Array.from({ length: 3 }).map((_, i) => <CardSkeleton key={i} />)
                 ) : (
@@ -1400,21 +1584,21 @@ export default function App() {
               </div>
             </section>
 
-            {/* 2. Weekly Best (Scale stage/high upvotes) */}
+            {/* 2. Weekly Best */}
             <section id="weekly-best-section">
-              <div className="flex items-center justify-between mb-8 px-1">
-                <div className="flex items-center space-x-3 select-none">
-                  <div className="p-2 rounded-xl bg-blue-500 shadow-[0_8px_20px_-4px_rgba(59,130,246,0.4)]">
-                    <Star className="h-5 w-5 text-white" />
+              <div className="flex items-center justify-between mb-4 sm:mb-6 px-1">
+                <div className="flex items-center space-x-2 select-none">
+                  <div className="p-1.5 rounded-lg bg-blue-500 shadow-md">
+                    <Star className="h-4 w-4 text-white" />
                   </div>
-                  <h2 className="text-xl font-display font-black text-slate-950 dark:text-white uppercase tracking-tight">Weekly Best</h2>
+                  <h2 className="text-base sm:text-lg font-display font-black text-slate-950 dark:text-white uppercase tracking-tight">Weekly Best</h2>
                 </div>
-                <div className="flex items-center space-x-2 text-[10px] font-black font-mono text-blue-600 dark:text-blue-400 uppercase tracking-widest bg-blue-50/50 dark:bg-blue-950/30 px-3 py-1.5 rounded-lg border-2 border-blue-100 dark:border-blue-900/50 shadow-sm">
+                <div className="hidden sm:flex items-center space-x-2 text-[8px] font-black font-mono text-blue-600 dark:text-blue-400 uppercase tracking-widest bg-blue-50/50 dark:bg-blue-950/30 px-2.5 py-1.5 rounded-lg border border-blue-100 dark:border-blue-900/50 shadow-sm">
                   <span className="w-1.5 h-1.5 rounded-full bg-blue-500 animate-pulse" />
                   <span>Editor Choice</span>
                 </div>
               </div>
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
                 {isLoading ? (
                   Array.from({ length: 3 }).map((_, i) => <CardSkeleton key={i} />)
                 ) : (
@@ -1433,21 +1617,21 @@ export default function App() {
               </div>
             </section>
 
-            {/* 3. Just Listed (Latest entries) */}
+            {/* 3. Just Listed */}
             <section id="just-listed-section">
-              <div className="flex items-center justify-between mb-8 px-1">
-                <div className="flex items-center space-x-3 select-none">
-                  <div className="p-2 rounded-xl bg-purple-500 shadow-[0_8px_20px_-4px_rgba(168,85,247,0.4)]">
-                    <Sparkles className="h-5 w-5 text-white" />
+              <div className="flex items-center justify-between mb-4 sm:mb-6 px-1">
+                <div className="flex items-center space-x-2 select-none">
+                  <div className="p-1.5 rounded-lg bg-purple-500 shadow-md">
+                    <Sparkles className="h-4 w-4 text-white" />
                   </div>
-                  <h2 className="text-xl font-display font-black text-slate-950 dark:text-white uppercase tracking-tight">Just Listed</h2>
+                  <h2 className="text-base sm:text-lg font-display font-black text-slate-950 dark:text-white uppercase tracking-tight">Just Listed</h2>
                 </div>
-                <div className="flex items-center space-x-2 text-[10px] font-black font-mono text-purple-600 dark:text-purple-400 uppercase tracking-widest bg-purple-50/50 dark:bg-purple-950/30 px-3 py-1.5 rounded-lg border-2 border-purple-100 dark:border-purple-900/50 shadow-sm">
+                <div className="hidden sm:flex items-center space-x-2 text-[8px] font-black font-mono text-purple-600 dark:text-purple-400 uppercase tracking-widest bg-purple-50/50 dark:bg-purple-950/30 px-2.5 py-1.5 rounded-lg border border-purple-100 dark:border-purple-900/50 shadow-sm">
                   <span className="w-1.5 h-1.5 rounded-full bg-purple-500 animate-pulse" />
                   <span>Verified Feed</span>
                 </div>
               </div>
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
                 {isLoading ? (
                   Array.from({ length: 3 }).map((_, i) => <CardSkeleton key={i} />)
                 ) : (
@@ -1467,13 +1651,13 @@ export default function App() {
             </section>
 
             {/* LEADERBOARD / ALL DIRECTORY TABLE */}
-            <section id="directory-leaderboard-section" className="pb-10">
-              <div className="flex items-center justify-between mb-8 px-1">
+            <section id="directory-leaderboard-section" className="pb-6 sm:pb-10">
+              <div className="flex items-center justify-between mb-6 sm:mb-8 px-1">
                 <div className="flex items-center space-x-3 select-none">
-                  <div className="p-2 rounded-xl bg-slate-950 dark:bg-white shadow-lg shadow-slate-950/10 dark:shadow-white/5">
+                  <div className="p-2 rounded-xl bg-slate-950 dark:bg-white shadow-lg">
                     <Users className="h-5 w-5 text-white dark:text-slate-950" />
                   </div>
-                  <h2 className="text-xl font-display font-black text-slate-950 dark:text-white uppercase tracking-tight">Startup Leaderboard</h2>
+                  <h2 className="text-lg sm:text-xl font-display font-black text-slate-950 dark:text-white uppercase tracking-tight">Startup Leaderboard</h2>
                 </div>
               </div>
               {isLoading ? (
@@ -1523,19 +1707,19 @@ export default function App() {
       </main>
 
       {/* FOOTER METRICS SUMMARY */}
-      <footer className="bg-zinc-950 text-gray-400 py-10 mt-16 border-t border-zinc-900 select-none">
+      <footer className="bg-zinc-950 text-gray-400 py-8 sm:py-12 mt-10 sm:mt-20 border-t border-zinc-900 select-none">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center sm:text-left space-y-6 sm:space-y-0 sm:flex sm:items-center sm:justify-between">
           <div className="space-y-1">
             <span className="font-display font-bold text-white text-base tracking-tight block">
               ★ VisionBoard
             </span>
-            <p className="text-[11px] text-gray-500">The database of future startup ideas. Building robust co-founder matches.</p>
+            <p className="text-[10px] sm:text-[11px] text-gray-500">The database of future startup ideas. Building robust co-founder matches.</p>
           </div>
-          <div className="flex flex-col sm:flex-row items-center gap-4 text-xs font-mono text-zinc-500">
+          <div className="flex flex-col sm:flex-row items-center gap-4 text-[10px] sm:text-xs font-mono text-zinc-500">
             <span className="px-2.5 py-1 bg-zinc-900 rounded-md border border-zinc-800">
-              DATABASE RECORDS: {state.ideas.length} IDEAS
+              DATABASE RECORDS: {totalPublicIdeasCount} IDEAS
             </span>
-            <span>© 2026 VisionBoard Hub. Clean startup rectangles inspired by TrustMRR.</span>
+            <span>© 2026 VisionBoard Hub. Clean startup rectangles.</span>
           </div>
         </div>
       </footer>

@@ -56,10 +56,75 @@ html.dark body {
   color: #FFFFFF; /* pure white for better contrast in dark mode */
 }
 
-/* Custom scrollbar for premium touch */
-::-webkit-scrollbar {
-  width: 6px;
-  height: 6px;
+/* Refined Typography Hierarchy */
+h1 {
+  font-size: clamp(2.25rem, 6vw, 3.75rem);
+  letter-spacing: -0.04em;
+}
+
+h2 {
+  font-size: clamp(1.5rem, 4vw, 2.25rem);
+  letter-spacing: -0.03em;
+}
+
+.responsive-heading {
+  font-size: clamp(1.85rem, 5vw, 3.5rem);
+  line-height: 1.05;
+  letter-spacing: -0.05em;
+}
+
+/* Cleaner Spacing System */
+:root {
+  --section-gap: clamp(2rem, 5vh, 4rem);
+}
+
+.main-container-gap {
+  gap: var(--section-gap);
+}
+
+/* Native-feel Mobile Scroll */
+.mobile-scroll-container {
+  -webkit-overflow-scrolling: touch;
+  scroll-behavior: smooth;
+  scrollbar-width: none;
+  display: flex;
+  align-items: center;
+}
+
+.mobile-scroll-container::-webkit-scrollbar {
+  display: none;
+}
+
+/* Prevent Overscroll & Horizontal Jitter */
+html, body {
+  overflow-x: hidden;
+  width: 100%;
+  position: relative;
+}
+
+/* Touch UX Optimizations */
+button, a, input, select, textarea {
+  min-height: 44px; /* Standard Apple touch target */
+}
+
+/* Mobile Spacing Helpers */
+@media (max-width: 640px) {
+  .mobile-p-safe {
+    padding: 1rem;
+  }
+  .mobile-mt-compact {
+    margin-top: 1.5rem;
+  }
+  .mobile-grid-single {
+    grid-template-columns: 1fr !important;
+  }
+}
+
+/* Performance: Reduce heavy blur effects on low-end mobile */
+@media (max-width: 768px) {
+  .backdrop-blur-sm, .backdrop-blur-md, .backdrop-blur-xl {
+    backdrop-filter: blur(4px); /* Lighter blur for performance */
+  }
 }
 ::-webkit-scrollbar-track {
   background: transparent;

@@ -116,11 +116,11 @@ export default function IdeaCard({
         </div>
       </div>
 
-      <div className={`p-6 sm:p-8 flex-1 flex flex-col transition-all duration-300 ${isProtected ? 'opacity-40 grayscale-[0.6] blur-[0.5px]' : ''}`}>
+      <div className={`p-4 sm:p-6 flex-1 flex flex-col transition-all duration-300 ${isProtected ? 'opacity-40 grayscale-[0.6] blur-[0.5px]' : ''}`}>
         {/* TOP Section: Left logo, Middle title, Right founder avatar */}
-        <div className="flex items-start justify-between mb-6">
-          <div className="flex items-center space-x-4 pr-12 select-none">
-            <div className={`w-14 h-14 rounded-2xl bg-white dark:bg-slate-800 flex items-center justify-center text-3xl border-2 border-slate-100 dark:border-slate-700 select-none shadow-sm transition-all duration-500 shrink-0 overflow-hidden ${isProtected ? '' : 'group-hover:scale-110 group-hover:rotate-3'}`}>
+        <div className="flex items-start justify-between mb-4 sm:mb-5">
+          <div className="flex items-center space-x-3 pr-10 select-none min-w-0">
+            <div className={`w-10 h-10 sm:w-12 sm:h-12 rounded-lg sm:rounded-xl bg-white dark:bg-slate-800 flex items-center justify-center text-xl sm:text-2xl border border-slate-100 dark:border-slate-700 select-none shadow-sm transition-all duration-500 shrink-0 overflow-hidden ${isProtected ? '' : 'group-hover:scale-105'}`}>
               {idea.logo && (idea.logo.startsWith('data:image/') || idea.logo.startsWith('http')) ? (
                 <img src={idea.logo} alt={idea.name} className={`w-full h-full object-cover ${isProtected ? 'blur-md opacity-50' : ''}`} />
               ) : (
@@ -128,18 +128,18 @@ export default function IdeaCard({
               )}
             </div>
             <div className="min-w-0">
-              <h3 className={`font-display font-black text-xl tracking-tight leading-tight transition-colors truncate uppercase ${style.title} ${isProtected ? 'blur-[1px]' : ''}`} id={`card-title-${idea.id}`} dir="auto">
+              <h3 className={`font-display font-black text-base sm:text-lg tracking-tight leading-tight transition-colors truncate uppercase ${style.title} ${isProtected ? 'blur-[1px]' : ''}`} id={`idea-card-title-${idea.id}`} dir="auto">
                 {idea.name}
               </h3>
-              <span className="inline-flex mt-2 px-2.5 py-0.5 rounded-lg text-[9px] font-black uppercase tracking-widest bg-slate-100 dark:bg-slate-800 text-slate-500 dark:text-slate-400 border border-slate-200 dark:border-slate-700">
+              <span className="inline-flex mt-1 px-1.5 py-0.5 rounded-md text-[8px] font-black uppercase tracking-widest bg-slate-100 dark:bg-slate-800 text-slate-500 dark:text-slate-400 border border-slate-200 dark:border-slate-700">
                 {idea.category}
               </span>
             </div>
           </div>
 
           {/* Founder profile pill */}
-          <div className="flex-shrink-0" title={`Founder: ${idea.founderName}`}>
-            <div className={`w-10 h-10 rounded-2xl border-2 border-white dark:border-slate-800 overflow-hidden shadow-xl select-none transition-all duration-300 ${isProtected ? 'opacity-50 grayscale' : 'group-hover:border-blue-600'}`}>
+          <div className="flex-shrink-0">
+            <div className={`w-8 h-8 sm:w-9 sm:h-9 rounded-lg sm:rounded-xl border border-white dark:border-slate-800 overflow-hidden shadow-md select-none transition-all duration-300 ${isProtected ? 'opacity-50 grayscale' : 'group-hover:border-blue-600'}`}>
               <img 
                 src={idea.founderAvatar} 
                 alt={idea.founderName} 
@@ -151,48 +151,43 @@ export default function IdeaCard({
         </div>
 
         {/* MIDDLE: Description Text */}
-        <p className={`text-slate-700 dark:text-slate-300 text-sm font-bold leading-relaxed mb-8 line-clamp-3 select-none multilingual-text transition-all duration-300 ${isProtected ? 'blur-sm opacity-40' : ''}`} dir="auto">
+        <p className={`text-slate-600 dark:text-slate-400 text-[11px] sm:text-xs font-bold leading-relaxed mb-4 sm:mb-6 line-clamp-3 select-none multilingual-text transition-all duration-300 ${isProtected ? 'blur-sm opacity-40' : ''}`} dir="auto">
           {isProtected ? "This startup vision is currently set to private. The full pitch, business model, and problem statement are protected by the founder." : idea.description}
         </p>
 
         {/* BOTTOM STATS SECTION */}
-        <div className={`mt-auto pt-6 border-t border-slate-100 dark:border-slate-800 grid grid-cols-2 gap-4 text-center transition-all duration-300 ${isProtected ? 'opacity-50 grayscale blur-[0.5px]' : ''}`} id={`card-stats-${idea.id}`}>
-          <div className={`flex flex-col justify-center bg-slate-50 dark:bg-slate-800/80 p-3 rounded-2xl border border-slate-200 dark:border-slate-700 shadow-sm transition-colors ${isProtected ? '' : 'group-hover:bg-white dark:group-hover:bg-slate-800'}`}>
-            <span className="block text-[8px] font-black font-mono uppercase tracking-widest text-slate-500 dark:text-slate-400 mb-1">Views</span>
-            <div className="flex items-center justify-center space-x-1.5">
-              <Eye className="h-3.5 w-3.5 text-blue-600 dark:text-blue-400" />
+        <div className={`mt-auto pt-4 border-t border-slate-100 dark:border-slate-800 grid grid-cols-2 gap-2 sm:gap-3 text-center transition-all duration-300 ${isProtected ? 'opacity-50 grayscale blur-[0.5px]' : ''}`} id={`card-stats-container-${idea.id}`}>
+          <div className={`flex flex-col justify-center bg-slate-50 dark:bg-slate-800/80 p-2 rounded-lg sm:rounded-xl border border-slate-200 dark:border-slate-700 shadow-sm transition-colors ${isProtected ? '' : 'group-hover:bg-white dark:group-hover:bg-slate-800'}`}>
+            <span className="block text-[7px] font-black font-mono uppercase tracking-widest text-slate-500 dark:text-slate-400 mb-0.5">Views</span>
+            <div className="flex items-center justify-center space-x-1">
+              <Eye className="h-3 w-3 text-blue-600 dark:text-blue-400" />
               <motion.span 
                 key={idea.viewsCount}
-                initial={{ opacity: 0, y: -5 }}
-                animate={{ opacity: 1, y: 0 }}
-                className="inline-block text-[10px] font-black text-blue-700 dark:text-blue-400 uppercase tracking-tight truncate"
+                className="inline-block text-[9px] font-black text-blue-700 dark:text-blue-400 uppercase tracking-tight truncate"
               >
                 {(idea.viewsCount || 0).toLocaleString()}
               </motion.span>
             </div>
           </div>
 
-          <div className={`flex flex-col justify-center bg-slate-50 dark:bg-slate-800/80 p-3 rounded-2xl border border-slate-200 dark:border-slate-700 shadow-sm transition-colors ${isProtected ? '' : 'group-hover:bg-white dark:group-hover:bg-slate-800'}`}>
-            <span className="block text-[8px] font-black font-mono uppercase tracking-widest text-slate-500 dark:text-slate-400 mb-1">Peer Upvotes</span>
+          <div className={`flex flex-col justify-center bg-slate-50 dark:bg-slate-800/80 p-2 rounded-lg sm:rounded-xl border border-slate-200 dark:border-slate-700 shadow-sm transition-colors ${isProtected ? '' : 'group-hover:bg-white dark:group-hover:bg-slate-800'}`}>
+            <span className="block text-[7px] font-black font-mono uppercase tracking-widest text-slate-500 dark:text-slate-400 mb-0.5">Upvotes</span>
             <button
               onClick={(e) => {
                 if (isProtected) return;
                 e.stopPropagation();
                 onLikeClick();
               }}
-              className={`mx-auto flex items-center justify-center space-x-1.5 text-xs font-black border-0 bg-transparent transition-all duration-150 ${
-                isProtected ? 'cursor-not-allowed' : 'cursor-pointer hover:scale-110 active:scale-95'
+              className={`mx-auto flex items-center justify-center space-x-1 text-[10px] font-black border-0 bg-transparent transition-all duration-150 ${
+                isProtected ? 'cursor-not-allowed' : 'cursor-pointer hover:scale-105 active:scale-95'
               } ${
                 isLikedByUser ? 'text-red-600' : 'text-slate-500 hover:text-red-600'
               }`}
-              id={`like-card-btn-${idea.id}`}
             >
-              <Heart className={`h-4 w-4 shrink-0 ${isLikedByUser ? 'fill-current' : ''}`} />
+              <Heart className={`h-3 w-3 shrink-0 ${isLikedByUser ? 'fill-current' : ''}`} />
               <motion.span 
                 key={idea.likes}
-                initial={{ scale: 0.8 }}
-                animate={{ scale: 1 }}
-                 className={`text-[10px] font-black ${isLikedByUser ? 'text-red-600' : 'text-slate-800 dark:text-slate-200'}`}
+                 className={`text-[9px] font-black ${isLikedByUser ? 'text-red-600' : 'text-slate-800 dark:text-slate-200'}`}
                >
                  {(idea.likes || 0).toLocaleString()}
                </motion.span>

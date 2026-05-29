@@ -81,53 +81,45 @@ export default function Header({
     <header 
       className={`sticky top-0 z-50 transition-all duration-300 ${
         isScrolled 
-          ? 'py-1.5 bg-white dark:bg-slate-950 border-b-2 border-slate-200 dark:border-slate-800 shadow-md' 
-          : 'py-2 bg-white/50 dark:bg-slate-950/50 backdrop-blur-sm'
+          ? 'py-2 bg-white/95 dark:bg-slate-950/95 border-b border-slate-200 dark:border-slate-800 shadow-sm backdrop-blur-md' 
+          : 'py-3 bg-white/50 dark:bg-slate-950/50 backdrop-blur-sm'
       }`}
     >
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex items-center justify-between gap-4 sm:gap-8">
+        <div className="flex items-center justify-between h-14">
           
           {/* LOGO & THEME TOGGLE */}
-          <div className="flex items-center space-x-4 sm:space-x-6">
+          <div className="flex items-center space-x-4">
             <div 
               onClick={onExploreClick}
-              className="flex items-center cursor-pointer group shrink-0 select-none relative"
+              className="flex items-center cursor-pointer group shrink-0 select-none"
             >
-              <div className="flex items-center space-x-3 transition-all duration-500 ease-out group-hover:scale-[1.02] group-active:scale-95">
-                <div className="w-10 h-10 sm:w-11 sm:h-11 bg-gradient-to-br from-blue-600 via-indigo-600 to-purple-600 rounded-2xl flex items-center justify-center shadow-xl shadow-blue-500/10 border-2 border-white/20 relative overflow-hidden">
-                  <div className="absolute inset-0 bg-white/10 opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
-                  <Rocket className="h-6 w-6 text-white transform rotate-45 group-hover:translate-x-0.5 group-hover:-translate-y-0.5 transition-transform duration-500" />
+              <div className="flex items-center space-x-2.5 transition-all duration-300 group-hover:scale-[1.01] active:scale-95">
+                <div className="w-9 h-9 bg-gradient-to-br from-blue-600 to-indigo-600 rounded-xl flex items-center justify-center shadow-md border border-white/20">
+                  <Rocket className="h-5 w-5 text-white transform rotate-45" />
                 </div>
-                <div className="flex items-baseline tracking-tighter">
-                  <span className="text-xl sm:text-2xl font-black text-slate-950 dark:text-white">Vision</span>
-                  <span className="text-xl sm:text-2xl font-black bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent">Board</span>
+                <div className="flex items-baseline tracking-tight">
+                  <span className="text-lg font-black text-slate-950 dark:text-white">Vision</span>
+                  <span className="text-lg font-black bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent">Board</span>
                 </div>
-                {/* Premium Glow Effect on Hover */}
-                <div className="absolute -inset-2 bg-blue-600/0 group-hover:bg-blue-600/5 rounded-full transition-all duration-500 -z-10" />
               </div>
             </div>
 
-            {/* Theme Toggle beside Logo */}
+            <div className="h-5 w-px bg-slate-200 dark:bg-slate-800 mx-1" />
+
             <button
               onClick={toggleTheme}
-              className="p-2.5 sm:p-3 rounded-2xl bg-white dark:bg-slate-900 text-slate-700 dark:text-slate-300 hover:text-blue-700 dark:hover:text-blue-400 transition-all cursor-pointer border-2 border-slate-200 dark:border-slate-800 hover:border-blue-600/30 shadow-sm shrink-0"
+              className="p-2 rounded-xl bg-slate-100 dark:bg-slate-900 text-slate-600 dark:text-slate-400 hover:text-blue-600 transition-all border border-transparent hover:border-blue-600/20"
               aria-label="Toggle theme"
             >
-              {theme === 'dark' ? <Sun className="h-4 sm:h-4.5 w-4 sm:w-4.5" /> : <Moon className="h-4 sm:h-4.5 w-4 sm:w-4.5" />}
+              {theme === 'dark' ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
             </button>
           </div>
 
           {/* RIGHT ACTIONS */}
-          <div className="flex items-center">
-            {/* Mobile Menu Toggle */}
-            <button
-              onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-              className="p-3 rounded-2xl bg-white dark:bg-slate-900 text-slate-700 dark:text-slate-300 border-2 border-slate-200 dark:border-slate-800 transition-all cursor-pointer shadow-sm"
-            >
-              {isMobileMenuOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
-            </button>
-          </div>
+            {/* RIGHT ACTIONS REMOVED BY USER REQUEST */}
+            <div className="flex items-center">
+            </div>
         </div>
       </div>
 
