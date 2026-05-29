@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import Header from './components/Header';
 import CategoryFilters from './components/CategoryFilters';
 import IdeaCard from './components/IdeaCard';
@@ -13,7 +13,7 @@ import { getLocalStorageState, saveLocalStorageState, DEFAULT_PROFILE, safeParse
 import { StartupIdea, FounderProfile, CollaborationRequest, FundingRequest, Suggestion, RequestStatus } from './types';
 import { Star, Sparkles, Send, Flame, Lightbulb, Users, Globe, ExternalLink, Search } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { supabase } from './supabase';
+import { supabase, isSupabaseConfigured } from './supabase';
 
 // Global flag to prevent multiple auth attempts in StrictMode or rapid re-renders
 let hasAttemptedAuth = false;
@@ -46,6 +46,20 @@ export default function App() {
     const handleAuth = async () => {
       if (hasAttemptedAuth) return;
       hasAttemptedAuth = true;
+
+      if (!isSupabaseConfigured) {
+        console.debug('Supabase not configured. Using local guest mode.');
+        // Clean up any stale Supabase sessions from localStorage to prevent 403 errors
+        for (let i = 0; i < localStorage.length; i++) {
+          const key = localStorage.key(i);
+          if (key && (key.includes('supabase.auth.token') || key.startsWith('sb-'))) {
+            localStorage.removeItem(key);
+          }
+        }
+        const guestId = '00000000-0000-0000-0000-000000000000'; 
+        setCurrentUser({ ...DEFAULT_PROFILE, id: guestId });
+        return;
+      }
 
       try {
         // 1. Get current session or sign in anonymously
@@ -177,15 +191,18 @@ export default function App() {
 
     handleAuth();
 
-    // Listen for auth changes
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
-      setSession(session);
-    });
+    if (isSupabaseConfigured) {
+      // Listen for auth changes
+      const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+        setSession(session);
+      });
 
-    return () => subscription.unsubscribe();
+      return () => subscription.unsubscribe();
+    }
   }, []);
 
   const fetchProfile = async (userId: string) => {
+    if (!isSupabaseConfigured) return;
     const { data, error } = await supabase
       .from('profiles')
       .select('*')
@@ -280,6 +297,11 @@ export default function App() {
   // Simulation of initial data fetch
   useEffect(() => {
     const loadData = async () => {
+      if (!isSupabaseConfigured) {
+        // Already loaded from local storage in state initialization
+        setIsLoading(false);
+        return;
+      }
       try {
         // Fetch ideas
         const { data: ideas, error: ideasError } = await supabase
@@ -424,29 +446,31 @@ export default function App() {
       setIsLoading(false);
     }
 
-    // Set up realtime listeners (scoped to visible data)
-    const ideasChannel = supabase.channel('public:ideas')
-      .on('postgres_changes', { event: '*', schema: 'public', table: 'ideas' }, () => loadData())
-      .subscribe();
+    if (isSupabaseConfigured) {
+      // Set up realtime listeners (scoped to visible data)
+      const ideasChannel = supabase.channel('public:ideas')
+        .on('postgres_changes', { event: '*', schema: 'public', table: 'ideas' }, () => loadData())
+        .subscribe();
 
-    const collabsChannel = supabase.channel('public:collaboration_requests')
-      .on('postgres_changes', { event: '*', schema: 'public', table: 'collaboration_requests' }, () => loadData())
-      .subscribe();
+      const collabsChannel = supabase.channel('public:collaboration_requests')
+        .on('postgres_changes', { event: '*', schema: 'public', table: 'collaboration_requests' }, () => loadData())
+        .subscribe();
 
-    const fundingChannel = supabase.channel('public:funding_requests')
-      .on('postgres_changes', { event: '*', schema: 'public', table: 'funding_requests' }, () => loadData())
-      .subscribe();
+      const fundingChannel = supabase.channel('public:funding_requests')
+        .on('postgres_changes', { event: '*', schema: 'public', table: 'funding_requests' }, () => loadData())
+        .subscribe();
 
-    const suggestionsChannel = supabase.channel('public:suggestions')
-      .on('postgres_changes', { event: '*', schema: 'public', table: 'suggestions' }, () => loadData())
-      .subscribe();
+      const suggestionsChannel = supabase.channel('public:suggestions')
+        .on('postgres_changes', { event: '*', schema: 'public', table: 'suggestions' }, () => loadData())
+        .subscribe();
 
-    return () => {
-      supabase.removeChannel(ideasChannel);
-      supabase.removeChannel(collabsChannel);
-      supabase.removeChannel(fundingChannel);
-      supabase.removeChannel(suggestionsChannel);
-    };
+      return () => {
+        supabase.removeChannel(ideasChannel);
+        supabase.removeChannel(collabsChannel);
+        supabase.removeChannel(fundingChannel);
+        supabase.removeChannel(suggestionsChannel);
+      };
+    }
   }, [currentUser]);
 
   // Sync state changes to global LocalStorage
@@ -473,30 +497,32 @@ export default function App() {
   const handleProfileUpdate = async (updated: FounderProfile) => {
     if (!currentUser) return;
 
-    const { error } = await supabase
-      .from('profiles')
-      .update({
-        name: updated.name,
-        email: updated.email,
-        bio: updated.bio,
-        building_desc: updated.buildingDesc,
-        skills: updated.skills,
-        avatar_url: updated.avatar,
-        github_url: updated.githubUrl,
-        twitter_url: updated.twitterUrl,
-        linkedin_url: updated.linkedinUrl,
-        instagram_url: updated.instagramUrl,
-        facebook_url: updated.facebookUrl,
-        experience: updated.experience,
-        startup_interests: updated.startupInterests,
-        profession: updated.profession
-      })
-      .eq('id', currentUser.id);
+    if (isSupabaseConfigured) {
+      const { error } = await supabase
+        .from('profiles')
+        .update({
+          name: updated.name,
+          email: updated.email,
+          bio: updated.bio,
+          building_desc: updated.buildingDesc,
+          skills: updated.skills,
+          avatar_url: updated.avatar,
+          github_url: updated.githubUrl,
+          twitter_url: updated.twitterUrl,
+          linkedin_url: updated.linkedinUrl,
+          instagram_url: updated.instagramUrl,
+          facebook_url: updated.facebookUrl,
+          experience: updated.experience,
+          startup_interests: updated.startupInterests,
+          profession: updated.profession
+        })
+        .eq('id', currentUser.id);
 
-    if (error) {
-      console.error('Error updating profile in Supabase:', error);
-      showToast('Failed to sync profile update to database.');
-      return;
+      if (error) {
+        console.error('Error updating profile in Supabase:', error);
+        showToast('Failed to sync profile update to database.');
+        return;
+      }
     }
 
     setCurrentUser(updated);
@@ -525,33 +551,37 @@ export default function App() {
     }
 
     // 2. Fetch from Supabase
-    const { data, error } = await supabase
-      .from('profiles')
-      .select('*')
-      .eq('id', founderId)
-      .single();
+    if (isSupabaseConfigured) {
+      const { data, error } = await supabase
+        .from('profiles')
+        .select('*')
+        .eq('id', founderId)
+        .single();
 
-    if (!error && data) {
-      const profile: FounderProfile = {
-        id: data.id,
-        name: data.name,
-        email: data.email,
-        bio: data.bio,
-        buildingDesc: data.building_desc,
-        profession: data.profession,
-        skills: data.skills || [],
-        avatar: data.avatar_url,
-        githubUrl: data.github_url,
-        twitterUrl: data.twitter_url,
-        linkedinUrl: data.linkedin_url,
-        instagramUrl: data.instagram_url,
-        facebookUrl: data.facebook_url,
-        experience: data.experience,
-        startupInterests: data.startup_interests || []
-      };
-      setSelectedPublicProfile(profile);
-    } else {
-      // Fallback: look in local state ideas if fetch fails (e.g. offline/mock)
+      if (!error && data) {
+        const profile: FounderProfile = {
+          id: data.id,
+          name: data.name,
+          email: data.email,
+          bio: data.bio,
+          buildingDesc: data.building_desc,
+          profession: data.profession,
+          skills: data.skills || [],
+          avatar: data.avatar_url,
+          githubUrl: data.github_url,
+          twitterUrl: data.twitter_url,
+          linkedinUrl: data.linkedin_url,
+          instagramUrl: data.instagram_url,
+          facebookUrl: data.facebook_url,
+          experience: data.experience,
+          startupInterests: data.startup_interests || []
+        };
+        setSelectedPublicProfile(profile);
+        return;
+      }
+    }
+
+    // Fallback: look in local state ideas if fetch fails (e.g. offline/mock)
       const ideaWithFounder = state.ideas.find(i => i.founderId === founderId);
       if (ideaWithFounder) {
         setSelectedPublicProfile({
@@ -565,7 +595,6 @@ export default function App() {
       } else {
         showToast('Could not load founder profile.');
       }
-    }
   };
 
   // Add startup idea handler
@@ -604,15 +633,17 @@ export default function App() {
     };
 
     if (ideaToEdit) {
-      const { error } = await supabase
-        .from('ideas')
-        .update(payload)
-        .eq('id', ideaToEdit.id);
+      if (isSupabaseConfigured) {
+        const { error } = await supabase
+          .from('ideas')
+          .update(payload)
+          .eq('id', ideaToEdit.id);
 
-      if (error) {
-        console.error('Error updating idea:', error);
-        showToast('Failed to save changes to database.');
-        return;
+        if (error) {
+          console.error('Error updating idea:', error);
+          showToast('Failed to save changes to database.');
+          return;
+        }
       }
 
       setState(prev => {
@@ -636,14 +667,25 @@ export default function App() {
       return;
     }
 
-    const { data, error } = await supabase
-      .from('ideas')
-      .insert([payload])
-      .select()
-      .single();
+    let ideaId = `sim-${Math.random().toString(36).substr(2, 9)}`;
+
+    if (isSupabaseConfigured) {
+      const { data, error } = await supabase
+        .from('ideas')
+        .insert([payload])
+        .select()
+        .single();
+
+      if (error) {
+        console.error('Error adding idea to Supabase:', error);
+        showToast('Failed to save idea to database.');
+        return;
+      }
+      if (data) ideaId = data.id;
+    }
 
     const newIdeaObj: StartupIdea = {
-      id: data?.id || `sim-${Math.random().toString(36).substr(2, 9)}`,
+      id: ideaId,
       name: payload.name,
       logo: payload.logo,
       banner: payload.banner,
@@ -666,8 +708,8 @@ export default function App() {
       seeking_collaboration: payload.seeking_collaboration,
       seeking_funding: payload.seeking_funding,
       isPublic: payload.is_public,
-      visibility: payload.visibility,
-      status: payload.status,
+      visibility: payload.visibility as 'public' | 'private',
+      status: payload.status as 'draft' | 'published',
       createdAt: payload.created_at
     };
 
@@ -677,11 +719,10 @@ export default function App() {
       ideas: [newIdeaObj, ...prev.ideas]
     }));
 
-    if (error) {
-      console.warn('Database sync failed, keeping in local simulation mode:', error);
-      showToast(`Published “${newIdeaObj.name}” (Local Simulation)`);
-    } else {
+    if (isSupabaseConfigured) {
       showToast(`Published “${newIdeaObj.name}” to the global database!`);
+    } else {
+      showToast(`Published “${newIdeaObj.name}” (Local Simulation)`);
     }
 
     // Auto-like the new project
@@ -690,15 +731,17 @@ export default function App() {
 
   // Deletion helper for owners
   const handleDeleteIdea = async (id: string) => {
-    const { error } = await supabase
-      .from('ideas')
-      .delete()
-      .eq('id', id);
+    if (isSupabaseConfigured) {
+      const { error } = await supabase
+        .from('ideas')
+        .delete()
+        .eq('id', id);
 
-    if (error) {
-      console.error('Error deleting idea:', error);
-      showToast('Failed to delete idea.');
-      return;
+      if (error) {
+        console.error('Error deleting idea:', error);
+        showToast('Failed to delete idea.');
+        return;
+      }
     }
 
     setState(prev => ({
@@ -716,18 +759,20 @@ export default function App() {
     const newVisibility: 'public' | 'private' = idea.visibility === 'public' ? 'private' : 'public';
     const newIsPublic = newVisibility === 'public';
 
-    const { error } = await supabase
-      .from('ideas')
-      .update({ 
-        visibility: newVisibility,
-        is_public: newIsPublic
-      })
-      .eq('id', id);
+    if (isSupabaseConfigured) {
+      const { error } = await supabase
+        .from('ideas')
+        .update({ 
+          visibility: newVisibility,
+          is_public: newIsPublic
+        })
+        .eq('id', id);
 
-    if (error) {
-      console.error('Error toggling visibility:', error);
-      showToast('Failed to update visibility.');
-      return;
+      if (error) {
+        console.error('Error toggling visibility:', error);
+        showToast('Failed to update visibility.');
+        return;
+      }
     }
 
     setState(prev => ({
@@ -774,30 +819,34 @@ export default function App() {
 
     if (isLiked) {
       // Unlike: Remove from idea_upvotes table
-      const { error } = await supabase
-        .from('idea_upvotes')
-        .delete()
-        .match({ voter_id: voterId, idea_id: ideaId });
+      if (isSupabaseConfigured) {
+        const { error } = await supabase
+          .from('idea_upvotes')
+          .delete()
+          .match({ voter_id: voterId, idea_id: ideaId });
 
-      if (error) {
-        console.error('Error removing upvote:', error);
-        setLikedIdeaIds(likedIdeaIds); // Revert on error
-        showToast('Failed to remove upvote.');
-        return;
+        if (error) {
+          console.error('Error removing upvote:', error);
+          setLikedIdeaIds(likedIdeaIds); // Revert on error
+          showToast('Failed to remove upvote.');
+          return;
+        }
       }
     } else {
       // Like: Add to idea_upvotes table
-      const { error } = await supabase
-        .from('idea_upvotes')
-        .insert([{ voter_id: voterId, idea_id: ideaId }]);
+      if (isSupabaseConfigured) {
+        const { error } = await supabase
+          .from('idea_upvotes')
+          .insert([{ voter_id: voterId, idea_id: ideaId }]);
 
-      if (error) {
-        // If it's a unique constraint error, the user already liked it
-        if (error.code !== '23505') {
-          console.error('Error adding upvote:', error);
-          setLikedIdeaIds(likedIdeaIds); // Revert on error
-          showToast('Failed to add upvote.');
-          return;
+        if (error) {
+          // If it's a unique constraint error, the user already liked it
+          if (error.code !== '23505') {
+            console.error('Error adding upvote:', error);
+            setLikedIdeaIds(likedIdeaIds); // Revert on error
+            showToast('Failed to add upvote.');
+            return;
+          }
         }
       }
     }
@@ -815,24 +864,33 @@ export default function App() {
       created_at: new Date().toISOString()
     };
 
-    const { data, error } = await supabase
-      .from('suggestions')
-      .insert([payload])
-      .select()
-      .single();
+    let suggestionId = `sim-s-${Math.random().toString(36).substr(2, 9)}`;
+    let suggestionCreatedAt = payload.created_at;
 
-    if (error) {
-      console.error('Error adding suggestion:', error);
-      showToast('Failed to post suggestion.');
-      return;
+    if (isSupabaseConfigured) {
+      const { data, error } = await supabase
+        .from('suggestions')
+        .insert([payload])
+        .select()
+        .single();
+
+      if (error) {
+        console.error('Error adding suggestion:', error);
+        showToast('Failed to post suggestion.');
+        return;
+      }
+      if (data) {
+        suggestionId = data.id;
+        suggestionCreatedAt = data.created_at;
+      }
     }
 
     const brandSuggestion: Suggestion = {
-      id: data.id,
-      ideaId: data.idea_id,
-      founderId: data.founder_id,
-      content: data.suggestion_text,
-      createdAt: data.created_at,
+      id: suggestionId,
+      ideaId: payload.idea_id,
+      founderId: payload.founder_id,
+      content: payload.suggestion_text,
+      createdAt: suggestionCreatedAt,
       authorName: currentUser ? currentUser.name : (guestName || 'Anonymous Founder'),
       authorAvatar: currentUser ? currentUser.avatar : 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?auto=format&fit=crop&q=80&w=80',
       ideaName: selectedIdea.name
@@ -878,30 +936,41 @@ export default function App() {
         created_at: new Date().toISOString()
       };
 
-      const { data, error } = await supabase
-        .from('collaboration_requests')
-        .insert([colPayload])
-        .select()
-        .single();
+      let colRequestId = `sim-c-${Math.random().toString(36).substr(2, 9)}`;
+      let colRequestCreatedAt = colPayload.created_at;
+      let colRequestStatus = colPayload.status as RequestStatus;
 
-      if (error) {
-        console.error('Error sending collaboration request:', error);
-        showToast('Failed to send request to database.');
-        return;
+      if (isSupabaseConfigured) {
+        const { data, error } = await supabase
+          .from('collaboration_requests')
+          .insert([colPayload])
+          .select()
+          .single();
+
+        if (error) {
+          console.error('Error sending collaboration request:', error);
+          showToast('Failed to send request to database.');
+          return;
+        }
+        if (data) {
+          colRequestId = data.id;
+          colRequestCreatedAt = data.created_at;
+          colRequestStatus = data.status as RequestStatus;
+        }
       }
 
       const colRequest: CollaborationRequest = {
-        id: data.id,
-        ideaId: data.idea_id,
-        ideaName: data.idea_name,
-        founderId: data.founder_id,
-        name: data.full_name,
-        email: data.email,
-        phone: data.phone,
+        id: colRequestId,
+        ideaId: colPayload.idea_id,
+        ideaName: colPayload.idea_name,
+        founderId: colPayload.founder_id,
+        name: colPayload.full_name,
+        email: colPayload.email,
+        phone: colPayload.phone,
         role: formData.role || 'Partner',
-        message: data.about,
-        status: data.status as RequestStatus,
-        createdAt: data.created_at
+        message: colPayload.about,
+        status: colRequestStatus,
+        createdAt: colRequestCreatedAt
       };
 
       setState(prev => ({
@@ -929,30 +998,41 @@ export default function App() {
         created_at: new Date().toISOString()
       };
 
-      const { data, error } = await supabase
-        .from('funding_requests')
-        .insert([fundPayload])
-        .select()
-        .single();
+      let fundRequestId = `sim-f-${Math.random().toString(36).substr(2, 9)}`;
+      let fundRequestCreatedAt = fundPayload.created_at;
+      let fundRequestStatus = fundPayload.status as RequestStatus;
 
-      if (error) {
-        console.error('Error sending funding request:', error);
-        showToast('Failed to send request to database.');
-        return;
+      if (isSupabaseConfigured) {
+        const { data, error } = await supabase
+          .from('funding_requests')
+          .insert([fundPayload])
+          .select()
+          .single();
+
+        if (error) {
+          console.error('Error sending funding request:', error);
+          showToast('Failed to send request to database.');
+          return;
+        }
+        if (data) {
+          fundRequestId = data.id;
+          fundRequestCreatedAt = data.created_at;
+          fundRequestStatus = data.status as RequestStatus;
+        }
       }
 
       const fundRequest: FundingRequest = {
-        id: data.id,
-        ideaId: data.idea_id,
-        ideaName: data.idea_name,
-        founderId: data.founder_id,
-        name: data.full_name,
-        email: data.email,
-        phone: data.phone,
+        id: fundRequestId,
+        ideaId: fundPayload.idea_id,
+        ideaName: fundPayload.idea_name,
+        founderId: fundPayload.founder_id,
+        name: fundPayload.full_name,
+        email: fundPayload.email,
+        phone: fundPayload.phone,
         investmentAmount: formData.investmentAmount || 'Not specified',
-        message: data.about,
-        status: data.status as RequestStatus,
-        createdAt: data.created_at
+        message: fundPayload.about,
+        status: fundRequestStatus,
+        createdAt: fundRequestCreatedAt
       };
 
       setState(prev => ({
@@ -975,15 +1055,17 @@ export default function App() {
   const handleUpdateRequestStatus = async (type: 'collaboration' | 'funding', id: string, status: RequestStatus) => {
     const table = type === 'collaboration' ? 'collaboration_requests' : 'funding_requests';
     
-    const { error } = await supabase
-      .from(table)
-      .update({ status })
-      .eq('id', id);
+    if (isSupabaseConfigured) {
+      const { error } = await supabase
+        .from(table)
+        .update({ status })
+        .eq('id', id);
 
-    if (error) {
-      console.error('Error updating status:', error);
-      showToast('Failed to update request status.');
-      return;
+      if (error) {
+        console.error('Error updating status:', error);
+        showToast('Failed to update request status.');
+        return;
+      }
     }
 
     if (type === 'collaboration') {
@@ -1001,68 +1083,99 @@ export default function App() {
   };
 
   // Filter ideas logic: query search, category pills & timeFilter
-  const filteredPublicIdeas = state.ideas.filter(idea => {
-    // Show ideas if they are public OR private (but protected)
-    const isVisibleOnFeed = idea.isPublic || idea.visibility === 'private';
-    if (!isVisibleOnFeed || idea.status !== 'published') return false;
-    
-    const matchesSearch = 
-      (idea.name?.toLowerCase() || '').includes(searchQuery.toLowerCase()) ||
-      (idea.description?.toLowerCase() || '').includes(searchQuery.toLowerCase()) ||
-      (idea.category?.toLowerCase() || '').includes(searchQuery.toLowerCase()) ||
-      (idea.problemSolved?.toLowerCase() || '').includes(searchQuery.toLowerCase()) ||
-      (idea.targetAudience?.toLowerCase() || '').includes(searchQuery.toLowerCase());
+  const filteredPublicIdeas = useMemo(() => {
+    return state.ideas.filter(idea => {
+      // Show ideas if they are public OR private (but protected)
+      const isVisibleOnFeed = idea.isPublic || (idea as any).is_public || idea.visibility === 'public' || idea.visibility === 'private';
+      if (!isVisibleOnFeed || idea.status !== 'published') return false;
+      
+      const matchesSearch = 
+        (idea.name?.toLowerCase() || '').includes(searchQuery.toLowerCase()) ||
+        (idea.description?.toLowerCase() || '').includes(searchQuery.toLowerCase()) ||
+        (idea.category?.toLowerCase() || '').includes(searchQuery.toLowerCase()) ||
+        (idea.problemSolved?.toLowerCase() || '').includes(searchQuery.toLowerCase()) ||
+        (idea.targetAudience?.toLowerCase() || '').includes(searchQuery.toLowerCase());
 
-    const matchesCategory = selectedCategory ? (idea.category === selectedCategory) : true;
+      const matchesCategory = selectedCategory ? (idea.category === selectedCategory) : true;
 
-    // Filter by date intervals
-    const createdAt = idea.createdAt || (idea as any).created_at;
-    const ideaTime = createdAt ? new Date(createdAt).getTime() : 0;
-    const now = Date.now();
-    let matchesTime = true;
-    if (timeFilter === 'day') {
-      // Within last 24 hours
-      matchesTime = now - ideaTime <= 24 * 60 * 60 * 1000;
-    } else if (timeFilter === 'week1') {
-      matchesTime = now - ideaTime <= 7 * 24 * 60 * 60 * 1000;
-    } else if (timeFilter === 'week2') {
-      matchesTime = now - ideaTime <= 14 * 24 * 60 * 60 * 1000;
-    } else if (timeFilter === 'week3') {
-      matchesTime = now - ideaTime <= 21 * 24 * 60 * 60 * 1000;
-    } else if (timeFilter === 'month1') {
-      matchesTime = now - ideaTime <= 30 * 24 * 60 * 60 * 1000;
-    } else if (timeFilter === 'month2') {
-      matchesTime = now - ideaTime <= 60 * 24 * 60 * 60 * 1000;
-    } else if (timeFilter === 'month3') {
-      matchesTime = now - ideaTime <= 90 * 24 * 60 * 60 * 1000;
-    }
+      // Filter by date intervals
+      const createdAt = idea.createdAt || (idea as any).created_at;
+      const ideaTime = createdAt ? new Date(createdAt).getTime() : 0;
+      const now = new Date().getTime();
+      let matchesTime = true;
+      
+      if (timeFilter === 'day') {
+        // Within last 24 hours
+        const oneDay = 24 * 60 * 60 * 1000;
+        matchesTime = now - ideaTime <= oneDay;
+      } else if (timeFilter === 'week1') {
+        matchesTime = now - ideaTime <= 7 * 24 * 60 * 60 * 1000;
+      } else if (timeFilter === 'week2') {
+        matchesTime = now - ideaTime <= 14 * 24 * 60 * 60 * 1000;
+      } else if (timeFilter === 'week3') {
+        matchesTime = now - ideaTime <= 21 * 24 * 60 * 60 * 1000;
+      } else if (timeFilter === 'month1') {
+        matchesTime = now - ideaTime <= 30 * 24 * 60 * 60 * 1000;
+      } else if (timeFilter === 'month2') {
+        matchesTime = now - ideaTime <= 60 * 24 * 60 * 60 * 1000;
+      } else if (timeFilter === 'month3') {
+        matchesTime = now - ideaTime <= 90 * 24 * 60 * 60 * 1000;
+      } else if (timeFilter === 'all') {
+        matchesTime = true;
+      }
 
-    // Safety check for future dates (should not happen normally but good for simulation)
-    if (ideaTime > now + 60000) { // 1 minute buffer
-      matchesTime = true; // Show newly added ideas even if clock is slightly off
-    }
+      // Safety check for future dates or newly added ideas (allow 5 min future buffer)
+      if (ideaTime > now - 300000 && ideaTime < now + 300000) {
+        matchesTime = true;
+      }
 
-    return matchesSearch && matchesCategory && matchesTime;
-  });
+      return matchesSearch && matchesCategory && matchesTime;
+    });
+  }, [state.ideas, searchQuery, selectedCategory, timeFilter]);
 
   // Calculate global stats (unfiltered by search/category/time, but filtered by public status)
-  const totalPublicIdeasCount = state.ideas.filter(idea => 
-    (idea.isPublic === true || (idea as any).is_public === true || idea.visibility === 'private') && 
-    (idea.status === 'published' || !idea.status)
-  ).length;
+  // This represents the real total ideas in the database
+  const totalPublicIdeasCount = useMemo(() => {
+    return state.ideas.filter(idea => 
+      (idea.isPublic || (idea as any).is_public || idea.visibility === 'public' || idea.visibility === 'private') && 
+      (idea.status === 'published' || !idea.status)
+    ).length;
+  }, [state.ideas]);
+
+  // Calculate dynamic category counts for all public ideas
+  const categoryCounts = useMemo(() => {
+    return state.ideas.reduce((acc, idea) => {
+      if ((idea.isPublic || (idea as any).is_public || idea.visibility === 'public' || idea.visibility === 'private') && 
+          (idea.status === 'published' || !idea.status)) {
+        const cat = idea.category || 'Other';
+        acc[cat] = (acc[cat] || 0) + 1;
+      }
+      return acc;
+    }, {} as Record<string, number>);
+  }, [state.ideas]);
 
   // Segregate filtered lists into TrustMRR structured grid blocks
   // 1. Trending: Sorted by upvotes & collaborations count
-  const trendingIdeas = [...filteredPublicIdeas]
-    .sort((a, b) => (b.likes + b.collaborationCount * 2) - (a.likes + a.collaborationCount * 2));
+  const trendingIdeas = useMemo(() => {
+    return [...filteredPublicIdeas]
+      .sort((a, b) => (b.likes + b.collaborationCount * 2) - (a.likes + a.collaborationCount * 2));
+  }, [filteredPublicIdeas]);
 
   // 2. Weekly Best: Ideas with scale stage, high interest rate
-  const weeklyBestIdeas = [...filteredPublicIdeas]
-    .filter(idea => idea.likes > 60 || idea.progressStage === 'SCALE' || idea.progressStage === 'PROTOTYPE');
+  const weeklyBestIdeas = useMemo(() => {
+    return [...filteredPublicIdeas]
+      .filter(idea => idea.likes > 60 || idea.progressStage === 'SCALE' || idea.progressStage === 'PROTOTYPE');
+  }, [filteredPublicIdeas]);
 
   // 3. Recently Listed: Chronologically sorted
-  const recentlyListedIdeas = [...filteredPublicIdeas]
-    .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
+  const recentlyListedIdeas = useMemo(() => {
+    return [...filteredPublicIdeas]
+      .sort((a, b) => {
+        const dateA = new Date(a.createdAt || (a as any).created_at).getTime();
+        const dateB = new Date(b.createdAt || (b as any).created_at).getTime();
+        return dateB - dateA;
+      });
+  }, [filteredPublicIdeas]);
 
   // Active suggestions list addressed to the clicked idea details modal
   const activeSuggestions = state.suggestions.filter(s => selectedIdea && s.ideaId === selectedIdea.id);
@@ -1086,10 +1199,14 @@ export default function App() {
       }
 
       // Record view in DB
-      const { error } = await supabase.rpc('increment_idea_views', { idea_uuid: ideaId });
-      
-      if (error) {
-        console.warn('View tracking sync failed:', error.message);
+      if (isSupabaseConfigured) {
+        const { error } = await supabase.rpc('increment_idea_views', { idea_uuid: ideaId });
+        
+        if (error) {
+          console.warn('View tracking sync failed:', error.message);
+        } else {
+          localStorage.setItem(lastViewedKey, now.toString());
+        }
       } else {
         localStorage.setItem(lastViewedKey, now.toString());
       }
@@ -1111,7 +1228,9 @@ export default function App() {
   };
 
   const handleLogout = async () => {
-    await supabase.auth.signOut();
+    if (isSupabaseConfigured) {
+      await supabase.auth.signOut();
+    }
     setCurrentUser(null);
     setSession(null);
     setLikedIdeaIds([]);
@@ -1243,6 +1362,7 @@ export default function App() {
               <CategoryFilters
                 selectedCategory={selectedCategory}
                 onSelectCategory={setSelectedCategory}
+                categoryCounts={categoryCounts}
               />
             </div>
 

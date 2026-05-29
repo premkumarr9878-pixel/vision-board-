@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { Mail, Lock, User, ArrowRight, Sparkles, Code, Lightbulb, Users, Target, ShieldCheck, AlertCircle, Upload, Rocket } from 'lucide-react';
 import { FounderProfile } from '../types';
-import { supabase } from '../supabase';
+import { supabase, isSupabaseConfigured } from '../supabase';
 
 interface OnboardingViewProps {
   source: 'add-idea' | 'founder-hub' | 'get-started' | null;
@@ -53,6 +53,11 @@ export default function OnboardingView({ source, onComplete, onCancel }: Onboard
     }
 
     if (!isSignUp) {
+      if (!isSupabaseConfigured) {
+        console.info('Supabase not configured. Simulating successful login.');
+        onComplete();
+        return;
+      }
       setIsLoading(true);
       try {
         const { data, error: signInError } = await supabase.auth.signInWithPassword({
@@ -102,6 +107,16 @@ export default function OnboardingView({ source, onComplete, onCancel }: Onboard
     }
 
     setIsLoading(true);
+
+    if (!isSupabaseConfigured) {
+      console.info('Supabase not configured. Simulating successful signup.');
+      setTimeout(() => {
+        onComplete();
+        setIsLoading(false);
+      }, 1000);
+      return;
+    }
+
     try {
       const { data, error: signUpError } = await supabase.auth.signUp({
         email,

@@ -46,7 +46,7 @@ const SocialCard = ({ icon: Icon, label, url, username }: { icon: any, label: st
   );
 };
 
-const IdeaMiniCard = ({ idea, onClick }: { idea: StartupIdea, onClick: (idea: StartupIdea) => void }) => {
+const IdeaMiniCard = ({ idea, onClick }: { idea: StartupIdea, onClick: (idea: StartupIdea) => void, key?: React.Key }) => {
   return (
     <div 
       onClick={() => onClick(idea)}

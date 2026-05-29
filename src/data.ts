@@ -45,6 +45,7 @@ export const INITIAL_IDEAS: StartupIdea[] = [
     founderId: 'founder-1',
     founderName: 'Sarah Jenkins',
     founderAvatar: 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?auto=format&fit=crop&q=80&w=200',
+    viewsCount: 0,
     collaborationCount: 12,
     fundingInterestCount: 8,
     progressStage: 'MVP BUILDING',
@@ -57,7 +58,7 @@ export const INITIAL_IDEAS: StartupIdea[] = [
     isPublic: true,
     visibility: 'public',
     status: 'published',
-    createdAt: '2026-05-18T10:00:00Z'
+    createdAt: new Date().toISOString()
   },
   {
     id: 'idea-2',
@@ -72,6 +73,7 @@ export const INITIAL_IDEAS: StartupIdea[] = [
     founderId: 'founder-2',
     founderName: 'Marcus Vance',
     founderAvatar: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&q=80&w=200',
+    viewsCount: 0,
     collaborationCount: 9,
     fundingInterestCount: 4,
     progressStage: 'PROTOTYPE',
@@ -84,7 +86,7 @@ export const INITIAL_IDEAS: StartupIdea[] = [
     isPublic: true,
     visibility: 'public',
     status: 'published',
-    createdAt: '2026-05-19T08:30:00Z'
+    createdAt: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000).toISOString()
   },
   {
     id: 'idea-3',
@@ -99,6 +101,7 @@ export const INITIAL_IDEAS: StartupIdea[] = [
     founderId: 'founder-3',
     founderName: 'Elena Rostova',
     founderAvatar: 'https://images.unsplash.com/photo-1438761681033-6461ffad8d80?auto=format&fit=crop&q=80&w=200',
+    viewsCount: 0,
     collaborationCount: 15,
     fundingInterestCount: 11,
     progressStage: 'SCALE',
@@ -111,7 +114,7 @@ export const INITIAL_IDEAS: StartupIdea[] = [
     isPublic: true,
     visibility: 'public',
     status: 'published',
-    createdAt: '2026-05-17T12:15:00Z'
+    createdAt: new Date(Date.now() - 5 * 24 * 60 * 60 * 1000).toISOString()
   },
 
   // Recently Added (e.g. Row 2)
@@ -128,6 +131,7 @@ export const INITIAL_IDEAS: StartupIdea[] = [
     founderId: 'founder-4',
     founderName: 'Devon Lee',
     founderAvatar: 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?auto=format&fit=crop&q=80&w=200',
+    viewsCount: 0,
     collaborationCount: 5,
     fundingInterestCount: 2,
     progressStage: 'IDEATION',
@@ -140,7 +144,7 @@ export const INITIAL_IDEAS: StartupIdea[] = [
     isPublic: true,
     visibility: 'public',
     status: 'published',
-    createdAt: '2026-05-20T04:20:00Z'
+    createdAt: new Date(Date.now() - 10 * 24 * 60 * 60 * 1000).toISOString()
   },
   {
     id: 'idea-5',
@@ -155,6 +159,7 @@ export const INITIAL_IDEAS: StartupIdea[] = [
     founderId: 'founder-5',
     founderName: 'Cassandra Cole',
     founderAvatar: 'https://images.unsplash.com/photo-1544005313-94ddf0286df2?auto=format&fit=crop&q=80&w=200',
+    viewsCount: 0,
     collaborationCount: 6,
     fundingInterestCount: 1,
     progressStage: 'MVP BUILDING',
@@ -167,7 +172,7 @@ export const INITIAL_IDEAS: StartupIdea[] = [
     isPublic: true,
     visibility: 'public',
     status: 'published',
-    createdAt: '2026-05-20T11:05:00Z'
+    createdAt: new Date(Date.now() - 18 * 24 * 60 * 60 * 1000).toISOString()
   },
   {
     id: 'idea-6',
@@ -182,6 +187,7 @@ export const INITIAL_IDEAS: StartupIdea[] = [
     founderId: 'founder-6',
     founderName: 'Jordan Wu',
     founderAvatar: 'https://images.unsplash.com/photo-1539571696357-5a69c17a67c6?auto=format&fit=crop&q=80&w=200',
+    viewsCount: 0,
     collaborationCount: 8,
     fundingInterestCount: 3,
     progressStage: 'PROTOTYPE',
@@ -194,7 +200,7 @@ export const INITIAL_IDEAS: StartupIdea[] = [
     isPublic: true,
     visibility: 'public',
     status: 'published',
-    createdAt: '2026-05-20T14:45:00Z'
+    createdAt: new Date(Date.now() - 25 * 24 * 60 * 60 * 1000).toISOString()
   },
 
   // Best Ideas This Week (e.g. Row 3)
@@ -211,6 +217,7 @@ export const INITIAL_IDEAS: StartupIdea[] = [
     founderId: 'founder-7',
     founderName: 'Amara Diop',
     founderAvatar: 'https://images.unsplash.com/photo-1531123897727-8f129e1688ce?auto=format&fit=crop&q=80&w=200',
+    viewsCount: 0,
     collaborationCount: 11,
     fundingInterestCount: 9,
     progressStage: 'MVP BUILDING',
@@ -223,7 +230,7 @@ export const INITIAL_IDEAS: StartupIdea[] = [
     isPublic: true,
     visibility: 'public',
     status: 'published',
-    createdAt: '2026-05-15T09:00:00Z'
+    createdAt: new Date(Date.now() - 40 * 24 * 60 * 60 * 1000).toISOString()
   },
   {
     id: 'idea-8',
@@ -238,6 +245,7 @@ export const INITIAL_IDEAS: StartupIdea[] = [
     founderId: 'founder-8',
     founderName: 'Karim Al-Masri',
     founderAvatar: 'https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?auto=format&fit=crop&q=80&w=200',
+    viewsCount: 0,
     collaborationCount: 14,
     fundingInterestCount: 10,
     progressStage: 'SCALE',
@@ -250,7 +258,7 @@ export const INITIAL_IDEAS: StartupIdea[] = [
     isPublic: true,
     visibility: 'public',
     status: 'published',
-    createdAt: '2026-05-16T13:40:00Z'
+    createdAt: new Date(Date.now() - 70 * 24 * 60 * 60 * 1000).toISOString()
   },
   {
     id: 'idea-9',
@@ -265,6 +273,7 @@ export const INITIAL_IDEAS: StartupIdea[] = [
     founderId: 'founder-9',
     founderName: 'Tariq Patel',
     founderAvatar: 'https://images.unsplash.com/photo-1521119989659-a83eee488004?auto=format&fit=crop&q=80&w=200',
+    viewsCount: 0,
     collaborationCount: 10,
     fundingInterestCount: 7,
     progressStage: 'PROTOTYPE',
@@ -277,7 +286,7 @@ export const INITIAL_IDEAS: StartupIdea[] = [
     isPublic: true,
     visibility: 'public',
     status: 'published',
-    createdAt: '2026-05-16T15:20:00Z'
+    createdAt: new Date(Date.now() - 120 * 24 * 60 * 60 * 1000).toISOString()
   }
 ];
 

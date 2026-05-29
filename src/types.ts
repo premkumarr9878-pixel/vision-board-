@@ -65,6 +65,7 @@ export interface StartupIdea {
   fundingGoal?: string;
   instagramUrl?: string;
   facebookUrl?: string;
+  twitterUrl?: string;
   websiteUrl?: string;
   
   createdAt: string;

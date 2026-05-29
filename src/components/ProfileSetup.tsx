@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { User, Camera, Mail, Rocket, ArrowRight, Github, Twitter, Linkedin, CheckCircle2, Sparkles, Upload, AlertCircle } from 'lucide-react';
 import { FounderProfile } from '../types';
-import { supabase } from '../supabase';
+import { supabase, isSupabaseConfigured } from '../supabase';
 import { motion } from 'framer-motion';
 
 interface ProfileSetupProps {
@@ -52,6 +52,25 @@ export default function ProfileSetup({ profile, onComplete }: ProfileSetupProps)
     try {
       const skillsArray = skills.split(',').map(s => s.trim()).filter(s => s.length > 0);
       
+      if (!isSupabaseConfigured) {
+        console.info('Supabase not configured. Simulating successful profile save.');
+        setTimeout(() => {
+          onComplete({
+            ...profile,
+            name,
+            bio,
+            buildingDesc,
+            avatar,
+            skills: skillsArray,
+            githubUrl: github,
+            twitterUrl: twitter,
+            linkedinUrl: linkedin
+          });
+          setIsLoading(false);
+        }, 1000);
+        return;
+      }
+
       const { error: updateError } = await supabase
         .from('profiles')
         .update({

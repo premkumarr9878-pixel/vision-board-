@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { X, Mail, Lock, AlertCircle, ArrowRight, Upload, User, Rocket, Sparkles } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { supabase } from '../supabase';
+import { supabase, isSupabaseConfigured } from '../supabase';
 
 interface AuthModalProps {
   isOpen: boolean;
@@ -35,6 +35,11 @@ export default function AuthModal({
 
   const handleResendConfirmation = async () => {
     if (!email) return;
+    if (!isSupabaseConfigured) {
+      setError('Confirmation email simulated! (Supabase not configured)');
+      setResendSent(true);
+      return;
+    }
     setResendLoading(true);
     try {
       const { error: resendError } = await supabase.auth.resend({
@@ -89,6 +94,17 @@ export default function AuthModal({
 
     if (password.length < 6) {
       setError('Password must be at least 6 characters long.');
+      return;
+    }
+
+    if (!isSupabaseConfigured) {
+      setIsLoading(true);
+      console.info('Supabase not configured. Simulating successful auth.');
+      setTimeout(() => {
+        onAuthSuccess();
+        onClose();
+        setIsLoading(false);
+      }, 1000);
       return;
     }
 
