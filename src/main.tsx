@@ -56,10 +56,19 @@ console.error = (...args) => {
     if (firstArg.name === 'n' && firstArg.code === 403) {
       return;
     }
+    // Suppress 404 errors for invalid Supabase paths during configuration issues
+    if (firstArg.status === 404 && typeof firstArg.message === 'string' && firstArg.message.includes('Invalid path')) {
+      return;
+    }
   }
   
-  // Filter out string messages related to content scripts
-  if (typeof firstArg === 'string' && (firstArg.includes('content.js') || firstArg.includes('extension:'))) {
+  // Filter out string messages related to content scripts and Supabase URL errors
+  if (typeof firstArg === 'string' && (
+    firstArg.includes('content_script.js') || 
+    firstArg.includes('content.js') || 
+    firstArg.includes('extension:') ||
+    firstArg.includes('Invalid path specified in request URL')
+  )) {
     return;
   }
   
