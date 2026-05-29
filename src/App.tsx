@@ -85,9 +85,9 @@ export default function App() {
               if (signInError) {
                 if (signInError.message.includes('disabled') || signInError.status === 422) {
                   localStorage.setItem('supabase_auth_disabled', 'true');
-                  console.info('Supabase Anonymous Auth is disabled. Falling back to guest mode.');
+                  console.debug('Supabase Anonymous Auth is disabled. Falling back to guest mode.');
                 } else {
-                  console.warn('Anonymous sign-in failed:', signInError.message);
+                  console.debug('Anonymous sign-in attempt skipped or failed.');
                 }
                 
                 // Fallback: use guest ID

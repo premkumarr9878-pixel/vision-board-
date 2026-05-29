@@ -7,8 +7,14 @@ import './index.css';
 window.addEventListener('unhandledrejection', (event) => {
   const reason = event.reason;
   
-  // 1. Suppress Supabase/Network/Extension 403 errors
-  if (reason && (reason.code === 403 || reason.status === 403 || reason.httpStatus === 403)) {
+  // 1. Suppress Supabase/Network/Extension 403/422 errors
+  if (reason && (
+    reason.code === 403 || 
+    reason.status === 403 || 
+    reason.httpStatus === 403 ||
+    reason.status === 422 ||
+    reason.code === 422
+  )) {
     event.preventDefault();
     return;
   }
@@ -49,11 +55,15 @@ const originalConsoleError = console.error;
 console.error = (...args) => {
   const firstArg = args[0];
   if (firstArg && typeof firstArg === 'object') {
-    // Filter out the specific 403 error signature from extensions
-    if (firstArg.code === 403 && (firstArg.httpStatus === 200 || firstArg.httpStatus === 403)) {
+    // Filter out the specific 403/422 error signature from extensions and auth
+    if ((firstArg.code === 403 || firstArg.code === 422) && (firstArg.httpStatus === 200 || firstArg.httpStatus === 403 || firstArg.httpStatus === 422)) {
       return;
     }
-    if (firstArg.name === 'n' && firstArg.code === 403) {
+    if (firstArg.name === 'n' && (firstArg.code === 403 || firstArg.code === 422)) {
+      return;
+    }
+    // Filter out generic promise rejection objects with no useful info
+    if (!firstArg.message && !firstArg.stack && Object.keys(firstArg).length === 0) {
       return;
     }
     // Suppress 404 errors for invalid Supabase paths during configuration issues
