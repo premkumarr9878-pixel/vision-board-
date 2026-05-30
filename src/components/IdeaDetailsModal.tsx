@@ -174,17 +174,10 @@ export default function IdeaDetailsModal({
                       );
                     })()}
 
-                    {idea.isPublic ? (
-                      <span className="px-4 py-1.5 rounded-xl text-xs font-black bg-emerald-100 dark:bg-emerald-950/50 text-emerald-900 dark:text-emerald-400 border-2 border-emerald-200 dark:border-emerald-900 uppercase tracking-widest font-mono flex items-center space-x-2 shadow-sm">
-                        <Globe className="h-4 w-4" />
-                        <span>Public Live Pitch</span>
-                      </span>
-                    ) : (
-                      <span className="px-4 py-1.5 rounded-xl text-xs font-black bg-amber-100 dark:bg-amber-950/50 text-amber-900 dark:text-amber-400 border-2 border-amber-200 dark:border-amber-900 uppercase tracking-widest font-mono flex items-center space-x-2 shadow-sm">
-                        <span className="inline-block h-2.5 w-2.5 rounded-full bg-amber-600 animate-pulse" />
-                        <span>Private Draft</span>
-                      </span>
-                    )}
+                    <span className="px-4 py-1.5 rounded-xl text-xs font-black bg-emerald-100 dark:bg-emerald-950/50 text-emerald-900 dark:text-emerald-400 border-2 border-emerald-200 dark:border-emerald-900 uppercase tracking-widest font-mono flex items-center space-x-2 shadow-sm">
+                      <Globe className="h-4 w-4" />
+                      <span>Public Live Pitch</span>
+                    </span>
                   </div>
                   <h1 className="font-display font-black text-4xl sm:text-5xl text-slate-950 dark:text-white tracking-tighter" id="idea-details-title" dir="auto">
                     {idea.name}

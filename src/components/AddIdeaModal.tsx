@@ -4,25 +4,6 @@ import { StartupIdea, FounderProfile } from '../types';
 import { CATEGORIES } from '../data';
 import { motion, AnimatePresence } from 'framer-motion';
 
-// Custom Incognito Icon Component to match user request
-const IncognitoIcon = ({ className }: { className?: string }) => (
-  <svg 
-    viewBox="0 0 24 24" 
-    fill="none" 
-    stroke="currentColor" 
-    strokeWidth="2" 
-    strokeLinecap="round" 
-    strokeLinejoin="round" 
-    className={className}
-  >
-    <path d="M2 12h20" />
-    <path d="M6 12v-1a6 6 0 0 1 12 0v1" />
-    <circle cx="9" cy="17" r="2.5" />
-    <circle cx="15" cy="17" r="2.5" />
-    <path d="M11.5 17h1" />
-  </svg>
-);
-
 interface AddIdeaModalProps {
   isOpen: boolean;
   onClose: () => void;
@@ -116,7 +97,6 @@ export default function AddIdeaModal({
   const [needFunding, setNeedFunding] = useState(false);
   const [fundingAmount, setFundingAmount] = useState('$50,000');
   const [progressStage, setProgressStage] = useState<'JUST IDEA NOW' | 'IDEATION' | 'MVP BUILDING' | 'PROTOTYPE' | 'SCALE'>('JUST IDEA NOW');
-  const [isPublic, setIsPublic] = useState(true);
 
   // Social link inputs State
   const [instagramUrl, setInstagramUrl] = useState('');
@@ -165,9 +145,7 @@ export default function AddIdeaModal({
       setNeedFunding(ideaToEdit.needFunding ?? false);
       setFundingAmount(ideaToEdit.fundingGoal || '$50,000');
       setProgressStage(ideaToEdit.progressStage || 'JUST IDEA NOW');
-      setIsPublic(ideaToEdit.isPublic ?? true);
       setInstagramUrl(ideaToEdit.instagramUrl || '');
-      setFacebookUrl(ideaToEdit.facebookUrl || '');
       setWebsiteUrl(ideaToEdit.websiteUrl || '');
     } else if (isOpen) {
       setName('');
@@ -185,7 +163,6 @@ export default function AddIdeaModal({
       setNeedFunding(false);
       setFundingAmount('$50,000');
       setProgressStage('JUST IDEA NOW');
-      setIsPublic(true);
       setInstagramUrl('');
       setFacebookUrl('');
       setWebsiteUrl('');
@@ -322,8 +299,8 @@ export default function AddIdeaModal({
       needFunding,
       fundingGoal: needFunding ? fundingAmount : undefined,
       progressStage,
-      isPublic,
-      visibility: isPublic ? 'public' : 'private',
+      isPublic: true,
+      visibility: 'public',
       instagramUrl,
       facebookUrl,
       websiteUrl,
@@ -811,7 +788,7 @@ export default function AddIdeaModal({
                   <div className="w-1.5 h-3 bg-blue-600 rounded-full shadow-[0_0_10px_rgba(37,99,235,0.4)]" />
                   <div>
                     <span className="block text-[9px] font-black font-mono text-slate-500 dark:text-slate-400 uppercase tracking-widest leading-none select-none">SECTION 6</span>
-                    <span className="block text-xs font-black text-slate-900 dark:text-white mt-1 select-none">Project Roadmap & Visibility</span>
+                    <span className="block text-xs font-black text-slate-900 dark:text-white mt-1 select-none">Project Roadmap</span>
                   </div>
                 </div>
               </div>
@@ -840,91 +817,6 @@ export default function AddIdeaModal({
                         <Rocket className="w-3.5 h-3.5 text-slate-500 dark:text-slate-400" />
                       </div>
                     </div>
-                  </div>
-                </div>
-
-                {/* Highly Polished & Highlighted Public / Private Choices - Now Side-by-Side */}
-                <div className="space-y-4">
-                  <div className="flex items-center justify-between px-1">
-                    <label className="block text-[10px] font-black font-mono text-slate-500 dark:text-slate-400 uppercase tracking-widest select-none">
-                      Idea Visibility <span className="text-red-500">*</span>
-                    </label>
-                  </div>
-                  
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4" id="visibility-card-selectors">
-                    {/* Public Card */}
-                    <button
-                      type="button"
-                      onClick={() => setIsPublic(true)}
-                      className={`group/card relative text-left p-5 rounded-2xl border-2 transition-all duration-300 cursor-pointer flex flex-col h-full ${
-                        isPublic 
-                          ? 'bg-blue-50/50 dark:bg-blue-500/5 border-blue-600 ring-4 ring-blue-500/10 shadow-lg translate-y-[-2px]' 
-                          : 'bg-white dark:bg-slate-950 border-slate-200 dark:border-slate-800 opacity-80 hover:opacity-100 hover:border-slate-300 dark:hover:border-slate-700'
-                      }`}
-                    >
-                      {isPublic && (
-                        <div className="absolute top-4 right-4 h-2.5 w-2.5 rounded-full bg-blue-600 shadow-[0_0_10px_rgba(37,99,235,0.5)] animate-pulse" />
-                      )}
-                      
-                      <div className="flex items-center space-x-3 mb-4">
-                        <div className={`p-3 rounded-xl transition-colors duration-300 ${isPublic ? 'bg-blue-600 text-white shadow-lg shadow-blue-500/20' : 'bg-slate-100 dark:bg-slate-800 text-slate-400 group-hover/card:bg-slate-200'}`}>
-                          <Globe className="h-5 w-5" />
-                        </div>
-                        <span className={`text-xs font-black uppercase tracking-wider ${isPublic ? 'text-blue-900 dark:text-blue-200' : 'text-slate-800 dark:text-slate-200'}`}>
-                          PUBLIC PITCH
-                        </span>
-                      </div>
-
-                      <div className="space-y-2">
-                        <span className={`block text-[11px] font-bold leading-relaxed ${isPublic ? 'text-blue-800/80 dark:text-blue-300/80' : 'text-slate-500 dark:text-slate-400'}`}>
-                          Feature on explore feed — visible to all founders
-                        </span>
-                      </div>
-
-                      {isPublic && (
-                        <div className="mt-auto pt-4 flex items-center text-[9px] font-black text-blue-600 dark:text-blue-400 uppercase tracking-widest">
-                          <Sparkles className="h-3 w-3 mr-1.5" />
-                          Recommended
-                        </div>
-                      )}
-                    </button>
-
-                    {/* Private Card */}
-                    <button
-                      type="button"
-                      onClick={() => setIsPublic(false)}
-                      className={`group/card relative text-left p-5 rounded-2xl border-2 transition-all duration-300 cursor-pointer flex flex-col h-full ${
-                        !isPublic 
-                          ? 'bg-amber-50/50 dark:bg-amber-500/5 border-amber-600 ring-4 ring-amber-500/10 shadow-lg translate-y-[-2px]' 
-                          : 'bg-white dark:bg-slate-950 border-slate-200 dark:border-slate-800 opacity-80 hover:opacity-100 hover:border-slate-300 dark:hover:border-slate-700'
-                      }`}
-                    >
-                      {!isPublic && (
-                        <div className="absolute top-4 right-4 h-2.5 w-2.5 rounded-full bg-amber-600 shadow-[0_0_10px_rgba(245,158,11,0.5)] animate-pulse" />
-                      )}
-
-                      <div className="flex items-center space-x-3 mb-4">
-                        <div className={`p-3 rounded-xl transition-colors duration-300 ${!isPublic ? 'bg-amber-500 text-white shadow-lg shadow-amber-500/20' : 'bg-slate-100 dark:bg-slate-800 text-slate-400 group-hover:card:bg-slate-200'}`}>
-                          <IncognitoIcon className="h-5 w-5" />
-                        </div>
-                        <span className={`text-xs font-black uppercase tracking-wider ${!isPublic ? 'text-amber-900 dark:text-amber-200' : 'text-slate-800 dark:text-slate-200'}`}>
-                          PRIVATE PROTECTION
-                        </span>
-                      </div>
-
-                      <div className="space-y-2">
-                        <span className={`block text-[11px] font-bold leading-relaxed ${!isPublic ? 'text-amber-800/80 dark:text-amber-300/80' : 'text-slate-500 dark:text-slate-400'}`}>
-                          Visible on feed but locked for public
-                        </span>
-                      </div>
-
-                      {!isPublic && (
-                        <div className="mt-auto pt-4 flex items-center text-[9px] font-black text-blue-600 dark:text-blue-400 uppercase tracking-widest">
-                          <Lock className="h-3 w-3 mr-1.5" />
-                          Confidential
-                        </div>
-                      )}
-                    </button>
                   </div>
                 </div>
               </div>

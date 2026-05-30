@@ -313,34 +313,7 @@ export default function App() {
         console.warn('Error fetching ideas:', ideasError.message);
       }
 
-      const mappedIdeas: StartupIdea[] = (ideas || []).map(data => ({
-        id: data.id,
-        name: data.name || 'Untitled',
-        logo: data.logo || '🚀',
-        banner: data.banner,
-        description: data.description || '',
-        whyThisWorks: data.why_this_works || '',
-        problemSolved: data.problem_solved || '',
-        targetAudience: data.target_audience || '',
-        category: data.category || 'AI',
-        founderId: data.founder_id,
-        founderName: data.founder_name || 'Founder',
-        founderAvatar: data.founder_avatar,
-        collaborationCount: data.collaboration_count || 0,
-        fundingInterestCount: data.funding_interest_count || 0,
-        viewsCount: data.views_count || 0,
-        progressStage: data.progress_stage || 'IDEATION',
-        likes: data.likes || 0,
-        suggestionsCount: data.suggestions_count || 0,
-        needCollaboration: data.need_collaboration ?? true,
-        needFunding: data.need_funding ?? false,
-        seeking_collaboration: data.seeking_collaboration ?? false,
-        seeking_funding: data.seeking_funding ?? false,
-        isPublic: data.is_public ?? true,
-        visibility: data.visibility || (data.is_public ? 'public' : 'private'),
-        status: data.status || 'published',
-        createdAt: data.created_at
-      }));
+      const mappedIdeas: StartupIdea[] = (ideas || []).map(data => mapIdeaFromDB(data));
 
       // 2. Fetch collaboration requests
       let mappedCollabs: CollaborationRequest[] = [];
@@ -434,35 +407,7 @@ export default function App() {
       // Set up realtime listeners (scoped to visible data)
       const ideasChannel = supabase.channel('public:ideas')
         .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'ideas' }, (payload) => {
-          const newIdea = payload.new as any;
-          const mappedIdea: StartupIdea = {
-            id: newIdea.id,
-            name: newIdea.name || 'Untitled',
-            logo: newIdea.logo || '🚀',
-            banner: newIdea.banner,
-            description: newIdea.description || '',
-            whyThisWorks: newIdea.why_this_works || '',
-            problemSolved: newIdea.problem_solved || '',
-            targetAudience: newIdea.target_audience || '',
-            category: newIdea.category || 'AI',
-            founderId: newIdea.founder_id,
-            founderName: newIdea.founder_name || 'Founder',
-            founderAvatar: newIdea.founder_avatar,
-            collaborationCount: newIdea.collaboration_count || 0,
-            fundingInterestCount: newIdea.funding_interest_count || 0,
-            viewsCount: newIdea.views_count || 0,
-            progressStage: newIdea.progress_stage || 'IDEATION',
-            likes: newIdea.likes || 0,
-            suggestionsCount: newIdea.suggestions_count || 0,
-            needCollaboration: newIdea.need_collaboration ?? true,
-            needFunding: newIdea.need_funding ?? false,
-            seeking_collaboration: newIdea.seeking_collaboration ?? false,
-            seeking_funding: newIdea.seeking_funding ?? false,
-            isPublic: newIdea.is_public ?? true,
-            visibility: newIdea.visibility || (newIdea.is_public ? 'public' : 'private'),
-            status: newIdea.status || 'published',
-            createdAt: newIdea.created_at
-          };
+          const mappedIdea = mapIdeaFromDB(payload.new);
           
           setState(prev => {
             if (prev.ideas.some(i => i.id === mappedIdea.id)) return prev;
@@ -470,33 +415,11 @@ export default function App() {
           });
         })
         .on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'ideas' }, (payload) => {
-          const updatedIdea = payload.new as any;
+          const updatedIdea = mapIdeaFromDB(payload.new);
           setState(prev => ({
             ...prev,
             ideas: prev.ideas.map(idea => 
-              idea.id === updatedIdea.id 
-                ? { 
-                    ...idea, 
-                    ...updatedIdea, 
-                    whyThisWorks: updatedIdea.why_this_works || idea.whyThisWorks,
-                    problemSolved: updatedIdea.problem_solved || idea.problemSolved,
-                    targetAudience: updatedIdea.target_audience || idea.targetAudience,
-                    founderId: updatedIdea.founder_id || idea.founderId,
-                    founderName: updatedIdea.founder_name || idea.founderName,
-                    founderAvatar: updatedIdea.founder_avatar || idea.founderAvatar,
-                    collaborationCount: updatedIdea.collaboration_count ?? idea.collaborationCount,
-                    fundingInterestCount: updatedIdea.funding_interest_count ?? idea.fundingInterestCount,
-                    viewsCount: updatedIdea.views_count ?? idea.viewsCount,
-                    progressStage: updatedIdea.progress_stage || idea.progressStage,
-                    suggestionsCount: updatedIdea.suggestions_count ?? idea.suggestionsCount,
-                    needCollaboration: updatedIdea.need_collaboration ?? idea.needCollaboration,
-                    needFunding: updatedIdea.need_funding ?? idea.needFunding,
-                    seeking_collaboration: updatedIdea.seeking_collaboration ?? idea.seeking_collaboration,
-                    seeking_funding: updatedIdea.seeking_funding ?? idea.seeking_funding,
-                    isPublic: updatedIdea.is_public ?? idea.isPublic,
-                    createdAt: updatedIdea.created_at || idea.createdAt
-                  } as StartupIdea
-                : idea
+              idea.id === updatedIdea.id ? updatedIdea : idea
             )
           }));
         })
@@ -602,6 +525,40 @@ export default function App() {
     setTimeout(() => setToastMessage(null), 3000);
   };
 
+  // Centralized mapping helper for consistent data across the app
+  const mapIdeaFromDB = (data: any): StartupIdea => ({
+    id: data.id,
+    name: data.name || 'Untitled',
+    logo: data.logo || '🚀',
+    banner: data.banner,
+    description: data.description || '',
+    whyThisWorks: data.why_this_works || '',
+    problemSolved: data.problem_solved || '',
+    targetAudience: data.target_audience || '',
+    category: data.category || 'AI',
+    founderId: data.founder_id,
+    founderName: data.founder_name || 'Founder',
+    founderAvatar: data.founder_avatar,
+    collaborationCount: data.collaboration_count || 0,
+    fundingInterestCount: data.funding_interest_count || 0,
+    viewsCount: data.views_count || 0,
+    progressStage: data.progress_stage || 'IDEATION',
+    likes: data.likes || 0,
+    suggestionsCount: data.suggestions_count || 0,
+    needCollaboration: data.need_collaboration ?? true,
+    needFunding: data.need_funding ?? false,
+    seeking_collaboration: data.seeking_collaboration ?? false,
+    seeking_funding: data.seeking_funding ?? false,
+    isPublic: true,
+    visibility: 'public',
+    status: data.status || 'published',
+    createdAt: data.created_at,
+    instagramUrl: data.instagram_url,
+    facebookUrl: data.facebook_url,
+    website_url: data.website_url, // Added mapping for social links
+    websiteUrl: data.website_url // Keep both for safety
+  });
+
   const handleProfileUpdate = async (updated: FounderProfile) => {
     if (!currentUser) return;
 
@@ -649,7 +606,7 @@ export default function App() {
 
   const handleFounderProfileClick = async (founderId: string) => {
     // Fetch ideas by this founder first (local and remote)
-    const founderIdeas = state.ideas.filter(idea => idea.founderId === founderId && (idea.isPublic || (idea as any).is_public));
+    const founderIdeas = state.ideas.filter(idea => idea.founderId === founderId);
     setSelectedFounderIdeas(founderIdeas);
 
     // 1. Check if it's the current user
@@ -735,8 +692,8 @@ export default function App() {
       need_funding: ideaData.needFunding ?? false,
       seeking_collaboration: ideaData.seeking_collaboration ?? false,
       seeking_funding: ideaData.seeking_funding ?? false,
-      is_public: ideaData.isPublic ?? true,
-      visibility: (ideaData.isPublic ?? true) ? 'public' : 'private',
+      is_public: true,
+      visibility: 'public',
       status: ideaData.status || 'published',
       created_at: new Date().toISOString(),
       instagram_url: ideaData.instagramUrl,
@@ -778,78 +735,20 @@ export default function App() {
           .single();
 
         if (error) throw error;
-        
-        newIdea = {
-          id: data.id,
-          name: data.name,
-          logo: data.logo,
-          banner: data.banner,
-          description: data.description,
-          whyThisWorks: data.why_this_works,
-          problemSolved: data.problem_solved,
-          targetAudience: data.target_audience,
-          category: data.category,
-          founderId: data.founder_id,
-          founderName: data.founder_name,
-          founderAvatar: data.founder_avatar,
-          collaborationCount: data.collaboration_count,
-          fundingInterestCount: data.funding_interest_count,
-          viewsCount: data.views_count,
-          progressStage: data.progress_stage,
-          likes: data.likes,
-          suggestionsCount: data.suggestions_count,
-          needCollaboration: data.need_collaboration,
-          needFunding: data.need_funding,
-          seeking_collaboration: data.seeking_collaboration,
-          seeking_funding: data.seeking_funding,
-          isPublic: data.is_public,
-          visibility: data.visibility as 'public' | 'private',
-          status: data.status as 'draft' | 'published',
-          createdAt: data.created_at,
-          instagramUrl: data.instagram_url,
-          facebookUrl: data.facebook_url,
-          websiteUrl: data.website_url
-        };
+        newIdea = mapIdeaFromDB(data);
       } else {
         const ideaId = `sim-${Math.random().toString(36).substr(2, 9)}`;
-        newIdea = {
-          id: ideaId,
-          name: payload.name,
-          logo: payload.logo,
-          banner: payload.banner,
-          description: payload.description,
-          whyThisWorks: payload.why_this_works,
-          problemSolved: payload.problem_solved,
-          targetAudience: payload.target_audience,
-          category: payload.category,
-          founderId: payload.founder_id,
-          founderName: payload.founder_name,
-          founderAvatar: payload.founder_avatar,
-          collaborationCount: payload.collaboration_count,
-          fundingInterestCount: payload.funding_interest_count,
-          viewsCount: payload.views_count,
-          progressStage: payload.progress_stage,
-          likes: payload.likes,
-          suggestionsCount: payload.suggestions_count,
-          needCollaboration: payload.need_collaboration,
-          needFunding: payload.need_funding,
-          seeking_collaboration: payload.seeking_collaboration,
-          seeking_funding: payload.seeking_funding,
-          isPublic: payload.is_public,
-          visibility: payload.visibility as 'public' | 'private',
-          status: payload.status as 'draft' | 'published',
-          createdAt: payload.created_at,
-          instagramUrl: payload.instagram_url,
-          facebookUrl: payload.facebook_url,
-          websiteUrl: payload.website_url
-        };
+        newIdea = mapIdeaFromDB({ ...payload, id: ideaId });
       }
 
-      // Update state instantly
-      setState(prev => ({
-        ...prev,
-        ideas: [newIdea, ...prev.ideas]
-      }));
+      // Update state instantly for immediate feedback (Realtime listener will handle duplicates)
+      setState(prev => {
+        if (prev.ideas.some(i => i.id === newIdea.id)) return prev;
+        return {
+          ...prev,
+          ideas: [newIdea, ...prev.ideas]
+        };
+      });
       
       // Auto-like for the founder
       setLikedIdeaIds(prev => [...prev, newIdea.id]);
@@ -880,39 +779,6 @@ export default function App() {
       ideas: prev.ideas.filter(idea => idea.id !== id)
     }));
     showToast('Startup Vision removed from database.');
-  };
-
-  // Visibility toggle for owners
-  const handleToggleIdeaVisibility = async (id: string) => {
-    const idea = state.ideas.find(i => i.id === id);
-    if (!idea) return;
-
-    const newVisibility: 'public' | 'private' = idea.visibility === 'public' ? 'private' : 'public';
-    const newIsPublic = newVisibility === 'public';
-
-    if (isSupabaseConfigured) {
-      const { error } = await supabase
-        .from('ideas')
-        .update({ 
-          visibility: newVisibility,
-          is_public: newIsPublic
-        })
-        .eq('id', id);
-
-      if (error) {
-        console.error('Error toggling visibility:', error);
-        showToast('Failed to update visibility.');
-        return;
-      }
-    }
-
-    setState(prev => ({
-      ...prev,
-      ideas: prev.ideas.map(idea => 
-        idea.id === id ? { ...idea, visibility: newVisibility, isPublic: newIsPublic } : idea
-      )
-    }));
-    showToast(`Vision is now ${newVisibility.toUpperCase()}`);
   };
 
   // Like handler
@@ -1216,16 +1082,16 @@ export default function App() {
 
   // Filter ideas logic: query search, category pills & timeFilter
   const filteredPublicIdeas = useMemo(() => {
-    return state.ideas.filter(idea => {
-      const isVisibleOnFeed = 
-        idea.isPublic === true || 
-        (idea as any).is_public === true || 
-        idea.visibility === 'public';
+    const now = new Date();
+    const nowTime = now.getTime();
+    const startOfToday = new Date(now.getFullYear(), now.getMonth(), now.getDate()).getTime();
 
-      if (!isVisibleOnFeed || idea.status === 'draft') return false;
+    return state.ideas.filter(idea => {
+      // Simplified: all ideas are public now
+      if (idea.status === 'draft') return false;
       
-      const q = searchQuery.toLowerCase();
-      const matchesSearch = 
+      const q = searchQuery.toLowerCase().trim();
+      const matchesSearch = !q || 
         (idea.name?.toLowerCase() || '').includes(q) ||
         (idea.description?.toLowerCase() || '').includes(q) ||
         (idea.category?.toLowerCase() || '').includes(q) ||
@@ -1234,14 +1100,11 @@ export default function App() {
         (idea.founderName?.toLowerCase() || '').includes(q) ||
         (idea.whyThisWorks?.toLowerCase() || '').includes(q);
 
-      const matchesCategory = selectedCategory ? (idea.category === selectedCategory) : true;
+      const matchesCategory = !selectedCategory || (idea.category === selectedCategory);
 
       // Time Filter Logic
       const createdAt = idea.createdAt || (idea as any).created_at;
       const ideaTime = createdAt ? new Date(createdAt).getTime() : 0;
-      const now = new Date();
-      const nowTime = now.getTime();
-      const startOfToday = new Date(now.getFullYear(), now.getMonth(), now.getDate()).getTime();
       
       let matchesTime = true;
       if (timeFilter === 'day') {
@@ -1266,8 +1129,8 @@ export default function App() {
         matchesTime = nowTime - ideaTime <= 730 * 24 * 60 * 60 * 1000;
       }
 
-      // Safety buffer for newly added ideas (within 5 minutes)
-      if (ideaTime > nowTime - 300000 && ideaTime < nowTime + 300000) {
+      // Safety buffer for newly added ideas (within 10 minutes) - Ensure they show up immediately
+      if (ideaTime > nowTime - 600000 && ideaTime < nowTime + 600000) {
         matchesTime = true;
       }
 
@@ -1282,38 +1145,31 @@ export default function App() {
     const startOfToday = new Date(now.getFullYear(), now.getMonth(), now.getDate()).getTime();
     
     const counts: Record<string, number> = {
-      all: 0,
-      day: 0,
-      week1: 0,
-      week2: 0,
-      month1: 0,
-      month2: 0,
-      month3: 0,
-      month6: 0,
-      month8: 0,
-      year1: 0,
-      year2: 0
+      all: 0, day: 0, week1: 0, week2: 0, month1: 0, month2: 0, month3: 0, month6: 0, month8: 0, year1: 0, year2: 0
     };
 
     state.ideas.forEach(idea => {
-      const isPublic = idea.isPublic === true || (idea as any).is_public === true || idea.visibility === 'public';
       const isPublished = idea.status === 'published' || !idea.status;
       
-      if (isPublic && isPublished) {
+      if (isPublished) {
         const createdAt = idea.createdAt || (idea as any).created_at;
         const ideaTime = createdAt ? new Date(createdAt).getTime() : 0;
         
         counts.all++;
-        if (ideaTime >= startOfToday) counts.day++;
-        if (nowTime - ideaTime <= 7 * 24 * 60 * 60 * 1000) counts.week1++;
-        if (nowTime - ideaTime <= 14 * 24 * 60 * 60 * 1000) counts.week2++;
-        if (nowTime - ideaTime <= 30 * 24 * 60 * 60 * 1000) counts.month1++;
-        if (nowTime - ideaTime <= 60 * 24 * 60 * 60 * 1000) counts.month2++;
-        if (nowTime - ideaTime <= 90 * 24 * 60 * 60 * 1000) counts.month3++;
-        if (nowTime - ideaTime <= 180 * 24 * 60 * 60 * 1000) counts.month6++;
-        if (nowTime - ideaTime <= 240 * 24 * 60 * 60 * 1000) counts.month8++;
-        if (nowTime - ideaTime <= 365 * 24 * 60 * 60 * 1000) counts.year1++;
-        if (nowTime - ideaTime <= 730 * 24 * 60 * 60 * 1000) counts.year2++;
+        
+        // Safety buffer: always include ideas added in the last 10 mins in all categories
+        const isNew = ideaTime > nowTime - 600000 && ideaTime < nowTime + 600000;
+
+        if (ideaTime >= startOfToday || isNew) counts.day++;
+        if (nowTime - ideaTime <= 7 * 24 * 60 * 60 * 1000 || isNew) counts.week1++;
+        if (nowTime - ideaTime <= 14 * 24 * 60 * 60 * 1000 || isNew) counts.week2++;
+        if (nowTime - ideaTime <= 30 * 24 * 60 * 60 * 1000 || isNew) counts.month1++;
+        if (nowTime - ideaTime <= 60 * 24 * 60 * 60 * 1000 || isNew) counts.month2++;
+        if (nowTime - ideaTime <= 90 * 24 * 60 * 60 * 1000 || isNew) counts.month3++;
+        if (nowTime - ideaTime <= 180 * 24 * 60 * 60 * 1000 || isNew) counts.month6++;
+        if (nowTime - ideaTime <= 240 * 24 * 60 * 60 * 1000 || isNew) counts.month8++;
+        if (nowTime - ideaTime <= 365 * 24 * 60 * 60 * 1000 || isNew) counts.year1++;
+        if (nowTime - ideaTime <= 730 * 24 * 60 * 60 * 1000 || isNew) counts.year2++;
       }
     });
     
@@ -1323,17 +1179,18 @@ export default function App() {
   // Calculate global stats (unfiltered by search/category/time, but filtered by public status)
   // This represents the real total ideas available in the global ecosystem
   const totalPublicIdeasCount = useMemo(() => {
-    return timeFilterCounts[timeFilter] || 0;
-  }, [timeFilterCounts, timeFilter]);
+    // The user wants the "Total Ideas" counter to reflect the global count (e.g., 24 -> 25)
+    // even if a specific time filter is active.
+    return timeFilterCounts.all || 0;
+  }, [timeFilterCounts]);
 
   // Calculate dynamic category counts for all public ideas across the entire database
   const categoryCounts = useMemo(() => {
     const counts: Record<string, number> = {};
     state.ideas.forEach(idea => {
-      const isPublic = idea.isPublic === true || (idea as any).is_public === true || idea.visibility === 'public';
       const isPublished = idea.status === 'published' || !idea.status;
       
-      if (isPublic && isPublished) {
+      if (isPublished) {
         const cat = idea.category || 'Other';
         counts[cat] = (counts[cat] || 0) + 1;
       }
@@ -1391,12 +1248,6 @@ export default function App() {
   };
 
   const handleIdeaClick = (idea: StartupIdea) => {
-    const isOwner = currentUser && idea.founderId === currentUser.id;
-    if (idea.visibility === 'private' && !isOwner) {
-      showToast('This startup concept is protected by the founder.');
-      return;
-    }
-    
     // Track view
     handleIdeaView(idea.id);
     setSelectedIdea(idea);
@@ -1448,19 +1299,19 @@ export default function App() {
         {currentView === 'explore' ? (
           
           /* EXPLORE HOMEPAGE DECK */
-          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-2 sm:py-6 space-y-8 sm:space-y-12" id="explore-view">
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-1 sm:py-3 space-y-5 sm:space-y-8" id="explore-view">
             
             {/* Geometric Centered Headline Callout */}
-            <div className="text-center max-w-4xl mx-auto space-y-4 sm:space-y-5 select-none pt-4 sm:pt-6" id="hero-centered-headline">
+            <div className="text-center max-w-4xl mx-auto space-y-3 sm:space-y-4 select-none pt-2 sm:pt-4" id="hero-centered-headline">
               
-              <div className="p-4 sm:p-5 bg-white/98 dark:bg-slate-900/98 backdrop-blur-sm rounded-[1.5rem] sm:rounded-[2.5rem] border-2 border-slate-200 dark:border-slate-800 shadow-sm">
+              <div className="p-3 sm:p-4 bg-white/98 dark:bg-slate-900/98 backdrop-blur-sm rounded-[1.5rem] sm:rounded-[2.5rem] border-2 border-slate-200 dark:border-slate-800 shadow-sm">
                 <h2 className="responsive-heading font-display font-black text-slate-950 dark:text-white" id="main-visionboard-headline">
                   The database of <span className="bg-gradient-to-r from-blue-600 via-indigo-600 to-purple-600 dark:from-blue-400 dark:via-indigo-400 dark:to-purple-500 bg-clip-text text-transparent block sm:inline drop-shadow-sm">future startup ideas</span>
                 </h2>
               </div>
 
               {/* Home Add Idea trigger and Search Bar alignment */}
-              <div className="flex flex-col sm:flex-row items-center justify-center gap-3 max-w-2xl mx-auto pt-1">
+              <div className="flex flex-col sm:flex-row items-center justify-center gap-3 max-w-2xl mx-auto pt-0.5">
                 {/* HERO SEARCH BAR */}
                 <div className="w-full sm:flex-1 relative group">
                   <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-500 group-focus-within:text-blue-600 transition-colors z-10" />
@@ -1484,20 +1335,20 @@ export default function App() {
             </div>
 
             {/* Filter & Stats Panel */}
-            <div className="flex flex-col lg:flex-row items-center justify-between gap-6 p-1.5 sm:p-2 bg-white dark:bg-slate-900/95 backdrop-blur-sm rounded-3xl border-2 border-slate-200 dark:border-slate-800 shadow-sm overflow-hidden" id="hero-stats-panel">
+            <div className="flex flex-col lg:flex-row items-center justify-between gap-4 p-1 bg-white dark:bg-slate-900/95 backdrop-blur-sm rounded-3xl border-2 border-slate-200 dark:border-slate-800 shadow-sm overflow-hidden" id="hero-stats-panel">
               {/* Left Side: Stats */}
-              <div className="flex items-center space-x-6 px-4 py-2 sm:py-3 bg-slate-50 dark:bg-slate-800/50 rounded-2xl border border-slate-100 dark:border-slate-800/50">
+              <div className="flex items-center space-x-6 px-4 py-2 bg-slate-50 dark:bg-slate-800/50 rounded-2xl border border-slate-100 dark:border-slate-800/50">
                 <div className="text-center sm:text-left select-none">
                   <span className="block text-[9px] font-black font-mono text-slate-500 dark:text-slate-400 uppercase tracking-widest mb-0.5">Total Ideas</span>
                   <span className="text-xl sm:text-2xl font-display font-black text-slate-950 dark:text-white tracking-tighter" id="total-ideas-count">
                     {totalPublicIdeasCount.toLocaleString()}
                   </span>
                 </div>
-                <div className="h-8 w-1 bg-blue-600 rounded-full" />
+                <div className="h-7 w-1 bg-blue-600 rounded-full" />
               </div>
 
               {/* Right Side: Filter Tabs */}
-              <div className="flex flex-col space-y-1.5 px-4 pb-3 sm:pb-0 flex-1 w-full max-w-4xl" id="time-filter-tabs">
+              <div className="flex flex-col space-y-1 px-4 pb-2 sm:pb-0 flex-1 w-full max-w-4xl" id="time-filter-tabs">
                 <span className="text-[9px] font-black font-mono text-slate-500 dark:text-slate-400 uppercase tracking-widest text-center lg:text-left">Filter by Release Day</span>
                 <div className="flex items-center p-1 bg-slate-100/50 dark:bg-slate-950/50 border border-slate-200 dark:border-slate-800 rounded-2xl overflow-x-auto no-scrollbar mobile-scroll-container">
                   {[

@@ -44,13 +44,12 @@ export default function DashboardView({
   onAddIdeaClick,
   onSelectIdea,
   onDeleteIdea,
-  onToggleVisibility,
   onEditIdea,
   onUpdateRequestStatus
 }: DashboardViewProps) {
   // Tabs inside Dashboard: Dashboard Overview / My Published Ideas / Inbox: Collaboration / Inbox: Funding / Edit Profile / Suggestions
   const [activeTab, setActiveTab] = useState<'overview' | 'ideas' | 'collabs' | 'funding' | 'profile' | 'suggestions'>('overview');
-  const [ideasSubFilter, setIdeasSubFilter] = useState<'all' | 'public' | 'private' | 'draft'>('all');
+  const [ideasSubFilter, setIdeasSubFilter] = useState<'all' | 'published' | 'draft'>('all');
 
   // Edit Profile States
   const [editName, setEditName] = useState(profile?.name || '');
@@ -102,8 +101,7 @@ export default function DashboardView({
   // Compute calculated statistics
   const totalLikes = userIdeas.reduce((acc, curr) => acc + (curr.likes || 0), 0);
   const totalSuggestions = userSuggestions.length;
-  const publicIdeasCount = userIdeas.filter(i => i.visibility === 'public').length;
-  const privateIdeasCount = userIdeas.filter(i => i.visibility === 'private').length;
+  const publicIdeasCount = userIdeas.length;
   const draftIdeasCount = userIdeas.filter(i => i.status === 'draft').length;
 
   const handleProfileSave = async (e: React.FormEvent) => {
@@ -252,24 +250,7 @@ export default function DashboardView({
               </div>
               <div>
                 <span className="text-4xl font-black font-display text-emerald-700 dark:text-emerald-400 block tracking-tighter">{publicIdeasCount}</span>
-                <span className="text-[11px] font-black text-slate-500 dark:text-slate-400 mt-1 block uppercase tracking-tight">Active Campaigns</span>
-              </div>
-            </div>
-
-            {/* Private Ideas */}
-            <div 
-              onClick={() => { setActiveTab('ideas'); setIdeasSubFilter('private'); }}
-              className="bg-white dark:bg-slate-900 border-2 border-slate-200 dark:border-slate-800 rounded-3xl p-6 shadow-[0_8px_30px_-12px_rgba(0,0,0,0.05)] flex flex-col justify-between cursor-pointer hover:border-amber-600 dark:hover:border-amber-500 hover:shadow-xl transition-all select-none group"
-            >
-              <div className="flex items-center justify-between text-slate-600 dark:text-slate-400 mb-6">
-                <span className="text-[10px] font-black font-mono uppercase tracking-widest">Private Vault</span>
-                <div className="p-2.5 rounded-xl bg-amber-100 dark:bg-amber-900/30 text-amber-700 dark:text-amber-400 group-hover:scale-110 transition-transform shadow-sm">
-                  <Lock className="h-5 w-5" />
-                </div>
-              </div>
-              <div>
-                <span className="text-4xl font-black font-display text-amber-700 dark:text-amber-400 block tracking-tighter">{privateIdeasCount}</span>
-                <span className="text-[11px] font-black text-slate-500 dark:text-slate-400 mt-1 block uppercase tracking-tight">Protected Visions</span>
+                <span className="text-[11px] font-black text-slate-500 dark:text-slate-400 mt-1 block uppercase tracking-tight">Active Ideas</span>
               </div>
             </div>
 
@@ -442,18 +423,18 @@ export default function DashboardView({
                     <Globe className="h-5 w-5 text-emerald-600" />
                   </div>
                   <h3 className="font-display font-black text-xl text-slate-900 dark:text-white uppercase tracking-tight">
-                    Public Ideas ({publicIdeasCount})
+                    Published Ideas ({publicIdeasCount})
                   </h3>
                 </div>
               </div>
 
-              {userIdeas.filter(i => i.isPublic).length === 0 ? (
+              {userIdeas.length === 0 ? (
                 <div className="bg-slate-50 dark:bg-slate-900/40 border-2 border-dashed border-slate-200 dark:border-slate-800 rounded-3xl p-10 text-center">
                   <p className="text-sm text-slate-500 dark:text-slate-400 font-bold">No public ideas yet. Publish your vision to the world!</p>
                 </div>
               ) : (
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6" id="public-ideas-grid">
-                  {userIdeas.filter(i => i.isPublic).map(idea => (
+                  {userIdeas.map(idea => (
                     <div
                       key={idea.id}
                       className="bg-white dark:bg-slate-900 border-2 border-slate-200 dark:border-slate-800 hover:border-blue-500/50 rounded-[2rem] p-6 sm:p-8 transition-all shadow-[0_8px_30px_-12px_rgba(0,0,0,0.05)] hover:shadow-2xl relative flex flex-col justify-between group overflow-hidden"
@@ -513,13 +494,6 @@ export default function DashboardView({
                         <div className="flex flex-wrap items-center justify-between gap-3">
                           <div className="flex items-center gap-2">
                             <button
-                              onClick={() => onToggleVisibility?.(idea.id)}
-                              className="p-2 rounded-xl border-2 border-slate-200 dark:border-slate-800 hover:border-amber-500/50 hover:bg-amber-50 dark:hover:bg-amber-950/20 text-slate-400 hover:text-amber-600 transition-all cursor-pointer"
-                              title="Go Private"
-                            >
-                              <Lock className="h-4 w-4" />
-                            </button>
-                            <button
                               onClick={() => onEditIdea?.(idea)}
                               className="p-2 rounded-xl border-2 border-slate-200 dark:border-slate-800 hover:border-blue-500/50 hover:bg-blue-50 dark:hover:bg-blue-950/20 text-slate-400 hover:text-blue-600 transition-all cursor-pointer"
                               title="Edit Idea"
@@ -540,129 +514,6 @@ export default function DashboardView({
                             className="py-2.5 px-5 bg-slate-950 dark:bg-white text-white dark:text-slate-950 rounded-xl text-[10px] font-black uppercase tracking-widest flex items-center space-x-2 shadow-lg hover:shadow-blue-500/20 active:scale-95 transition-all cursor-pointer"
                           >
                             <span>Open Deck</span>
-                            <ExternalLink className="h-3.5 w-3.5" />
-                          </button>
-                        </div>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              )}
-            </section>
-
-            {/* Private Ideas Section */}
-            <section id="private-ideas-section">
-              <div className="flex items-center justify-between mb-6 px-1">
-                <div className="flex items-center space-x-3">
-                  <div className="p-2 bg-amber-500/10 rounded-xl">
-                    <Lock className="h-5 w-5 text-amber-600" />
-                  </div>
-                  <h3 className="font-display font-black text-xl text-slate-900 dark:text-white uppercase tracking-tight">
-                    Private Ideas ({privateIdeasCount})
-                  </h3>
-                </div>
-              </div>
-
-              {userIdeas.filter(i => !i.isPublic).length === 0 ? (
-                <div className="bg-slate-50 dark:bg-slate-900/40 border-2 border-dashed border-slate-200 dark:border-slate-800 rounded-3xl p-10 text-center">
-                  <p className="text-sm text-slate-500 dark:text-slate-400 font-bold">No private drafts yet. Save ideas securely for later.</p>
-                </div>
-              ) : (
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6" id="private-ideas-grid">
-                  {userIdeas.filter(i => !i.isPublic).map(idea => (
-                    <div
-                      key={idea.id}
-                      className="bg-white dark:bg-slate-900/40 border border-slate-200/40 dark:border-slate-800/40 hover:border-blue-400/40 rounded-2xl p-6 transition-all shadow-[0_2px_12px_rgba(0,0,0,0.01)] hover:shadow-xl relative flex flex-col justify-between group overflow-hidden"
-                      id={`own-idea-private-${idea.id}`}
-                    >
-                      <div className="absolute top-0 left-0 h-1 w-full bg-gradient-to-r from-amber-500/20 via-blue-500/20 to-transparent" />
-                      
-                      <div>
-                        {/* Header Action Badges and Date */}
-                        <div className="flex justify-between items-center mb-4 text-[10px] font-mono text-slate-400 dark:text-slate-500 select-none">
-                          <span>PUBLISHED: {new Date(idea.createdAt).toLocaleDateString()}</span>
-                          <div className="flex items-center space-x-1.5">
-                            <span className="inline-flex items-center space-x-0.5 px-2 py-0.5 rounded-full bg-amber-50/50 dark:bg-amber-900/20 text-amber-700 dark:text-amber-400 border border-amber-100/50 dark:border-amber-800/50 font-bold">
-                              <Lock className="h-2.5 w-2.5" />
-                              <span>Private Draft</span>
-                            </span>
-                          </div>
-                        </div>
-
-                        <div className="flex items-start space-x-4 mb-4 select-none">
-                          <div className="w-12 h-12 rounded-2xl bg-slate-50/50 dark:bg-slate-800/40 border border-slate-150/50 dark:border-slate-700/50 flex items-center justify-center text-2xl shadow-2xs group-hover:scale-105 transition-transform shrink-0">
-                            {idea.logo}
-                          </div>
-                          <div className="min-w-0 flex-1">
-                            <h4 className="font-display font-black text-slate-900 dark:text-white group-hover:text-blue-600 dark:group-hover:text-blue-400 text-sm truncate uppercase tracking-tight" dir="auto">{idea.name}</h4>
-                            <div className="flex flex-wrap gap-1.5 mt-1 select-none">
-                              <span className="inline-block px-2 py-0.5 rounded-md text-[9px] bg-slate-100/50 dark:bg-slate-800/50 border border-slate-150/50 dark:border-slate-700/50 text-slate-700 dark:text-slate-300 font-bold uppercase tracking-wider">{idea.category}</span>
-                              <span className="inline-block px-2 py-0.5 rounded-md text-[9px] bg-zinc-50/50 dark:bg-zinc-900/50 border border-zinc-150/50 dark:border-zinc-800/50 text-zinc-650 dark:text-zinc-400 font-semibold">{idea.progressStage}</span>
-                            </div>
-                          </div>
-                        </div>
-
-                        <p className="text-slate-650 dark:text-slate-400 text-xs leading-relaxed line-clamp-3 mb-5 pr-2" dir="auto">
-                          {idea.description}
-                        </p>
-
-                        {/* Idea Metrics Section */}
-                        <div className="grid grid-cols-2 md:grid-cols-4 gap-2 bg-slate-50/30 dark:bg-slate-950/20 border border-slate-100/50 dark:border-slate-800/40 p-2.5 rounded-xl text-center select-none mb-5 font-mono text-[10px] font-bold">
-                          <div className="p-1">
-                            <span className="block text-[8px] text-slate-400 dark:text-slate-500 uppercase">Upvotes</span>
-                            <span className="text-slate-700 dark:text-slate-300 text-xs">{(idea.likes || 0).toLocaleString()}</span>
-                          </div>
-                          <div className="p-1 border-l border-slate-200/40 dark:border-slate-800/60">
-                            <span className="block text-[8px] text-slate-400 dark:text-slate-500 uppercase">Suggestions</span>
-                            <span className="text-slate-700 dark:text-slate-300 text-xs">{(idea.suggestionsCount || 0).toLocaleString()}</span>
-                          </div>
-                          <div className="p-1 border-l border-slate-200/40 dark:border-slate-800/60">
-                            <span className="block text-[8px] text-slate-400 dark:text-slate-500 uppercase">Partners</span>
-                            <span className="text-slate-700 dark:text-slate-300 text-xs">{(idea.collaborationCount || 0).toLocaleString()}</span>
-                          </div>
-                          <div className="p-1 border-l border-slate-200/40 dark:border-slate-800/60">
-                            <span className="block text-[8px] text-slate-400 dark:text-slate-500 uppercase">Views</span>
-                            <span className="text-emerald-600 dark:text-emerald-400 text-[10px] leading-tight truncate block">{(idea.viewsCount || 0).toLocaleString()}</span>
-                          </div>
-                        </div>
-                      </div>
-
-                      {/* Actions footer wrapper */}
-                      <div className="border-t border-slate-100/60 dark:border-slate-800/40 pt-4" id={`own-idea-footer-${idea.id}`}>
-                        <div className="grid grid-cols-2 sm:flex sm:items-center sm:justify-between gap-2.5">
-                          <div className="flex flex-wrap items-center gap-1.5 col-span-2 sm:col-span-1">
-                            <button
-                              onClick={() => onToggleVisibility?.(idea.id)}
-                              className="inline-flex items-center justify-center space-x-1 px-3 py-1.5 rounded-xl border text-[11px] font-bold transition-all cursor-pointer bg-emerald-50/50 hover:bg-emerald-100/50 border-emerald-200/50 text-emerald-800 dark:text-emerald-400"
-                            >
-                              <Globe className="h-3 w-3" />
-                              <span>Go Public</span>
-                            </button>
-
-                            <button
-                              onClick={() => onEditIdea?.(idea)}
-                              className="inline-flex items-center justify-center space-x-1 px-3 py-1.5 bg-slate-100/50 hover:bg-slate-200/50 dark:bg-slate-800/50 dark:hover:bg-slate-700/50 border border-slate-200/50 dark:border-slate-700/50 text-slate-700 dark:text-slate-300 rounded-xl text-[11px] font-bold transition-all cursor-pointer"
-                            >
-                              <Edit3 className="h-3 w-3" />
-                              <span>Edit</span>
-                            </button>
-
-                            <button
-                              onClick={() => {
-                                if (window.confirm(`Are you sure?`)) onDeleteIdea(idea.id);
-                              }}
-                              className="inline-flex items-center justify-center space-x-1 px-3 py-1.5 bg-red-50/50 hover:bg-red-100/50 dark:bg-red-900/20 dark:hover:bg-red-900/40 border border-red-200/50 dark:border-red-800/50 text-red-600 dark:text-red-400 rounded-xl text-[11px] font-bold transition-all cursor-pointer"
-                            >
-                              <Trash2 className="h-3 w-3" />
-                              <span>Delete</span>
-                            </button>
-                          </div>
-
-                          <button
-                            onClick={() => onSelectIdea(idea)}
-                            className="col-span-2 sm:col-span-1 py-1.5 px-3.5 bg-slate-900 dark:bg-slate-100 hover:bg-black dark:hover:bg-white text-white dark:text-slate-900 rounded-xl text-xs font-extrabold flex items-center justify-center space-x-1.5 shadow-sm transition-all cursor-pointer"
-                          >
-                            <span>View Board</span>
                             <ExternalLink className="h-3.5 w-3.5" />
                           </button>
                         </div>
