@@ -18,48 +18,6 @@ import { supabase, isSupabaseConfigured } from './supabase';
 // Global flag to prevent multiple auth attempts in StrictMode or rapid re-renders
 let hasAttemptedAuth = false;
 
-// Global error handler for uncaught promises to prevent silent failures
-if (typeof window !== 'undefined') {
-  window.addEventListener('unhandledrejection', (event) => {
-    const reason = event.reason;
-    
-    // 1. Suppress rejections that are just empty objects or null/undefined
-    if (!reason || (typeof reason === 'object' && Object.keys(reason).length === 0)) {
-      event.preventDefault();
-      return;
-    }
-
-    // 2. Suppress generic Supabase/Auth/Network errors that don't impact UX
-    if (reason && (
-      reason.message?.includes('Fetch argument') || 
-      reason.status === 403 ||
-      reason.code === 403 ||
-      reason.httpStatus === 403 ||
-      reason.status === 404 ||
-      reason.status === 422 ||
-      reason.name === 'n' // Aggressive match for the specific extension signature 'n'
-    )) {
-      event.preventDefault();
-      return;
-    }
-
-    // 3. Suppress errors originating from browser extensions
-    const stack = reason?.stack || '';
-    if (stack.includes('extension://') || stack.includes('content.js')) {
-      event.preventDefault();
-      return;
-    }
-
-    // 4. If it's an object with no message and no stack, it's likely extension noise
-    if (typeof reason === 'object' && !reason.message && !reason.stack) {
-      event.preventDefault();
-      return;
-    }
-
-    console.warn('Unhandled Promise Rejection:', reason);
-  });
-}
-
 export default function App() {
   const [currentUser, setCurrentUser] = useState<FounderProfile | null>(DEFAULT_PROFILE);
   const [session, setSession] = useState<any>(null);

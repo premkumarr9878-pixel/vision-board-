@@ -7,41 +7,30 @@ import './index.css';
 window.addEventListener('unhandledrejection', (event) => {
   const reason = event.reason;
   
-  // 1. Suppress rejections that are just empty objects or null/undefined
-  if (!reason || (typeof reason === 'object' && Object.keys(reason).length === 0)) {
+  // 1. Suppress rejections that are just empty objects, null, undefined, or generic Objects
+  if (!reason || (typeof reason === 'object' && (!reason.message && !reason.stack))) {
     event.preventDefault();
     return;
   }
 
-  // 2. Suppress Supabase/Network/Extension 403/422/404 errors
-  if (reason && (
-    reason.code === 403 || 
-    reason.status === 403 || 
-    reason.httpStatus === 403 ||
-    reason.status === 422 ||
-    reason.code === 422 ||
-    reason.status === 404 ||
-    (reason.name === 'n' && reason.code === 403) // Targeted fix for the specific extension error
-  )) {
-    event.preventDefault();
-    return;
-  }
-
-  // 3. Suppress errors originating from browser extensions (content.js, extension://)
+  // 2. Suppress rejections from browser extensions (content.js, extension://)
   const stack = reason?.stack || '';
   const message = reason?.message || '';
   if (
     stack.includes('extension://') || 
     stack.includes('content.js') || 
     message.includes('extension') ||
-    (typeof reason === 'string' && reason.includes('extension'))
+    (typeof reason === 'string' && reason.includes('extension')) ||
+    (reason.name === 'n' && (reason.code === 403 || reason.code === 422))
   ) {
     event.preventDefault();
     return;
   }
 
-  // 4. If it's an object with no message and no stack, it's likely extension noise
-  if (typeof reason === 'object' && !reason.message && !reason.stack) {
+  // 3. Suppress specific network status noise (403, 404, 422)
+  if (reason.status === 403 || reason.code === 403 || reason.httpStatus === 403 ||
+      reason.status === 422 || reason.code === 422 ||
+      reason.status === 404) {
     event.preventDefault();
     return;
   }
