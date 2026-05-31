@@ -81,8 +81,8 @@ export default function Header({
     <header 
       className={`sticky top-0 z-50 transition-all duration-300 ${
         isScrolled 
-          ? 'py-2 bg-white/95 border-b border-[#E2E8F0] shadow-[0_4px_20px_-10px_rgba(15,23,42,0.05)] backdrop-blur-md' 
-          : 'py-4 bg-transparent'
+          ? 'py-1 bg-white/95 border-b border-[#E2E8F0] shadow-[0_4px_20px_-10px_rgba(15,23,42,0.05)] backdrop-blur-md' 
+          : 'py-2 bg-transparent'
       }`}
     >
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -109,7 +109,7 @@ export default function Header({
           <div className="flex items-center space-x-2 sm:space-x-4">
             <button
               onClick={onAddIdeaClick}
-              className="hidden sm:flex items-center space-x-2 px-6 py-2.5 bg-[#020617] text-white rounded-xl text-[13px] font-black hover:bg-[#0F172A] transition-all shadow-lg active:scale-95"
+              className="hidden sm:flex items-center space-x-3 px-6 py-2.5 premium-gradient text-white rounded-xl text-[13px] font-black hover:scale-[1.02] active:scale-[0.98] transition-all shadow-lg"
             >
               <Plus className="h-4 w-4" />
               <span>Launch Idea</span>
@@ -117,6 +117,21 @@ export default function Header({
 
             {currentUser ? (
               <div className="relative">
+                <button
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    setIsProfileOpen(!isProfileOpen);
+                  }}
+                  className="w-10 h-10 rounded-xl border border-[#E2E8F0] overflow-hidden hover:border-[#2563EB] transition-all shadow-sm"
+                >
+                  <img 
+                    src={currentUser.avatar} 
+                    alt={currentUser.name} 
+                    className="w-full h-full object-cover"
+                    referrerPolicy="no-referrer"
+                  />
+                </button>
+
                 <AnimatePresence>
                   {isProfileOpen && (
                     <motion.div
@@ -158,6 +173,13 @@ export default function Header({
                 <span>Founder Login</span>
               </button>
             )}
+
+            <button
+              onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+              className="lg:hidden p-2.5 text-slate-600 hover:text-slate-900 hover:bg-slate-50 rounded-xl transition-colors"
+            >
+              {isMobileMenuOpen ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
+            </button>
           </div>
         </div>
       </div>

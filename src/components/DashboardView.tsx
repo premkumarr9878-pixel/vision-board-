@@ -134,25 +134,25 @@ export default function DashboardView({
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12" id="dashboard-main-view">
       
       {/* Header Banner */}
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-8 mb-12 select-none bg-white p-8 rounded-[2.5rem] border border-[#E2E8F0] shadow-[0_8px_30px_-12px_rgba(0,0,0,0.05)] hover:shadow-xl transition-all group" id="dashboard-header-block">
-        <div className="flex items-center space-x-6">
-          <div className="flex -space-x-4 items-center">
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 mb-8 select-none bg-white p-6 sm:p-8 rounded-2xl sm:rounded-[2.5rem] border border-[#E2E8F0] shadow-[0_8px_30px_-12px_rgba(0,0,0,0.05)] hover:shadow-xl transition-all group" id="dashboard-header-block">
+        <div className="flex flex-col sm:flex-row items-center sm:items-start space-y-4 sm:space-y-0 sm:space-x-6 text-center sm:text-left">
+          <div className="flex -space-x-4 items-center justify-center">
             <div className="relative group/avatar">
-              <div className="w-20 h-20 rounded-2xl overflow-hidden border-4 border-white shadow-2xl shrink-0 z-10 relative group-hover/avatar:scale-105 transition-transform">
+              <div className="w-16 h-16 sm:w-20 sm:h-20 rounded-2xl overflow-hidden border-4 border-white shadow-2xl shrink-0 z-10 relative group-hover/avatar:scale-105 transition-transform">
                 <img src={profile.avatar} alt={profile.name} className="w-full h-full object-cover" referrerPolicy="no-referrer" />
               </div>
             </div>
             {profile.startupLogo && (
-              <div className="w-20 h-20 rounded-2xl overflow-hidden border-4 border-white shadow-2xl shrink-0 z-0 relative bg-slate-50 flex items-center justify-center p-2 group-hover:translate-x-2 transition-transform">
+              <div className="w-16 h-16 sm:w-20 sm:h-20 rounded-2xl overflow-hidden border-4 border-white shadow-2xl shrink-0 z-0 relative bg-slate-50 flex items-center justify-center p-2 group-hover:translate-x-2 transition-transform">
                 <img src={profile.startupLogo} alt="Startup Logo" className="w-full h-full object-contain" referrerPolicy="no-referrer" />
               </div>
             )}
           </div>
           <div className="space-y-1">
-            <h1 className="font-display font-black text-3xl text-[#0F172A] tracking-tighter flex items-center space-x-3" dir="auto">
+            <h1 className="font-display font-black text-2xl sm:text-3xl text-[#0F172A] tracking-tighter flex items-center justify-center sm:justify-start space-x-3" dir="auto">
               <span>{profile.name}&apos;s Founder Hub</span>
             </h1>
-            <p className="text-sm font-bold text-[#334155] max-w-lg leading-relaxed" dir="auto">
+            <p className="text-xs sm:text-sm font-bold text-[#334155] max-w-lg leading-relaxed" dir="auto">
               {profile.bio || 'Manage ideas, screen co-founders pitches, and check fundraising letters.'}
             </p>
           </div>
@@ -161,7 +161,7 @@ export default function DashboardView({
         <button
           id="dashboard-new-idea"
           onClick={onAddIdeaClick}
-          className="inline-flex items-center justify-center space-x-2.5 px-8 py-4 bg-[#020617] text-white rounded-2xl font-black text-sm shadow-xl hover:bg-[#0F172A] transition-all active:scale-95 cursor-pointer self-start md:self-auto border-0"
+          className="w-full md:w-auto inline-flex items-center justify-center space-x-2.5 px-8 py-3.5 sm:py-4 bg-[#020617] text-white rounded-xl sm:rounded-2xl font-black text-sm shadow-xl hover:bg-[#0F172A] transition-all active:scale-95 cursor-pointer border-0"
         >
           <Plus className="h-5 w-5" />
           <span>Launch New Idea</span>

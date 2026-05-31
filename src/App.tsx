@@ -11,7 +11,7 @@ import PublicProfileModal from './components/PublicProfileModal';
 import { CardSkeleton, TableRowSkeleton } from './components/Skeleton';
 import { getLocalStorageState, saveLocalStorageState, DEFAULT_PROFILE, safeParse } from './data';
 import { StartupIdea, FounderProfile, CollaborationRequest, FundingRequest, Suggestion, RequestStatus } from './types';
-import { Star, Sparkles, Send, Flame, Lightbulb, Users, Globe, ExternalLink, Search } from 'lucide-react';
+import { Star, Sparkles, Send, Flame, Lightbulb, Users, Globe, ExternalLink, Search, Plus } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { supabase, isSupabaseConfigured } from './supabase';
 
@@ -1385,6 +1385,19 @@ export default function App() {
       <div className="absolute top-[5%] right-[-10%] w-[1000px] h-[900px] bg-[rgba(124,58,237,0.08)] rounded-full blur-[200px] pointer-events-none -z-10" />
       <div className="absolute top-[40%] left-[15%] w-[800px] h-[800px] bg-[rgba(79,70,229,0.05)] rounded-full blur-[150px] pointer-events-none -z-10" />
       
+      {/* Mobile Fixed CTA */}
+      <div className="lg:hidden fixed bottom-6 right-6 z-[60]">
+        <button
+          onClick={() => {
+            setIdeaToEdit(null);
+            setShowAddIdeaModal(true);
+          }}
+          className="w-14 h-14 rounded-full premium-gradient text-white shadow-2xl flex items-center justify-center hover:scale-110 active:scale-95 transition-all"
+        >
+          <Plus className="h-7 w-7" />
+        </button>
+      </div>
+
       {/* HEADER SECTION (Sticky Search & Nav swaps) */}
       <Header
         searchQuery={searchQuery}
@@ -1404,40 +1417,40 @@ export default function App() {
       />
 
       {/* BODY ROUTER */}
-      <main className="flex-1">
+              <main className="flex-1 pb-20">
         
         {currentView === 'explore' ? (
           
           /* EXPLORE HOMEPAGE DECK */
-          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-1 sm:py-3 space-y-6 sm:space-y-10" id="explore-view">
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-0 sm:py-0 space-y-4 sm:space-y-6" id="explore-view">
             
             {/* Geometric Centered Headline Callout */}
-            <div className="text-center max-w-5xl mx-auto space-y-4 sm:space-y-6 select-none pt-4 sm:pt-12" id="hero-centered-headline">
+            <div className="text-center max-w-5xl mx-auto space-y-3 sm:space-y-4 select-none pt-0 sm:pt-2" id="hero-centered-headline">
               
-              <div className="relative inline-block px-10 py-5 bg-white/60 backdrop-blur-xl rounded-[2rem] border border-white/50 shadow-[0_20px_50px_-20px_rgba(70,90,255,0.15)] mb-4">
-                <h2 className="responsive-heading font-display font-black text-[#0F172A]" id="main-visionboard-headline">
+              <div className="relative inline-block px-6 sm:px-8 py-2.5 sm:py-3 bg-white/60 backdrop-blur-xl rounded-[1.25rem] sm:rounded-[1.5rem] border border-white/50 shadow-[0_15px_40px_-15px_rgba(70,90,255,0.12)] mb-2">
+                <h2 className="text-2xl sm:text-4xl lg:text-5xl font-display font-black text-[#0F172A] leading-[1.1] tracking-tight" id="main-visionboard-headline">
                   The database of <span className="bg-gradient-to-r from-[#2563EB] via-[#4F46E5] to-[#7C3AED] bg-clip-text text-transparent block sm:inline">future startup ideas</span>
                 </h2>
               </div>
 
               {/* Home Add Idea trigger and Search Bar alignment */}
-              <div className="flex flex-col sm:flex-row items-center justify-center gap-4 max-w-3xl mx-auto pt-4">
+              <div className="flex flex-col sm:flex-row items-center justify-center gap-3 max-w-4xl mx-auto pt-2">
                 {/* HERO SEARCH BAR */}
                 <div className="w-full sm:flex-1 relative group">
-                  <Search className="absolute left-6 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400 group-focus-within:text-[#2563EB] transition-colors z-10" />
+                  <Search className="absolute left-4 sm:left-5 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400 group-focus-within:text-[#2563EB] transition-colors z-10" />
                   <input
                     type="text"
                     placeholder="Search ideas, founders..."
                     value={searchQuery}
                     onChange={(e) => setSearchQuery(e.target.value)}
-                    className="w-full pl-14 pr-8 py-4.5 bg-[#020617] text-white border border-slate-800 focus:border-[#2563EB]/50 rounded-2xl text-sm font-medium transition-all outline-none placeholder-slate-500 shadow-[0_25px_50px_-12px_rgba(0,0,0,0.5)]"
+                    className="w-full pl-11 sm:pl-12 pr-6 py-3.5 sm:py-4 bg-white text-slate-900 border border-slate-200 focus:border-[#2563EB]/50 rounded-xl sm:rounded-2xl text-sm sm:text-base font-medium transition-all outline-none placeholder-slate-400 shadow-lg"
                   />
                 </div>
 
                 <button
                   id="add-idea-hero-btn"
                   onClick={() => setShowAddIdeaModal(true)}
-                  className="w-full sm:w-auto px-12 py-4.5 bg-[#020617] text-white border border-slate-800 text-sm font-black rounded-2xl hover:bg-[#0F172A] hover:scale-[1.02] active:scale-[0.98] transition-all select-none cursor-pointer duration-200 shadow-2xl"
+                  className="w-full sm:w-auto px-8 sm:px-10 py-3.5 sm:py-4 bg-[#020617] text-white border border-slate-800 text-sm font-black rounded-xl sm:rounded-2xl hover:bg-[#0F172A] hover:scale-[1.01] active:scale-[0.99] transition-all select-none cursor-pointer duration-200 shadow-xl"
                 >
                   + Add Your Idea
                 </button>
@@ -1445,22 +1458,24 @@ export default function App() {
             </div>
 
             {/* Filter & Stats Panel */}
-            <div className="flex flex-col lg:flex-row items-center justify-between gap-6 p-2 bg-white rounded-[2rem] border border-blue-100/30 shadow-[0_8px_30px_-10px_rgba(70,90,255,0.05)]" id="hero-stats-panel">
+            <div className="flex flex-col lg:flex-row items-center justify-between gap-4 p-2 bg-white rounded-2xl sm:rounded-[2rem] border border-slate-100 shadow-[0_15px_40px_-15px_rgba(0,0,0,0.04)]" id="hero-stats-panel">
               {/* Left Side: Stats */}
-              <div className="flex items-center space-x-8 px-6 py-3 bg-slate-50/50 rounded-2xl border border-slate-100">
-                <div className="text-center sm:text-left select-none">
-                  <span className="block text-[10px] font-black font-mono text-slate-400 uppercase tracking-widest mb-1">Total Ideas</span>
-                  <span className="text-2xl sm:text-3xl font-display font-black text-slate-900 tracking-tighter" id="total-ideas-count">
-                    {totalPublicIdeasCount.toLocaleString()}
-                  </span>
+              <div className="flex items-center space-x-4 sm:space-x-6 px-4 sm:px-6 py-2 sm:py-2.5 bg-slate-50/50 rounded-xl sm:rounded-2xl border border-slate-100 w-full lg:w-auto min-w-[140px] sm:min-w-[160px]">
+                <div className="text-left select-none">
+                  <span className="block text-[8px] sm:text-[9px] font-black font-mono text-slate-400 uppercase tracking-widest mb-0.5 sm:mb-1">Total Ideas</span>
+                  <div className="flex items-baseline space-x-2">
+                    <span className="text-2xl sm:text-4xl font-display font-black text-[#2563EB] tracking-tighter" id="total-ideas-count">
+                      {totalPublicIdeasCount.toLocaleString()}
+                    </span>
+                    <div className="h-6 sm:h-7 w-1 bg-[#2563EB]/20 rounded-full" />
+                  </div>
                 </div>
-                <div className="h-8 w-1 bg-blue-600 rounded-full opacity-20" />
               </div>
 
               {/* Right Side: Filter Tabs */}
-              <div className="flex flex-col space-y-2 px-4 pb-2 sm:pb-0 flex-1 w-full max-w-4xl" id="time-filter-tabs">
-                <span className="text-[10px] font-black font-mono text-slate-400 uppercase tracking-widest text-center lg:text-left">Filter by Release Day</span>
-                <div className="flex items-center p-1.5 bg-slate-50/80 border border-slate-100 rounded-2xl overflow-x-auto no-scrollbar mobile-scroll-container">
+              <div className="flex flex-col space-y-1.5 px-2 sm:px-4 pb-1 sm:pb-0 flex-1 w-full max-w-5xl" id="time-filter-tabs">
+                <span className="text-[8px] sm:text-[9px] font-black font-mono text-slate-400 uppercase tracking-widest text-left">Filter by Release Day</span>
+                <div className="flex items-center p-1 sm:p-1.5 bg-slate-50/80 border border-slate-100 rounded-xl sm:rounded-2xl overflow-x-auto no-scrollbar mobile-scroll-container touch-pan-x">
                   {[
                     { id: 'all', label: 'All Time' },
                     { id: 'day', label: 'Today' },
@@ -1469,26 +1484,23 @@ export default function App() {
                     { id: 'month1', label: '1 Month' },
                     { id: 'month2', label: '2 Month' },
                     { id: 'month3', label: '3 Month' },
-                    { id: 'month6', label: '6 Month' },
-                    { id: 'month8', label: '8 Month' },
-                    { id: 'year1', label: '1 Year' },
-                    { id: 'year2', label: '2 Year' }
+                    { id: 'month6', label: '6 Month' }
                   ].map((f) => (
                     <button
                       key={f.id}
                       id={`time-filter-${f.id}`}
                       onClick={() => setTimeFilter(f.id as any)}
-                      className={`px-4 py-2 rounded-xl text-[11px] font-black transition-all cursor-pointer whitespace-nowrap flex items-center space-x-2 ${
+                      className={`px-3 sm:px-4 py-1.5 sm:py-2 rounded-lg sm:rounded-xl text-[10px] sm:text-[11px] font-black transition-all cursor-pointer whitespace-nowrap flex items-center space-x-1.5 sm:space-x-2 shrink-0 ${
                         timeFilter === f.id
-                          ? 'premium-gradient text-white shadow-lg scale-[1.02] z-10'
-                          : 'text-[#64748B] hover:text-[#0F172A]'
+                          ? 'premium-gradient text-white shadow-lg scale-[1.01] z-10'
+                          : 'bg-white text-slate-500 border border-slate-100 hover:text-slate-900 shadow-sm'
                       }`}
                     >
                       <span>{f.label}</span>
-                      <span className={`px-2 py-0.5 rounded-md text-[9px] ${
+                      <span className={`px-1.5 py-0.5 rounded-md text-[8px] sm:text-[9px] ${
                         timeFilter === f.id 
                           ? 'bg-white/10 text-white' 
-                          : 'bg-white text-[#64748B]'
+                          : 'bg-slate-100 text-slate-400'
                       }`}>
                         {timeFilterCounts[f.id] || 0}
                       </span>
@@ -1498,35 +1510,35 @@ export default function App() {
               </div>
             </div>
 
-            {/* Category selection */}
-            <div className="pt-2" id="category-filter-section">
-              <div className="flex items-center space-x-3 mb-4 px-1">
-                <span className="text-[9px] font-bold font-mono uppercase tracking-widest text-slate-400 dark:text-slate-500 shrink-0">Browse by Category</span>
-                <div className="h-px w-full bg-gradient-to-r from-slate-200/60 to-transparent dark:from-slate-800/60" />
-              </div>
-              <CategoryFilters
-                selectedCategory={selectedCategory}
+            {/* Browse By Category Section */}
+            <div className="space-y-2 sm:space-y-3 pt-1">
+              <span className="text-[8px] sm:text-[9px] font-black font-mono text-slate-400 uppercase tracking-widest block">Browse by Category</span>
+              <CategoryFilters 
+                selectedCategory={selectedCategory} 
                 onSelectCategory={setSelectedCategory}
+                totalIdeas={totalPublicIdeasCount}
                 categoryCounts={categoryCounts}
               />
             </div>
 
-          <div className="flex flex-col space-y-6 sm:space-y-10" id="ideas-main-feed">
+          <div className="flex flex-col space-y-4 sm:space-y-8" id="ideas-main-feed">
             {/* 1. Just Listed - Now prioritized for newest-first discovery */}
             <section id="just-listed-section">
-              <div className="flex items-center justify-between mb-6 sm:mb-8 px-1">
+              <div className="flex items-center justify-between mb-4 sm:mb-6 px-1">
                 <div className="flex items-center space-x-3 select-none">
-                  <div className="p-2 rounded-xl bg-purple-500 shadow-lg border border-purple-400/20">
+                  <div className="p-2 rounded-xl premium-gradient shadow-lg">
                     <Sparkles className="h-4 w-4 text-white" />
                   </div>
-                  <h2 className="text-lg sm:text-xl font-display font-black text-slate-900 uppercase tracking-tight">Just Listed</h2>
+                  <h2 className="text-xl sm:text-2xl font-display font-black text-slate-900 uppercase tracking-tight">Just Listed</h2>
                 </div>
-                <div className="hidden sm:flex items-center space-x-2.5 text-[10px] font-black font-mono text-purple-600 uppercase tracking-widest bg-purple-50 px-3 py-2 rounded-xl border border-purple-100 shadow-sm">
-                  <span className="w-2 h-2 rounded-full bg-purple-500 animate-pulse" />
+                <div className="flex items-center space-x-2.5 text-[10px] font-black font-mono text-purple-600 uppercase tracking-widest bg-purple-50 px-4 py-2 rounded-xl border border-purple-100 shadow-sm">
+                  <div className="w-10 h-10 bg-purple-500 rounded-lg flex items-center justify-center -ml-2 mr-2">
+                    <Star className="h-4 w-4 text-white fill-current" />
+                  </div>
                   <span>Verified Feed</span>
                 </div>
               </div>
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6 lg:gap-8">
                 {isLoading ? (
                   Array.from({ length: 3 }).map((_, i) => <CardSkeleton key={i} />)
                 ) : (
@@ -1547,19 +1559,19 @@ export default function App() {
 
             {/* 2. Trending Ideas */}
             <section id="trending-ideas-section">
-              <div className="flex items-center justify-between mb-6 sm:mb-8 px-1">
+              <div className="flex items-center justify-between mb-4 sm:mb-6 px-1">
                 <div className="flex items-center space-x-3 select-none">
                   <div className="p-2 rounded-xl bg-emerald-500 shadow-lg border border-emerald-400/20">
                     <Flame className="h-4 w-4 text-white" />
                   </div>
                   <h2 className="text-lg sm:text-xl font-display font-black text-slate-900 uppercase tracking-tight">Trending Ideas</h2>
                 </div>
-                <div className="hidden sm:flex items-center space-x-2.5 text-[10px] font-black font-mono text-emerald-600 uppercase tracking-widest bg-emerald-50 px-3 py-2 rounded-xl border border-emerald-100 shadow-sm">
+                <div className="hidden sm:flex items-center space-x-2.5 text-[10px] font-black font-mono text-emerald-600 uppercase tracking-widest bg-emerald-50 px-4 py-2 rounded-xl border border-emerald-100 shadow-sm">
                   <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
                   <span>Feed Validated</span>
                 </div>
               </div>
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6 lg:gap-8">
                 {isLoading ? (
                   Array.from({ length: 3 }).map((_, i) => <CardSkeleton key={i} />)
                 ) : (
@@ -1580,19 +1592,19 @@ export default function App() {
 
             {/* 3. Weekly Best */}
             <section id="weekly-best-section">
-              <div className="flex items-center justify-between mb-6 sm:mb-8 px-1">
+              <div className="flex items-center justify-between mb-4 sm:mb-6 px-1">
                 <div className="flex items-center space-x-3 select-none">
                   <div className="p-2 rounded-xl bg-blue-500 shadow-lg border border-blue-400/20">
                     <Star className="h-4 w-4 text-white" />
                   </div>
                   <h2 className="text-lg sm:text-xl font-display font-black text-slate-900 uppercase tracking-tight">Weekly Best</h2>
                 </div>
-                <div className="hidden sm:flex items-center space-x-2.5 text-[10px] font-black font-mono text-blue-600 uppercase tracking-widest bg-blue-50 px-3 py-2 rounded-xl border border-blue-100 shadow-sm">
+                <div className="hidden sm:flex items-center space-x-2.5 text-[10px] font-black font-mono text-blue-600 uppercase tracking-widest bg-blue-50 px-4 py-2 rounded-xl border border-blue-100 shadow-sm">
                   <span className="w-2 h-2 rounded-full bg-blue-500 animate-pulse" />
                   <span>Editor Choice</span>
                 </div>
               </div>
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6 lg:gap-8">
                 {isLoading ? (
                   Array.from({ length: 3 }).map((_, i) => <CardSkeleton key={i} />)
                 ) : (
