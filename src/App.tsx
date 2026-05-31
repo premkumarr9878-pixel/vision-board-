@@ -25,7 +25,16 @@ export default function App() {
   // Load state from Supabase and sync with localStorage
   const [state, setState] = useState(() => {
     try {
-      return getLocalStorageState();
+      const localState = getLocalStorageState();
+      // Ensure ideas are sorted by created_at descending (newest first) by default
+      if (localState.ideas && localState.ideas.length > 0) {
+        localState.ideas.sort((a, b) => {
+          const dateA = new Date(a.createdAt || (a as any).created_at).getTime();
+          const dateB = new Date(b.createdAt || (b as any).created_at).getTime();
+          return dateB - dateA;
+        });
+      }
+      return localState;
     } catch (err) {
       console.error('Initial state load failed:', err);
       return {
@@ -1184,19 +1193,56 @@ export default function App() {
     return timeFilterCounts.all || 0;
   }, [timeFilterCounts]);
 
-  // Calculate dynamic category counts for all public ideas across the entire database
+  // Calculate dynamic category counts for ideas filtered by the selected date range
   const categoryCounts = useMemo(() => {
     const counts: Record<string, number> = {};
+    const now = new Date();
+    const nowTime = now.getTime();
+    const startOfToday = new Date(now.getFullYear(), now.getMonth(), now.getDate()).getTime();
+
     state.ideas.forEach(idea => {
       const isPublished = idea.status === 'published' || !idea.status;
       
       if (isPublished) {
-        const cat = idea.category || 'Other';
-        counts[cat] = (counts[cat] || 0) + 1;
+        const createdAt = idea.createdAt || (idea as any).created_at;
+        const ideaTime = createdAt ? new Date(createdAt).getTime() : 0;
+        
+        let matchesTime = true;
+        if (timeFilter === 'day') {
+          matchesTime = ideaTime >= startOfToday;
+        } else if (timeFilter === 'week1') {
+          matchesTime = nowTime - ideaTime <= 7 * 24 * 60 * 60 * 1000;
+        } else if (timeFilter === 'week2') {
+          matchesTime = nowTime - ideaTime <= 14 * 24 * 60 * 60 * 1000;
+        } else if (timeFilter === 'month1') {
+          matchesTime = nowTime - ideaTime <= 30 * 24 * 60 * 60 * 1000;
+        } else if (timeFilter === 'month2') {
+          matchesTime = nowTime - ideaTime <= 60 * 24 * 60 * 60 * 1000;
+        } else if (timeFilter === 'month3') {
+          matchesTime = nowTime - ideaTime <= 90 * 24 * 60 * 60 * 1000;
+        } else if (timeFilter === 'month6') {
+          matchesTime = nowTime - ideaTime <= 180 * 24 * 60 * 60 * 1000;
+        } else if (timeFilter === 'month8') {
+          matchesTime = nowTime - ideaTime <= 240 * 24 * 60 * 60 * 1000;
+        } else if (timeFilter === 'year1') {
+          matchesTime = nowTime - ideaTime <= 365 * 24 * 60 * 60 * 1000;
+        } else if (timeFilter === 'year2') {
+          matchesTime = nowTime - ideaTime <= 730 * 24 * 60 * 60 * 1000;
+        }
+
+        // Safety buffer for newly added ideas (within 10 minutes)
+        if (ideaTime > nowTime - 600000 && ideaTime < nowTime + 600000) {
+          matchesTime = true;
+        }
+
+        if (matchesTime) {
+          const cat = idea.category || 'Other';
+          counts[cat] = (counts[cat] || 0) + 1;
+        }
       }
     });
     return counts;
-  }, [state.ideas]);
+  }, [state.ideas, timeFilter]);
 
   // Segregate filtered lists into TrustMRR structured grid blocks
   // 1. Trending: Sorted by upvotes & collaborations count
@@ -1224,33 +1270,65 @@ export default function App() {
   // Active suggestions list addressed to the clicked idea details modal
   const activeSuggestions = state.suggestions.filter(s => selectedIdea && s.ideaId === selectedIdea.id);
 
-  // View tracking handler - optimized for instant updates
+  // View tracking handler - optimized for instant updates with cooldown protection
   const handleIdeaView = async (ideaId: string) => {
-    if (!isSupabaseConfigured) return;
-
+    // 1. Cooldown protection: Check if this idea was already viewed in this session/day
+    const VIEW_COOLDOWN = 24 * 60 * 60 * 1000; // 24 hour cooldown
+    const now = Date.now();
+    
     try {
-      // Direct update for reliability (triggers real-time update event)
-      const idea = state.ideas.find(i => i.id === ideaId);
-      const currentViews = idea?.viewsCount || 0;
-
-      const { error } = await supabase
-        .from('ideas')
-        .update({ views_count: currentViews + 1 })
-        .eq('id', ideaId);
-
-      if (error) {
-        // Fallback to database function if update fails
-        await supabase.rpc('increment_idea_views', { idea_uuid: ideaId });
+      const viewedData = safeParse(localStorage.getItem('vb_viewed_ideas'), {});
+      const lastViewed = viewedData[ideaId] || 0;
+      
+      if (now - lastViewed < VIEW_COOLDOWN) {
+        console.debug(`View skipped for ${ideaId}: Cooldown active`);
+        return;
       }
-    } catch (err: any) {
-      console.warn('View tracking sync failed:', err.message);
+      
+      // Update cooldown timestamp
+      viewedData[ideaId] = now;
+      localStorage.setItem('vb_viewed_ideas', JSON.stringify(viewedData));
+    } catch (e) {
+      console.warn('View cooldown check failed', e);
+    }
+
+    // 2. Optimistic UI update
+    setState(prev => ({
+      ...prev,
+      ideas: prev.ideas.map(idea => 
+        idea.id === ideaId 
+          ? { ...idea, viewsCount: (idea.viewsCount || 0) + 1 } 
+          : idea
+      )
+    }));
+
+    // 3. Sync with database if configured
+    if (isSupabaseConfigured) {
+      try {
+        const idea = state.ideas.find(i => i.id === ideaId);
+        const currentViews = idea?.viewsCount || 0;
+
+        const { error } = await supabase
+          .from('ideas')
+          .update({ views_count: currentViews + 1 })
+          .eq('id', ideaId);
+
+        if (error) {
+          // Fallback to database function if update fails
+          await supabase.rpc('increment_idea_views', { idea_uuid: ideaId });
+        }
+      } catch (err: any) {
+        console.warn('View tracking sync failed:', err.message);
+      }
     }
   };
 
   const handleIdeaClick = (idea: StartupIdea) => {
-    // Track view
-    handleIdeaView(idea.id);
+    // 1. Open the modal first for instant feedback
     setSelectedIdea(idea);
+    
+    // 2. Track view asynchronously
+    handleIdeaView(idea.id);
   };
 
   const handleLogout = async () => {
@@ -1269,11 +1347,14 @@ export default function App() {
   };
 
   return (
-    <div className="min-h-screen relative overflow-x-hidden bg-[#F9FAFB] dark:bg-slate-950 text-slate-900 dark:text-white flex flex-col font-sans selection:bg-blue-500/10 selection:text-blue-900 dark:selection:text-blue-200 transition-colors">
-      {/* Premium ambient radial glows */}
-      <div className="absolute top-0 left-[-10%] w-[800px] h-[800px] bg-blue-500/[0.04] dark:bg-blue-600/[0.03] rounded-full blur-[120px] pointer-events-none -z-10 animate-pulse duration-[10s]" />
-      <div className="absolute bottom-[10%] right-[-10%] w-[900px] h-[900px] bg-purple-500/[0.04] dark:bg-purple-600/[0.03] rounded-full blur-[140px] pointer-events-none -z-10 animate-pulse duration-[12s]" />
-      <div className="absolute top-[30%] left-[10%] w-[500px] h-[500px] bg-cyan-500/[0.03] dark:bg-cyan-600/[0.02] rounded-full blur-[100px] pointer-events-none -z-10" />
+    <div className="min-h-screen relative overflow-x-hidden bg-[#F8FAFC] text-[#334155] flex flex-col font-sans selection:bg-blue-500/10 selection:text-blue-900 transition-colors">
+      {/* Premium ambient radial glows - Exactly matching reference image colors and spread */}
+      <div className="absolute top-0 left-0 w-full h-[1000px] pointer-events-none -z-10 hero-glow-bg" />
+      
+      {/* Soft blue-purple ambient glow overlays */}
+      <div className="absolute top-0 left-[-10%] w-[1200px] h-[1000px] bg-[rgba(37,99,235,0.08)] rounded-full blur-[180px] pointer-events-none -z-10" />
+      <div className="absolute top-[5%] right-[-10%] w-[1000px] h-[900px] bg-[rgba(124,58,237,0.08)] rounded-full blur-[200px] pointer-events-none -z-10" />
+      <div className="absolute top-[40%] left-[15%] w-[800px] h-[800px] bg-[rgba(79,70,229,0.05)] rounded-full blur-[150px] pointer-events-none -z-10" />
       
       {/* HEADER SECTION (Sticky Search & Nav swaps) */}
       <Header
@@ -1299,35 +1380,35 @@ export default function App() {
         {currentView === 'explore' ? (
           
           /* EXPLORE HOMEPAGE DECK */
-          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-1 sm:py-3 space-y-5 sm:space-y-8" id="explore-view">
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-1 sm:py-3 space-y-6 sm:space-y-10" id="explore-view">
             
             {/* Geometric Centered Headline Callout */}
-            <div className="text-center max-w-4xl mx-auto space-y-3 sm:space-y-4 select-none pt-2 sm:pt-4" id="hero-centered-headline">
+            <div className="text-center max-w-5xl mx-auto space-y-4 sm:space-y-6 select-none pt-4 sm:pt-12" id="hero-centered-headline">
               
-              <div className="p-3 sm:p-4 bg-white/98 dark:bg-slate-900/98 backdrop-blur-sm rounded-[1.5rem] sm:rounded-[2.5rem] border-2 border-slate-200 dark:border-slate-800 shadow-sm">
-                <h2 className="responsive-heading font-display font-black text-slate-950 dark:text-white" id="main-visionboard-headline">
-                  The database of <span className="bg-gradient-to-r from-blue-600 via-indigo-600 to-purple-600 dark:from-blue-400 dark:via-indigo-400 dark:to-purple-500 bg-clip-text text-transparent block sm:inline drop-shadow-sm">future startup ideas</span>
+              <div className="relative inline-block px-10 py-5 bg-white/60 backdrop-blur-xl rounded-[2rem] border border-white/50 shadow-[0_20px_50px_-20px_rgba(70,90,255,0.15)] mb-4">
+                <h2 className="responsive-heading font-display font-black text-[#0F172A]" id="main-visionboard-headline">
+                  The database of <span className="bg-gradient-to-r from-[#2563EB] via-[#4F46E5] to-[#7C3AED] bg-clip-text text-transparent block sm:inline">future startup ideas</span>
                 </h2>
               </div>
 
               {/* Home Add Idea trigger and Search Bar alignment */}
-              <div className="flex flex-col sm:flex-row items-center justify-center gap-3 max-w-2xl mx-auto pt-0.5">
+              <div className="flex flex-col sm:flex-row items-center justify-center gap-4 max-w-3xl mx-auto pt-4">
                 {/* HERO SEARCH BAR */}
                 <div className="w-full sm:flex-1 relative group">
-                  <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-500 group-focus-within:text-blue-600 transition-colors z-10" />
+                  <Search className="absolute left-6 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400 group-focus-within:text-[#2563EB] transition-colors z-10" />
                   <input
                     type="text"
                     placeholder="Search ideas, founders..."
                     value={searchQuery}
                     onChange={(e) => setSearchQuery(e.target.value)}
-                    className="w-full pl-11 pr-4 py-3.5 bg-white dark:bg-slate-900 border-2 border-slate-200 dark:border-slate-800 focus:border-blue-600/60 dark:focus:border-blue-400/60 rounded-2xl text-sm font-bold transition-all outline-none dark:text-white placeholder-slate-400 shadow-sm"
+                    className="w-full pl-14 pr-8 py-4.5 bg-[#020617] text-white border border-slate-800 focus:border-[#2563EB]/50 rounded-2xl text-sm font-medium transition-all outline-none placeholder-slate-500 shadow-[0_25px_50px_-12px_rgba(0,0,0,0.5)]"
                   />
                 </div>
 
                 <button
                   id="add-idea-hero-btn"
                   onClick={() => setShowAddIdeaModal(true)}
-                  className="w-full sm:w-auto px-8 py-3.5 bg-slate-950 dark:bg-white text-white dark:text-slate-950 border-2 border-slate-950 dark:border-white text-sm font-black rounded-2xl hover:scale-[1.02] active:scale-[0.98] transition-all select-none cursor-pointer duration-300 shadow-lg"
+                  className="w-full sm:w-auto px-12 py-4.5 bg-[#020617] text-white border border-slate-800 text-sm font-black rounded-2xl hover:bg-[#0F172A] hover:scale-[1.02] active:scale-[0.98] transition-all select-none cursor-pointer duration-200 shadow-2xl"
                 >
                   + Add Your Idea
                 </button>
@@ -1335,22 +1416,22 @@ export default function App() {
             </div>
 
             {/* Filter & Stats Panel */}
-            <div className="flex flex-col lg:flex-row items-center justify-between gap-4 p-1 bg-white dark:bg-slate-900/95 backdrop-blur-sm rounded-3xl border-2 border-slate-200 dark:border-slate-800 shadow-sm overflow-hidden" id="hero-stats-panel">
+            <div className="flex flex-col lg:flex-row items-center justify-between gap-6 p-2 bg-white rounded-[2rem] border border-blue-100/30 shadow-[0_8px_30px_-10px_rgba(70,90,255,0.05)]" id="hero-stats-panel">
               {/* Left Side: Stats */}
-              <div className="flex items-center space-x-6 px-4 py-2 bg-slate-50 dark:bg-slate-800/50 rounded-2xl border border-slate-100 dark:border-slate-800/50">
+              <div className="flex items-center space-x-8 px-6 py-3 bg-slate-50/50 rounded-2xl border border-slate-100">
                 <div className="text-center sm:text-left select-none">
-                  <span className="block text-[9px] font-black font-mono text-slate-500 dark:text-slate-400 uppercase tracking-widest mb-0.5">Total Ideas</span>
-                  <span className="text-xl sm:text-2xl font-display font-black text-slate-950 dark:text-white tracking-tighter" id="total-ideas-count">
+                  <span className="block text-[10px] font-black font-mono text-slate-400 uppercase tracking-widest mb-1">Total Ideas</span>
+                  <span className="text-2xl sm:text-3xl font-display font-black text-slate-900 tracking-tighter" id="total-ideas-count">
                     {totalPublicIdeasCount.toLocaleString()}
                   </span>
                 </div>
-                <div className="h-7 w-1 bg-blue-600 rounded-full" />
+                <div className="h-8 w-1 bg-blue-600 rounded-full opacity-20" />
               </div>
 
               {/* Right Side: Filter Tabs */}
-              <div className="flex flex-col space-y-1 px-4 pb-2 sm:pb-0 flex-1 w-full max-w-4xl" id="time-filter-tabs">
-                <span className="text-[9px] font-black font-mono text-slate-500 dark:text-slate-400 uppercase tracking-widest text-center lg:text-left">Filter by Release Day</span>
-                <div className="flex items-center p-1 bg-slate-100/50 dark:bg-slate-950/50 border border-slate-200 dark:border-slate-800 rounded-2xl overflow-x-auto no-scrollbar mobile-scroll-container">
+              <div className="flex flex-col space-y-2 px-4 pb-2 sm:pb-0 flex-1 w-full max-w-4xl" id="time-filter-tabs">
+                <span className="text-[10px] font-black font-mono text-slate-400 uppercase tracking-widest text-center lg:text-left">Filter by Release Day</span>
+                <div className="flex items-center p-1.5 bg-slate-50/80 border border-slate-100 rounded-2xl overflow-x-auto no-scrollbar mobile-scroll-container">
                   {[
                     { id: 'all', label: 'All Time' },
                     { id: 'day', label: 'Today' },
@@ -1368,17 +1449,17 @@ export default function App() {
                       key={f.id}
                       id={`time-filter-${f.id}`}
                       onClick={() => setTimeFilter(f.id as any)}
-                      className={`px-3.5 py-2 rounded-xl text-[10px] font-black transition-all cursor-pointer whitespace-nowrap flex items-center space-x-2 ${
+                      className={`px-4 py-2 rounded-xl text-[11px] font-black transition-all cursor-pointer whitespace-nowrap flex items-center space-x-2 ${
                         timeFilter === f.id
-                          ? 'bg-slate-950 dark:bg-white text-white dark:text-slate-950 shadow-md scale-[1.02] z-10'
-                          : 'text-slate-500 hover:text-slate-950 dark:hover:text-white'
+                          ? 'premium-gradient text-white shadow-lg scale-[1.02] z-10'
+                          : 'text-[#64748B] hover:text-[#0F172A]'
                       }`}
                     >
                       <span>{f.label}</span>
-                      <span className={`px-1.5 py-0.5 rounded-md text-[8px] ${
+                      <span className={`px-2 py-0.5 rounded-md text-[9px] ${
                         timeFilter === f.id 
-                          ? 'bg-white/20 dark:bg-slate-200 text-white dark:text-slate-950' 
-                          : 'bg-slate-100 dark:bg-slate-800 text-slate-500'
+                          ? 'bg-white/10 text-white' 
+                          : 'bg-white text-[#64748B]'
                       }`}>
                         {timeFilterCounts[f.id] || 0}
                       </span>
@@ -1402,83 +1483,17 @@ export default function App() {
             </div>
 
           <div className="flex flex-col space-y-6 sm:space-y-10" id="ideas-main-feed">
-            {/* 1. Trending Ideas */}
-            <section id="trending-ideas-section">
-              <div className="flex items-center justify-between mb-4 sm:mb-6 px-1">
-                <div className="flex items-center space-x-2 select-none">
-                  <div className="p-1.5 rounded-lg bg-emerald-500 shadow-md">
-                    <Flame className="h-4 w-4 text-white" />
-                  </div>
-                  <h2 className="text-base sm:text-lg font-display font-black text-slate-950 dark:text-white uppercase tracking-tight">Trending Ideas</h2>
-                </div>
-                <div className="hidden sm:flex items-center space-x-2 text-[8px] font-black font-mono text-emerald-600 dark:text-emerald-400 uppercase tracking-widest bg-emerald-50/50 dark:bg-emerald-950/30 px-2.5 py-1.5 rounded-lg border border-emerald-100 dark:border-emerald-900/50 shadow-sm">
-                  <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
-                  <span>Feed Validated</span>
-                </div>
-              </div>
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
-                {isLoading ? (
-                  Array.from({ length: 3 }).map((_, i) => <CardSkeleton key={i} />)
-                ) : (
-                  trendingIdeas.map(idea => (
-                    <IdeaCard 
-                      key={idea.id} 
-                      idea={idea} 
-                      onCardClick={() => handleIdeaClick(idea)}
-                      onLikeClick={() => handleLikeToggle(idea.id)}
-                      isLikedByUser={likedIdeaIds.includes(idea.id)}
-                      isOwner={currentUser?.id === idea.founderId}
-                      rowStyle="trending"
-                    />
-                  ))
-                )}
-              </div>
-            </section>
-
-            {/* 2. Weekly Best */}
-            <section id="weekly-best-section">
-              <div className="flex items-center justify-between mb-4 sm:mb-6 px-1">
-                <div className="flex items-center space-x-2 select-none">
-                  <div className="p-1.5 rounded-lg bg-blue-500 shadow-md">
-                    <Star className="h-4 w-4 text-white" />
-                  </div>
-                  <h2 className="text-base sm:text-lg font-display font-black text-slate-950 dark:text-white uppercase tracking-tight">Weekly Best</h2>
-                </div>
-                <div className="hidden sm:flex items-center space-x-2 text-[8px] font-black font-mono text-blue-600 dark:text-blue-400 uppercase tracking-widest bg-blue-50/50 dark:bg-blue-950/30 px-2.5 py-1.5 rounded-lg border border-blue-100 dark:border-blue-900/50 shadow-sm">
-                  <span className="w-1.5 h-1.5 rounded-full bg-blue-500 animate-pulse" />
-                  <span>Editor Choice</span>
-                </div>
-              </div>
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
-                {isLoading ? (
-                  Array.from({ length: 3 }).map((_, i) => <CardSkeleton key={i} />)
-                ) : (
-                  weeklyBestIdeas.map(idea => (
-                    <IdeaCard 
-                      key={idea.id} 
-                      idea={idea} 
-                      onCardClick={() => handleIdeaClick(idea)}
-                      onLikeClick={() => handleLikeToggle(idea.id)}
-                      isLikedByUser={likedIdeaIds.includes(idea.id)}
-                      isOwner={currentUser?.id === idea.founderId}
-                      rowStyle="weekly"
-                    />
-                  ))
-                )}
-              </div>
-            </section>
-
-            {/* 3. Just Listed */}
+            {/* 1. Just Listed - Now prioritized for newest-first discovery */}
             <section id="just-listed-section">
-              <div className="flex items-center justify-between mb-4 sm:mb-6 px-1">
-                <div className="flex items-center space-x-2 select-none">
-                  <div className="p-1.5 rounded-lg bg-purple-500 shadow-md">
+              <div className="flex items-center justify-between mb-6 sm:mb-8 px-1">
+                <div className="flex items-center space-x-3 select-none">
+                  <div className="p-2 rounded-xl bg-purple-500 shadow-lg border border-purple-400/20">
                     <Sparkles className="h-4 w-4 text-white" />
                   </div>
-                  <h2 className="text-base sm:text-lg font-display font-black text-slate-950 dark:text-white uppercase tracking-tight">Just Listed</h2>
+                  <h2 className="text-lg sm:text-xl font-display font-black text-slate-900 uppercase tracking-tight">Just Listed</h2>
                 </div>
-                <div className="hidden sm:flex items-center space-x-2 text-[8px] font-black font-mono text-purple-600 dark:text-purple-400 uppercase tracking-widest bg-purple-50/50 dark:bg-purple-950/30 px-2.5 py-1.5 rounded-lg border border-purple-100 dark:border-purple-900/50 shadow-sm">
-                  <span className="w-1.5 h-1.5 rounded-full bg-purple-500 animate-pulse" />
+                <div className="hidden sm:flex items-center space-x-2.5 text-[10px] font-black font-mono text-purple-600 uppercase tracking-widest bg-purple-50 px-3 py-2 rounded-xl border border-purple-100 shadow-sm">
+                  <span className="w-2 h-2 rounded-full bg-purple-500 animate-pulse" />
                   <span>Verified Feed</span>
                 </div>
               </div>
@@ -1501,14 +1516,80 @@ export default function App() {
               </div>
             </section>
 
-            {/* LEADERBOARD / ALL DIRECTORY TABLE */}
-            <section id="directory-leaderboard-section" className="pb-6 sm:pb-10">
+            {/* 2. Trending Ideas */}
+            <section id="trending-ideas-section">
               <div className="flex items-center justify-between mb-6 sm:mb-8 px-1">
                 <div className="flex items-center space-x-3 select-none">
-                  <div className="p-2 rounded-xl bg-slate-950 dark:bg-white shadow-lg">
-                    <Users className="h-5 w-5 text-white dark:text-slate-950" />
+                  <div className="p-2 rounded-xl bg-emerald-500 shadow-lg border border-emerald-400/20">
+                    <Flame className="h-4 w-4 text-white" />
                   </div>
-                  <h2 className="text-lg sm:text-xl font-display font-black text-slate-950 dark:text-white uppercase tracking-tight">Startup Leaderboard</h2>
+                  <h2 className="text-lg sm:text-xl font-display font-black text-slate-900 uppercase tracking-tight">Trending Ideas</h2>
+                </div>
+                <div className="hidden sm:flex items-center space-x-2.5 text-[10px] font-black font-mono text-emerald-600 uppercase tracking-widest bg-emerald-50 px-3 py-2 rounded-xl border border-emerald-100 shadow-sm">
+                  <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
+                  <span>Feed Validated</span>
+                </div>
+              </div>
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
+                {isLoading ? (
+                  Array.from({ length: 3 }).map((_, i) => <CardSkeleton key={i} />)
+                ) : (
+                  trendingIdeas.map(idea => (
+                    <IdeaCard 
+                      key={idea.id} 
+                      idea={idea} 
+                      onCardClick={() => handleIdeaClick(idea)}
+                      onLikeClick={() => handleLikeToggle(idea.id)}
+                      isLikedByUser={likedIdeaIds.includes(idea.id)}
+                      isOwner={currentUser?.id === idea.founderId}
+                      rowStyle="trending"
+                    />
+                  ))
+                )}
+              </div>
+            </section>
+
+            {/* 3. Weekly Best */}
+            <section id="weekly-best-section">
+              <div className="flex items-center justify-between mb-6 sm:mb-8 px-1">
+                <div className="flex items-center space-x-3 select-none">
+                  <div className="p-2 rounded-xl bg-blue-500 shadow-lg border border-blue-400/20">
+                    <Star className="h-4 w-4 text-white" />
+                  </div>
+                  <h2 className="text-lg sm:text-xl font-display font-black text-slate-900 uppercase tracking-tight">Weekly Best</h2>
+                </div>
+                <div className="hidden sm:flex items-center space-x-2.5 text-[10px] font-black font-mono text-blue-600 uppercase tracking-widest bg-blue-50 px-3 py-2 rounded-xl border border-blue-100 shadow-sm">
+                  <span className="w-2 h-2 rounded-full bg-blue-500 animate-pulse" />
+                  <span>Editor Choice</span>
+                </div>
+              </div>
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
+                {isLoading ? (
+                  Array.from({ length: 3 }).map((_, i) => <CardSkeleton key={i} />)
+                ) : (
+                  weeklyBestIdeas.map(idea => (
+                    <IdeaCard 
+                      key={idea.id} 
+                      idea={idea} 
+                      onCardClick={() => handleIdeaClick(idea)}
+                      onLikeClick={() => handleLikeToggle(idea.id)}
+                      isLikedByUser={likedIdeaIds.includes(idea.id)}
+                      isOwner={currentUser?.id === idea.founderId}
+                      rowStyle="weekly"
+                    />
+                  ))
+                )}
+              </div>
+            </section>
+
+            {/* LEADERBOARD / ALL DIRECTORY TABLE */}
+            <section id="directory-leaderboard-section" className="pb-12 sm:pb-20">
+              <div className="flex items-center justify-between mb-8 sm:mb-10 px-1">
+                <div className="flex items-center space-x-4 select-none">
+                  <div className="p-2.5 rounded-2xl bg-slate-900 shadow-xl border border-slate-800">
+                    <Users className="h-5 w-5 text-white" />
+                  </div>
+                  <h2 className="text-xl sm:text-2xl font-display font-black text-slate-900 uppercase tracking-tight">Startup Leaderboard</h2>
                 </div>
               </div>
               {isLoading ? (

@@ -8,18 +8,34 @@
   --font-display: "Space Grotesk", "Inter", "Noto Sans", sans-serif;
   --font-mono: "JetBrains Mono", ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
   
-  --color-brand: #3b82f6;
-  --color-brand-dark: #2563eb;
+  --color-brand: #2563EB; /* Electric Blue */
+  --color-brand-indigo: #4F46E5;
+  --color-brand-purple: #7C3AED;
+  --color-brand-dark: #020617; /* Deep Navy */
+  
+  --shadow-premium: 0 12px 35px rgba(15, 23, 42, 0.06);
+  --border-premium: 1px solid #E2E8F0;
 }
 
 body {
   font-family: var(--font-sans);
-  background-color: #F8FAFC;
-  color: #020617; /* slate-950 */
+  background-color: #FFFFFF;
+  color: #0F172A;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   text-rendering: optimizeLegibility;
-  transition: background-color 0.3s ease, color 0.3s ease;
+  transition: background-color 0.25s ease, color 0.25s ease;
+}
+
+.hero-glow-bg {
+  background: 
+    radial-gradient(circle at 30% 30%, rgba(59, 130, 246, 0.18), transparent 45%), 
+    radial-gradient(circle at 70% 40%, rgba(139, 92, 246, 0.18), transparent 45%), 
+    linear-gradient(180deg, #FFFFFF, #F5F7FF);
+}
+
+.premium-gradient {
+  background: linear-gradient(135deg, #2563EB, #4F46E5, #7C3AED);
 }
 
 /* Multilingual handling: ensure proper wrapping and spacing for all scripts */

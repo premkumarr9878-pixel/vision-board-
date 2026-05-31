@@ -66,13 +66,13 @@ export default function Header({
         onClick();
         setIsMobileMenuOpen(false);
       }}
-      className={`flex items-center space-x-3 px-7 py-3.5 rounded-2xl text-[13px] font-black transition-all cursor-pointer border-2 ${
+      className={`flex items-center space-x-3 px-7 py-3 rounded-xl text-[13px] font-black transition-all cursor-pointer border ${
         active
-          ? 'bg-slate-100 dark:bg-slate-800 text-blue-700 dark:text-blue-400 border-blue-600/40 shadow-md scale-[1.02]'
-          : 'bg-white dark:bg-slate-900 text-slate-700 dark:text-slate-300 hover:text-slate-950 dark:hover:text-white border-slate-200 dark:border-slate-800 hover:border-slate-300 dark:hover:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-800'
+          ? 'bg-[#020617] text-white border-[#020617] shadow-lg scale-[1.02]'
+          : 'bg-white text-[#334155] hover:text-[#0F172A] border-[#E2E8F0] hover:border-[#CBD5E1] hover:bg-[#F8FAFC]'
       }`}
     >
-      <Icon className="h-5 w-5" />
+      <Icon className="h-4 w-4" />
       <span>{label}</span>
     </button>
   );
@@ -81,8 +81,8 @@ export default function Header({
     <header 
       className={`sticky top-0 z-50 transition-all duration-300 ${
         isScrolled 
-          ? 'py-2 bg-white/95 dark:bg-slate-950/95 border-b border-slate-200 dark:border-slate-800 shadow-sm backdrop-blur-md' 
-          : 'py-3 bg-white/50 dark:bg-slate-950/50 backdrop-blur-sm'
+          ? 'py-2 bg-white/95 border-b border-[#E2E8F0] shadow-[0_4px_20px_-10px_rgba(15,23,42,0.05)] backdrop-blur-md' 
+          : 'py-4 bg-transparent'
       }`}
     >
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -94,14 +94,13 @@ export default function Header({
               onClick={onExploreClick}
               className="flex items-center cursor-pointer group shrink-0 select-none"
             >
-              <div className="flex items-center space-x-2.5 transition-all duration-300 group-hover:scale-[1.01] active:scale-95">
-                <div className="w-9 h-9 bg-gradient-to-br from-blue-600 to-indigo-600 rounded-xl flex items-center justify-center shadow-md border border-white/20">
+              <div className="flex items-center space-x-3 transition-all duration-300 group-hover:scale-[1.01] active:scale-95">
+                <div className="w-10 h-10 bg-gradient-to-br from-[#2563EB] via-[#4F46E5] to-[#7C3AED] rounded-xl flex items-center justify-center shadow-lg border border-white/20">
                   <Rocket className="h-5 w-5 text-white transform rotate-45" />
                 </div>
-                <div className="flex items-baseline tracking-tight">
-                  <span className="text-lg font-black text-slate-950 dark:text-white">Vision</span>
-                  <span className="text-lg font-black bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent">Board</span>
-                </div>
+                <span className="font-display font-black text-2xl tracking-tighter text-[#0F172A]">
+                  Vision<span className="text-[#2563EB]">Board</span>
+                </span>
               </div>
             </div>
 
@@ -117,9 +116,59 @@ export default function Header({
           </div>
 
           {/* RIGHT ACTIONS */}
-            {/* RIGHT ACTIONS REMOVED BY USER REQUEST */}
-            <div className="flex items-center">
-            </div>
+          <div className="flex items-center space-x-2 sm:space-x-4">
+            <button
+              onClick={onAddIdeaClick}
+              className="hidden sm:flex items-center space-x-2 px-6 py-2.5 bg-[#020617] text-white rounded-xl text-[13px] font-black hover:bg-[#0F172A] transition-all shadow-lg active:scale-95"
+            >
+              <Plus className="h-4 w-4" />
+              <span>Launch Idea</span>
+            </button>
+
+            {currentUser ? (
+              <div className="relative">
+                <AnimatePresence>
+                  {isProfileOpen && (
+                    <motion.div
+                      initial={{ opacity: 0, y: 10, scale: 0.95 }}
+                      animate={{ opacity: 1, y: 0, scale: 1 }}
+                      exit={{ opacity: 0, y: 10, scale: 0.95 }}
+                      className="absolute right-0 mt-3 w-64 bg-white rounded-2xl shadow-2xl border border-[#E2E8F0] overflow-hidden z-50"
+                    >
+                      <div className="p-4 bg-[#F8FAFC] border-b border-[#E2E8F0]">
+                        <p className="text-xs font-black text-[#64748B] uppercase tracking-widest mb-1">Founder Profile</p>
+                        <p className="font-bold text-[#0F172A] truncate">{currentUser.name}</p>
+                      </div>
+                      <div className="p-2">
+                        <button
+                          onClick={onDashboardClick}
+                          className="w-full flex items-center space-x-3 px-4 py-3 text-sm font-bold text-[#334155] hover:text-[#0F172A] hover:bg-[#F8FAFC] rounded-xl transition-colors"
+                        >
+                          <LayoutDashboard className="h-4 w-4" />
+                          <span>Founder Hub</span>
+                        </button>
+                        <button
+                          onClick={onLogout}
+                          className="w-full flex items-center space-x-3 px-4 py-3 text-sm font-bold text-red-500 hover:bg-red-50 rounded-xl transition-colors"
+                        >
+                          <LogOut className="h-4 w-4" />
+                          <span>Sign Out</span>
+                        </button>
+                      </div>
+                    </motion.div>
+                  )}
+                </AnimatePresence>
+              </div>
+            ) : (
+              <button
+                onClick={onAuthClick}
+                className="flex items-center space-x-2 px-6 py-2.5 bg-[#020617] text-white rounded-xl text-[13px] font-black hover:bg-[#0F172A] transition-all shadow-lg active:scale-95"
+              >
+                <User className="h-4 w-4" />
+                <span>Founder Login</span>
+              </button>
+            )}
+          </div>
         </div>
       </div>
 
