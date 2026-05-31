@@ -103,16 +103,6 @@ export default function Header({
                 </span>
               </div>
             </div>
-
-            <div className="h-5 w-px bg-slate-200 dark:bg-slate-800 mx-1" />
-
-            <button
-              onClick={toggleTheme}
-              className="p-2 rounded-xl bg-slate-100 dark:bg-slate-900 text-slate-600 dark:text-slate-400 hover:text-blue-600 transition-all border border-transparent hover:border-blue-600/20"
-              aria-label="Toggle theme"
-            >
-              {theme === 'dark' ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
-            </button>
           </div>
 
           {/* RIGHT ACTIONS */}
