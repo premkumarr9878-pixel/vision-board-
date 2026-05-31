@@ -21,12 +21,37 @@ let hasAttemptedAuth = false;
 // Global error handler for uncaught promises to prevent silent failures
 if (typeof window !== 'undefined') {
   window.addEventListener('unhandledrejection', (event) => {
-    // Suppress generic Supabase/Auth errors that don't impact UX
-    if (event.reason?.message?.includes('Fetch argument') || event.reason?.status === 403) {
+    const reason = event.reason;
+    
+    // 1. Suppress generic Supabase/Auth errors that don't impact UX
+    if (reason && (
+      reason.message?.includes('Fetch argument') || 
+      reason.status === 403 ||
+      reason.code === 403 ||
+      reason.httpStatus === 403
+    )) {
       event.preventDefault();
       return;
     }
-    console.warn('Unhandled Promise Rejection:', event.reason);
+
+    // 2. Suppress empty object rejections (common in browser extensions)
+    if (reason && typeof reason === 'object') {
+      if (!reason.message && !reason.stack) {
+        event.preventDefault();
+        return;
+      }
+      if (Object.keys(reason).length === 0) {
+        event.preventDefault();
+        return;
+      }
+    }
+
+    if (!reason) {
+      event.preventDefault();
+      return;
+    }
+
+    console.warn('Unhandled Promise Rejection:', reason);
   });
 }
 

@@ -32,8 +32,19 @@ window.addEventListener('unhandledrejection', (event) => {
     return;
   }
 
-  // 3. If it's an object with no message and no stack, it's likely extension noise
-  if (reason && typeof reason === 'object' && !reason.message && !reason.stack) {
+  // 3. If it's an object with no message and no stack, or just an empty object, it's likely noise
+  if (reason && typeof reason === 'object') {
+    if (!reason.message && !reason.stack) {
+      event.preventDefault();
+      return;
+    }
+    if (Object.keys(reason).length === 0) {
+      event.preventDefault();
+      return;
+    }
+  }
+
+  if (!reason) {
     event.preventDefault();
     return;
   }
