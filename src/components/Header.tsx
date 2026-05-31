@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { Search, Plus, User, LogOut, LayoutDashboard, Globe, Moon, Sun, Menu, X, Rocket } from 'lucide-react';
+import { Search, Plus, User, Globe, Moon, Sun, Rocket } from 'lucide-react';
 import { FounderProfile } from '../types';
-import { motion, AnimatePresence } from 'framer-motion';
 
 interface HeaderProps {
   searchQuery: string;
@@ -31,7 +30,6 @@ export default function Header({
   toggleTheme
 }: HeaderProps) {
   const [isScrolled, setIsScrolled] = useState(false);
-  const [isProfileOpen, setIsProfileOpen] = useState(false);
 
   useEffect(() => {
     const handleScroll = () => {
@@ -40,14 +38,6 @@ export default function Header({
     window.addEventListener('scroll', handleScroll);
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
-
-  // Close profile dropdown when clicking outside
-  useEffect(() => {
-    if (!isProfileOpen) return;
-    const handleClick = () => setIsProfileOpen(false);
-    window.addEventListener('click', handleClick);
-    return () => window.removeEventListener('click', handleClick);
-  }, [isProfileOpen]);
 
   const NavButton = ({ 
     onClick, 
@@ -113,51 +103,7 @@ export default function Header({
               <span>Launch Idea</span>
             </button>
 
-            {currentUser ? (
-              <div className="relative">
-                <button
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    setIsProfileOpen(!isProfileOpen);
-                  }}
-                  className="w-10 h-10 rounded-xl border border-[#E2E8F0] flex items-center justify-center hover:border-[#2563EB] transition-all shadow-sm bg-white"
-                >
-                  <User className="h-5 w-5 text-slate-600" />
-                </button>
-
-                <AnimatePresence>
-                  {isProfileOpen && (
-                    <motion.div
-                      initial={{ opacity: 0, y: 10, scale: 0.95 }}
-                      animate={{ opacity: 1, y: 0, scale: 1 }}
-                      exit={{ opacity: 0, y: 10, scale: 0.95 }}
-                      className="absolute right-0 mt-3 w-64 bg-white rounded-2xl shadow-2xl border border-[#E2E8F0] overflow-hidden z-50"
-                    >
-                      <div className="p-4 bg-[#F8FAFC] border-b border-[#E2E8F0]">
-                        <p className="text-xs font-black text-[#64748B] uppercase tracking-widest mb-1">Founder Profile</p>
-                        <p className="font-bold text-[#0F172A] truncate">{currentUser.name}</p>
-                      </div>
-                      <div className="p-2">
-                        <button
-                          onClick={onDashboardClick}
-                          className="w-full flex items-center space-x-3 px-4 py-3 text-sm font-bold text-[#334155] hover:text-[#0F172A] hover:bg-[#F8FAFC] rounded-xl transition-colors"
-                        >
-                          <LayoutDashboard className="h-4 w-4" />
-                          <span>Founder Hub</span>
-                        </button>
-                        <button
-                          onClick={onLogout}
-                          className="w-full flex items-center space-x-3 px-4 py-3 text-sm font-bold text-red-500 hover:bg-red-50 rounded-xl transition-colors"
-                        >
-                          <LogOut className="h-4 w-4" />
-                          <span>Sign Out</span>
-                        </button>
-                      </div>
-                    </motion.div>
-                  )}
-                </AnimatePresence>
-              </div>
-            ) : (
+            {currentUser ? null : (
               <button
                 onClick={onAuthClick}
                 className="flex items-center space-x-2 px-6 py-2.5 bg-[#020617] text-white rounded-xl text-[13px] font-black hover:bg-[#0F172A] transition-all shadow-lg active:scale-95"
