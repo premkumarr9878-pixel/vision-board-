@@ -37,7 +37,7 @@ if (typeof window !== 'undefined') {
       reason.httpStatus === 403 ||
       reason.status === 404 ||
       reason.status === 422 ||
-      (reason.name === 'n' && reason.code === 403) // Targeted fix for specific extension error
+      reason.name === 'n' // Aggressive match for the specific extension signature 'n'
     )) {
       event.preventDefault();
       return;

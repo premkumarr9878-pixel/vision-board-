@@ -67,6 +67,7 @@ console.error = (...args) => {
     if ((firstArg.code === 403 || firstArg.code === 422) && (firstArg.httpStatus === 200 || firstArg.httpStatus === 403 || firstArg.httpStatus === 422)) {
       return;
     }
+    // Targeted suppression for the specific {name: 'n', code: 403} signature
     if (firstArg.name === 'n' && (firstArg.code === 403 || firstArg.code === 422)) {
       return;
     }
