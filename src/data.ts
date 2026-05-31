@@ -150,7 +150,7 @@ export const INITIAL_IDEAS: StartupIdea[] = [
     id: 'idea-5',
     name: 'PromptRefine',
     logo: '🤖',
-    banner: 'https://images.unsplash.com/photo-1677442136019-21780efad99a?auto=format&fit=crop&q=80&w=600',
+    banner: 'https://images.unsplash.com/photo-1620712943543-bcc4638d9f8d?auto=format&fit=crop&q=80&w=600',
     description: 'Collaborative development playground for refining, unit-testing, and running robust evaluations on LLM prompt sets.',
     whyThisWorks: 'Engineers are managing prompt files in messy Excel files. This creates a Git-like environment for immediate benchmarking.',
     problemSolved: 'Uncontrolled model response regression when pushing prompt updates to production.',

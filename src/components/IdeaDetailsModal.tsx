@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { X, Heart, Users, Share2, ClipboardList, BrainCircuit, Globe, Calendar, Check, Instagram, Facebook, UserCircle, ExternalLink, Twitter, Target, Zap, Sparkles, Eye } from 'lucide-react';
+import { X, Heart, Users, ClipboardList, BrainCircuit, Globe, Calendar, Check, Instagram, Facebook, UserCircle, ExternalLink, Twitter, Target, Zap, Sparkles, Eye } from 'lucide-react';
 import { StartupIdea, Suggestion, FounderProfile } from '../types';
 import { motion, AnimatePresence } from 'framer-motion';
 
@@ -45,15 +45,7 @@ export default function IdeaDetailsModal({
   onFounderProfileClick = () => {},
   currentUser
 }: IdeaDetailsModalProps) {
-  const [showShareNotification, setShowShareNotification] = useState(false);
-
   if (!isOpen) return null;
-
-  const handleShare = () => {
-    navigator.clipboard.writeText(window.location.href);
-    setShowShareNotification(true);
-    setTimeout(() => setShowShareNotification(false), 2000);
-  };
 
   return (
     <AnimatePresence>
@@ -89,16 +81,8 @@ export default function IdeaDetailsModal({
             ) : (
               <div className="w-full h-full bg-gradient-to-r from-blue-600 to-indigo-700 opacity-90" />
             )}
-            {/* Absolute close and share */}
+            {/* Absolute close button */}
             <div className="absolute top-4 right-4 flex space-x-2">
-              <button
-                id="share-details-btn"
-                onClick={handleShare}
-                className="p-2 bg-white dark:bg-slate-900 hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-900 dark:text-white rounded-xl transition-all shadow-md flex items-center justify-center cursor-pointer border border-slate-200 dark:border-slate-800"
-                title="Copy Link to Idea"
-              >
-                <Share2 className="h-4 w-4 font-black" />
-              </button>
               <button
                 id="close-details-btn"
                 onClick={onClose}
@@ -108,14 +92,6 @@ export default function IdeaDetailsModal({
                 <X className="h-4 w-4 font-black" />
               </button>
             </div>
-
-            {/* Notification alert for copy */}
-            {showShareNotification && (
-              <div className="absolute top-16 right-4 px-3.5 py-1.5 bg-slate-900 text-white text-[11px] rounded-lg shadow-xl flex items-center space-x-1 animate-fade-in font-black border border-slate-700">
-                <Check className="h-3.5 w-3.5 text-emerald-400" />
-                <span>Link copied to clipboard!</span>
-              </div>
-            )}
             
             {/* Logo overlay */}
             <div className="absolute -bottom-8 left-6 sm:left-8 w-22 h-22 rounded-2xl bg-white dark:bg-slate-900 flex items-center justify-center text-4xl border-4 border-white dark:border-slate-950 shadow-xl select-none overflow-hidden">
