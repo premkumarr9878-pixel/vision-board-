@@ -31,7 +31,6 @@ export default function Header({
   toggleTheme
 }: HeaderProps) {
   const [isScrolled, setIsScrolled] = useState(false);
-  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [isProfileOpen, setIsProfileOpen] = useState(false);
 
   useEffect(() => {
@@ -64,7 +63,6 @@ export default function Header({
     <button
       onClick={() => {
         onClick();
-        setIsMobileMenuOpen(false);
       }}
       className={`flex items-center space-x-3 px-7 py-3 rounded-xl text-[13px] font-black transition-all cursor-pointer border ${
         active
@@ -122,14 +120,9 @@ export default function Header({
                     e.stopPropagation();
                     setIsProfileOpen(!isProfileOpen);
                   }}
-                  className="w-10 h-10 rounded-xl border border-[#E2E8F0] overflow-hidden hover:border-[#2563EB] transition-all shadow-sm"
+                  className="w-10 h-10 rounded-xl border border-[#E2E8F0] flex items-center justify-center hover:border-[#2563EB] transition-all shadow-sm bg-white"
                 >
-                  <img 
-                    src={currentUser.avatar} 
-                    alt={currentUser.name} 
-                    className="w-full h-full object-cover"
-                    referrerPolicy="no-referrer"
-                  />
+                  <User className="h-5 w-5 text-slate-600" />
                 </button>
 
                 <AnimatePresence>
@@ -173,82 +166,9 @@ export default function Header({
                 <span>Founder Login</span>
               </button>
             )}
-
-            <button
-              onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-              className="lg:hidden p-2.5 text-slate-600 hover:text-slate-900 hover:bg-slate-50 rounded-xl transition-colors"
-            >
-              {isMobileMenuOpen ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
-            </button>
           </div>
         </div>
       </div>
-
-      {/* MOBILE MENU OVERLAY */}
-      <AnimatePresence>
-        {isMobileMenuOpen && (
-          <>
-            <motion.div
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              onClick={() => setIsMobileMenuOpen(false)}
-              className="fixed inset-0 bg-slate-950/20 dark:bg-slate-950/60 backdrop-blur-sm z-40 lg:hidden"
-            />
-            <motion.div
-              initial={{ x: '100%' }}
-              animate={{ x: 0 }}
-              exit={{ x: '100%' }}
-              transition={{ type: 'spring', damping: 25, stiffness: 200 }}
-              className="fixed right-0 top-0 bottom-0 w-[280px] bg-white dark:bg-slate-950 border-l border-slate-200 dark:border-slate-800 z-50 lg:hidden p-6 shadow-2xl"
-            >
-              <div className="flex flex-col h-full">
-                <div className="flex items-center justify-between mb-8">
-                  <span className="text-lg font-black font-display text-slate-950 dark:text-white">Menu</span>
-                  <button onClick={() => setIsMobileMenuOpen(false)} className="p-2 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-900">
-                    <X className="h-5 w-5 text-slate-400" />
-                  </button>
-                </div>
-
-                <div className="space-y-3 flex-1">
-                  <NavButton 
-                    onClick={onAddIdeaClick} 
-                    icon={Plus} 
-                    label="Publish Idea" 
-                  />
-                </div>
-
-                <div className="pt-6 border-t border-slate-100 dark:border-slate-800">
-                  {currentUser ? (
-                    <div className="space-y-4">
-                      <button
-                        onClick={() => {
-                          onLogout();
-                          setIsMobileMenuOpen(false);
-                        }}
-                        className="w-full flex items-center justify-center space-x-2 py-3 bg-red-50 dark:bg-red-900/20 text-red-600 text-xs font-black rounded-xl transition-all"
-                      >
-                        <LogOut className="h-4 w-4" />
-                        <span>Sign Out</span>
-                      </button>
-                    </div>
-                  ) : (
-                    <button
-                      onClick={() => {
-                        onAuthClick();
-                        setIsMobileMenuOpen(false);
-                      }}
-                      className="w-full py-4 bg-slate-950 dark:bg-white text-white dark:text-slate-950 text-xs font-black rounded-xl shadow-lg"
-                    >
-                      Join the Network
-                    </button>
-                  )}
-                </div>
-              </div>
-            </motion.div>
-          </>
-        )}
-      </AnimatePresence>
     </header>
   );
 }
