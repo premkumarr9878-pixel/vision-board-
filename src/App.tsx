@@ -23,30 +23,34 @@ if (typeof window !== 'undefined') {
   window.addEventListener('unhandledrejection', (event) => {
     const reason = event.reason;
     
-    // 1. Suppress generic Supabase/Auth errors that don't impact UX
+    // 1. Suppress rejections that are just empty objects or null/undefined
+    if (!reason || (typeof reason === 'object' && Object.keys(reason).length === 0)) {
+      event.preventDefault();
+      return;
+    }
+
+    // 2. Suppress generic Supabase/Auth/Network errors that don't impact UX
     if (reason && (
       reason.message?.includes('Fetch argument') || 
       reason.status === 403 ||
       reason.code === 403 ||
-      reason.httpStatus === 403
+      reason.httpStatus === 403 ||
+      reason.status === 404 ||
+      reason.status === 422
     )) {
       event.preventDefault();
       return;
     }
 
-    // 2. Suppress empty object rejections (common in browser extensions)
-    if (reason && typeof reason === 'object') {
-      if (!reason.message && !reason.stack) {
-        event.preventDefault();
-        return;
-      }
-      if (Object.keys(reason).length === 0) {
-        event.preventDefault();
-        return;
-      }
+    // 3. Suppress errors originating from browser extensions
+    const stack = reason?.stack || '';
+    if (stack.includes('extension://') || stack.includes('content.js')) {
+      event.preventDefault();
+      return;
     }
 
-    if (!reason) {
+    // 4. If it's an object with no message and no stack, it's likely extension noise
+    if (typeof reason === 'object' && !reason.message && !reason.stack) {
       event.preventDefault();
       return;
     }

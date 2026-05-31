@@ -7,49 +7,45 @@ import './index.css';
 window.addEventListener('unhandledrejection', (event) => {
   const reason = event.reason;
   
-  // 1. Suppress Supabase/Network/Extension 403/422 errors
+  // 1. Suppress rejections that are just empty objects or null/undefined
+  if (!reason || (typeof reason === 'object' && Object.keys(reason).length === 0)) {
+    event.preventDefault();
+    return;
+  }
+
+  // 2. Suppress Supabase/Network/Extension 403/422/404 errors
   if (reason && (
     reason.code === 403 || 
     reason.status === 403 || 
     reason.httpStatus === 403 ||
     reason.status === 422 ||
-    reason.code === 422
+    reason.code === 422 ||
+    reason.status === 404
   )) {
     event.preventDefault();
     return;
   }
 
-  // 403 error with httpStatus 200 is a common signature of extension-related rejections
-  if (reason && reason.code === 403 && reason.httpStatus === 200) {
-    event.preventDefault();
-    return;
-  }
-  
-  // 2. Suppress errors originating from browser extensions (content.js)
+  // 3. Suppress errors originating from browser extensions (content.js, extension://)
   const stack = reason?.stack || '';
-  if (stack.includes('extension://') || stack.includes('content.js')) {
+  const message = reason?.message || '';
+  if (
+    stack.includes('extension://') || 
+    stack.includes('content.js') || 
+    message.includes('extension') ||
+    (typeof reason === 'string' && reason.includes('extension'))
+  ) {
     event.preventDefault();
     return;
   }
 
-  // 3. If it's an object with no message and no stack, or just an empty object, it's likely noise
-  if (reason && typeof reason === 'object') {
-    if (!reason.message && !reason.stack) {
-      event.preventDefault();
-      return;
-    }
-    if (Object.keys(reason).length === 0) {
-      event.preventDefault();
-      return;
-    }
-  }
-
-  if (!reason) {
+  // 4. If it's an object with no message and no stack, it's likely extension noise
+  if (typeof reason === 'object' && !reason.message && !reason.stack) {
     event.preventDefault();
     return;
   }
 
-  console.error('Unhandled Promise Rejection:', reason);
+  console.warn('Unhandled Promise Rejection:', reason);
 });
 
 // Also catch standard errors from extensions
