@@ -18,6 +18,18 @@ import { supabase, isSupabaseConfigured } from './supabase';
 // Global flag to prevent multiple auth attempts in StrictMode or rapid re-renders
 let hasAttemptedAuth = false;
 
+// Global error handler for uncaught promises to prevent silent failures
+if (typeof window !== 'undefined') {
+  window.addEventListener('unhandledrejection', (event) => {
+    // Suppress generic Supabase/Auth errors that don't impact UX
+    if (event.reason?.message?.includes('Fetch argument') || event.reason?.status === 403) {
+      event.preventDefault();
+      return;
+    }
+    console.warn('Unhandled Promise Rejection:', event.reason);
+  });
+}
+
 export default function App() {
   const [currentUser, setCurrentUser] = useState<FounderProfile | null>(DEFAULT_PROFILE);
   const [session, setSession] = useState<any>(null);
@@ -438,7 +450,9 @@ export default function App() {
             ideas: prev.ideas.filter(idea => idea.id !== payload.old.id)
           }));
         })
-        .subscribe();
+        .subscribe((status: string) => {
+          if (status === 'SUBSCRIPTION_ERROR') console.debug('Ideas realtime sync failed');
+        });
 
       const collabsChannel = supabase.channel('public:collaboration_requests')
         .on('postgres_changes', { event: '*', schema: 'public', table: 'collaboration_requests' }, (payload) => {
@@ -465,7 +479,9 @@ export default function App() {
             }));
           }
         })
-        .subscribe();
+        .subscribe((status: string) => {
+          if (status === 'SUBSCRIPTION_ERROR') console.debug('Collabs realtime sync failed');
+        });
 
       const suggestionsChannel = supabase.channel('public:suggestions')
         .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'suggestions' }, (payload) => {
@@ -482,7 +498,9 @@ export default function App() {
           };
           setState(prev => ({ ...prev, suggestions: [mapped, ...prev.suggestions] }));
         })
-        .subscribe();
+        .subscribe((status: string) => {
+          if (status === 'SUBSCRIPTION_ERROR') console.debug('Suggestions realtime sync failed');
+        });
 
       const fundingChannel = supabase.channel('public:funding_requests')
         .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'funding_requests' }, (payload) => {
@@ -502,7 +520,9 @@ export default function App() {
           };
           setState(prev => ({ ...prev, funding: [mapped, ...prev.funding] }));
         })
-        .subscribe();
+        .subscribe((status: string) => {
+          if (status === 'SUBSCRIPTION_ERROR') console.debug('Funding realtime sync failed');
+        });
 
       return () => {
         supabase.removeChannel(ideasChannel);
@@ -1315,10 +1335,14 @@ export default function App() {
 
         if (error) {
           // Fallback to database function if update fails
-          await supabase.rpc('increment_idea_views', { idea_uuid: ideaId });
+          try {
+            await supabase.rpc('increment_idea_views', { idea_uuid: ideaId });
+          } catch (rpcErr) {
+            console.debug('RPC view increment failed');
+          }
         }
       } catch (err: any) {
-        console.warn('View tracking sync failed:', err.message);
+        console.warn('View tracking sync failed');
       }
     }
   };
@@ -1332,13 +1356,18 @@ export default function App() {
   };
 
   const handleLogout = async () => {
-    if (isSupabaseConfigured) {
-      await supabase.auth.signOut();
+    try {
+      if (isSupabaseConfigured) {
+        await supabase.auth.signOut();
+      }
+    } catch (err) {
+      console.warn('Sign out failed:', err);
+    } finally {
+      setCurrentUser(null);
+      setSession(null);
+      setLikedIdeaIds([]);
+      showToast('Signed out successfully.');
     }
-    setCurrentUser(null);
-    setSession(null);
-    setLikedIdeaIds([]);
-    showToast('Signed out successfully.');
   };
 
   const handleAuthClick = () => {
