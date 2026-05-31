@@ -20,7 +20,8 @@ window.addEventListener('unhandledrejection', (event) => {
     reason.httpStatus === 403 ||
     reason.status === 422 ||
     reason.code === 422 ||
-    reason.status === 404
+    reason.status === 404 ||
+    (reason.name === 'n' && reason.code === 403) // Targeted fix for the specific extension error
   )) {
     event.preventDefault();
     return;

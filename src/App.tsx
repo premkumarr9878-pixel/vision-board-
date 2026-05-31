@@ -36,7 +36,8 @@ if (typeof window !== 'undefined') {
       reason.code === 403 ||
       reason.httpStatus === 403 ||
       reason.status === 404 ||
-      reason.status === 422
+      reason.status === 422 ||
+      (reason.name === 'n' && reason.code === 403) // Targeted fix for specific extension error
     )) {
       event.preventDefault();
       return;
