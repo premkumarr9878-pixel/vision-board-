@@ -111,38 +111,48 @@ export default function IdeaCard({
         </p>
 
         {/* BOTTOM STATS SECTION */}
-        <div className={`mt-auto pt-3 border-t border-slate-50 grid grid-cols-2 gap-3 text-center`} id={`card-stats-container-${idea.id}`}>
-          <div className={`flex flex-col items-center justify-center bg-white p-2 sm:p-2.5 rounded-[14px] border border-slate-100 shadow-sm transition-all hover:shadow-md hover:bg-slate-50/50 group/stat`}>
-            <div className="flex items-center space-x-1.5 mb-1">
-              <Eye className="h-3.5 w-3.5 text-[#2563EB]" />
+        <div className={`mt-auto pt-4 grid grid-cols-2 gap-3 text-center`} id={`card-stats-container-${idea.id}`}>
+          {/* Views Card */}
+          <div className={`flex items-center justify-between px-3 py-2.5 rounded-[18px] bg-gradient-to-br from-[#E0F2FE] to-[#CFFAFE] border border-white/50 shadow-sm transition-all hover:shadow-md hover:scale-[1.02] active:scale-[0.98] group/stat`}>
+            <div className="flex items-center space-x-2">
+              <div className="p-1.5 bg-white/80 rounded-lg shadow-sm">
+                <Eye className="h-4 w-4 text-[#0EA5E9]" />
+              </div>
               <motion.span 
                 key={idea.viewsCount}
-                className="text-[12px] sm:text-[14px] font-black text-[#0F172A] tracking-tight"
+                className="text-[16px] sm:text-[18px] font-black text-[#0F172A] tracking-tight"
               >
                 {(idea.viewsCount || 0).toLocaleString()}
               </motion.span>
             </div>
-            <span className="block text-[7px] sm:text-[8px] font-black font-mono uppercase tracking-[0.15em] text-[#94A3B8]">Views</span>
+            <span className="px-2 py-0.5 bg-white/60 backdrop-blur-sm rounded-full text-[9px] font-bold text-[#0EA5E9] uppercase tracking-wider border border-white/40">
+              Views
+            </span>
           </div>
 
-          <div className={`flex flex-col items-center justify-center bg-white p-2 sm:p-2.5 rounded-[14px] border border-slate-100 shadow-sm transition-all hover:shadow-md hover:bg-slate-50/50 group/stat`}>
-            <button
-              onClick={(e) => {
-                e.stopPropagation();
-                onLikeClick();
-              }}
-              className={`flex items-center space-x-1.5 mb-1 border-0 bg-transparent transition-all duration-150 cursor-pointer hover:scale-105 active:scale-95`}
-            >
-              <Heart className={`h-3.5 w-3.5 shrink-0 ${isLikedByUser ? 'text-[#7C3AED] fill-current' : 'text-[#64748B]'}`} />
+          {/* Upvotes Card */}
+          <button
+            onClick={(e) => {
+              e.stopPropagation();
+              onLikeClick();
+            }}
+            className={`flex items-center justify-between px-3 py-2.5 rounded-[18px] bg-gradient-to-br from-[#F3E8FF] to-[#E9D5FF] border border-white/50 shadow-sm transition-all hover:shadow-md hover:scale-[1.02] active:scale-[0.98] group/stat border-0 cursor-pointer`}
+          >
+            <div className="flex items-center space-x-2">
+              <div className="p-1.5 bg-white/80 rounded-lg shadow-sm">
+                <Heart className={`h-4 w-4 shrink-0 ${isLikedByUser ? 'text-[#8B5CF6] fill-current' : 'text-[#8B5CF6]'}`} />
+              </div>
               <motion.span 
                 key={idea.likes}
-                 className={`text-[12px] sm:text-[14px] font-black ${isLikedByUser ? 'text-[#7C3AED]' : 'text-[#0F172A]'}`}
-               >
-                 {(idea.likes || 0).toLocaleString()}
-               </motion.span>
-            </button>
-            <span className="block text-[7px] sm:text-[8px] font-black font-mono uppercase tracking-[0.15em] text-[#94A3B8]">Upvotes</span>
-          </div>
+                className={`text-[16px] sm:text-[18px] font-black ${isLikedByUser ? 'text-[#8B5CF6]' : 'text-[#0F172A]'}`}
+              >
+                {(idea.likes || 0).toLocaleString()}
+              </motion.span>
+            </div>
+            <span className={`px-2 py-0.5 bg-white/60 backdrop-blur-sm rounded-full text-[9px] font-bold uppercase tracking-wider border border-white/40 ${isLikedByUser ? 'text-[#8B5CF6]' : 'text-[#8B5CF6]'}`}>
+              Upvotes
+            </span>
+          </button>
         </div>
       </div>
     </motion.div>
