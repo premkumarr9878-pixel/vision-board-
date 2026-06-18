@@ -26,6 +26,17 @@ const createDummyClient = () => {
   const mockResponse = { data: null, error: null };
   const mockPromise = Promise.resolve(mockResponse);
   
+  const mockChannel = {
+    on: () => mockChannel,
+    subscribe: (callback?: any) => {
+      if (typeof callback === 'function') {
+        // Call callback with success status to prevent errors
+        callback('SUBSCRIBED');
+      }
+      return { unsubscribe: () => {} };
+    },
+  };
+  
   const client: any = {
     auth: {
       getSession: () => Promise.resolve({ data: { session: null }, error: null }),
@@ -47,12 +58,7 @@ const createDummyClient = () => {
     update: () => client,
     delete: () => client,
     rpc: () => mockPromise,
-    channel: () => ({
-      on: () => ({
-        subscribe: () => ({ unsubscribe: () => {} })
-      }),
-      subscribe: () => ({ unsubscribe: () => {} })
-    }),
+    channel: () => mockChannel,
     removeChannel: () => {},
   };
   return client;
