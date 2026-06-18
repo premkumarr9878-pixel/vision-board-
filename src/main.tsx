@@ -3,16 +3,26 @@ import { createRoot } from 'react-dom/client';
 import App from './App.tsx';
 import './index.css';
 
+// Clean up any stale Supabase localStorage items on app start to prevent 403 errors
+(() => {
+  const keysToRemove: string[] = [];
+  for (let i = 0; i < localStorage.length; i++) {
+    const key = localStorage.key(i);
+    if (key && (
+      key.includes('supabase') || 
+      key.startsWith('sb-') ||
+      key.includes('auth_token')
+    )) {
+      keysToRemove.push(key);
+    }
+  }
+  keysToRemove.forEach(key => localStorage.removeItem(key));
+})();
+
 // Add comprehensive global error handling for unhandled promises
 window.addEventListener('unhandledrejection', (event) => {
   // Prevent the default browser logging of unhandled rejections
   event.preventDefault();
-  
-  // We'll suppress all unhandled promise rejections that aren't critical errors
-  // This handles:
-  // 1. Browser extension errors
-  // 2. Supabase auth errors when no credentials are set
-  // 3. Any other non-critical promise rejections
   return;
 });
 

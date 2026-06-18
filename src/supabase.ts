@@ -4,11 +4,17 @@ import { createClient } from '@supabase/supabase-js';
 const supabaseUrl = (import.meta.env.VITE_SUPABASE_URL || '').replace(/\/+$/, '').replace(/\/rest\/v1$/, '');
 const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY || '';
 
-export const isSupabaseConfigured = 
-  supabaseUrl && 
-  supabaseAnonKey && 
+// Stricter check: only consider Supabase configured if both URL and key are valid (not placeholders)
+const hasValidSupabaseUrl = supabaseUrl && 
+  !supabaseUrl.includes('example.supabase.co') && 
+  !supabaseUrl.includes('your-project.supabase.co') &&
+  !supabaseUrl.includes('xdlzkcitimwwjrylanid.supabase.co'); // The example URL from .env.example
+
+const hasValidSupabaseKey = supabaseAnonKey && 
   supabaseAnonKey !== 'YOUR_SUPABASE_ANON_KEY' &&
   !supabaseAnonKey.includes('YOUR_');
+
+export const isSupabaseConfigured = hasValidSupabaseUrl && hasValidSupabaseKey;
 
 if (!isSupabaseConfigured) {
    console.debug('Supabase credentials missing or invalid! The app will run in local-only mode. Please check your .env file.');
@@ -52,6 +58,16 @@ const createDummyClient = () => {
   return client;
 };
 
-export const supabase = isSupabaseConfigured 
-  ? createClient(supabaseUrl, supabaseAnonKey)
-  : createDummyClient();
+export const supabase = (() => {
+  if (!isSupabaseConfigured) {
+    return createDummyClient();
+  }
+  
+  try {
+    // Try to create real client, but if it fails, use dummy client
+    return createClient(supabaseUrl, supabaseAnonKey);
+  } catch (err) {
+    console.debug('Failed to create Supabase client, falling back to local-only mode:', err);
+    return createDummyClient();
+  }
+})();
