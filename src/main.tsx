@@ -32,12 +32,16 @@ Object.keys(originalConsole).forEach((key) => {
     if (
       argsStr.includes('Download the React DevTools') ||
       argsStr.includes('content.js') ||
+      argsStr.includes('background.js') ||
       argsStr.includes('extension') ||
       argsStr.includes('chrome-extension') ||
+      argsStr.includes('abcbjgholdjcjblkibolbppb') || // Specific extension ID causing errors
       argsStr.includes('supabase') ||
       argsStr.includes('403') ||
       argsStr.includes('422') ||
-      argsStr.includes('Uncaught (in promise)')
+      argsStr.includes('Uncaught (in promise)') ||
+      argsStr.includes('permission error') ||
+      argsStr.includes('UserAuthError')
     ) {
       return;
     }
@@ -73,10 +77,13 @@ window.addEventListener('error', (event) => {
   if (
     event.filename?.includes('extension') ||
     event.filename?.includes('content.js') ||
+    event.filename?.includes('background.js') ||
     event.filename?.includes('chrome-extension') ||
+    event.filename?.includes('abcbjgholdjcjblkibolbppb') || // Specific extension ID
     event.message?.includes('supabase') ||
     event.message?.includes('403') ||
-    event.message?.includes('422')
+    event.message?.includes('422') ||
+    event.message?.includes('permission error')
   ) {
     event.preventDefault();
     event.stopImmediatePropagation();
@@ -97,6 +104,8 @@ const OriginalPromise = Promise;
 (globalThis as any).Promise.reject = OriginalPromise.reject;
 (globalThis as any).Promise.all = OriginalPromise.all;
 (globalThis as any).Promise.race = OriginalPromise.race;
+(globalThis as any).Promise.allSettled = OriginalPromise.allSettled;
+(globalThis as any).Promise.any = OriginalPromise.any;
 
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
